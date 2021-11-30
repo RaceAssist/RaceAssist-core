@@ -1,0 +1,4 @@
+name: KeibaAssist
+version: 1.0.0
+main: dev.nikomaru.keibaassist.KeibaAssist
+api-version: 1.17
