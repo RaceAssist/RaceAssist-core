@@ -14,11 +14,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package dev.nikomaru.keibaassist.race.utils
+package dev.nikomaru.raceassist.race.utils
 
-import dev.nikomaru.keibaassist.KeibaAssist
-import dev.nikomaru.keibaassist.database.Database
-import dev.nikomaru.keibaassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.race.commands.SettingCircuit
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.TextColor
@@ -35,14 +35,13 @@ object InsideCircuit {
         insidePolygonMap[RaceID]!!.addPoint(x, z)
         player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
         SettingCircuit.removeCanSetInsideCircuit(player.uniqueId)
-        Bukkit.getScheduler().runTaskLater(KeibaAssist.plugin!!, Runnable {
+        Bukkit.getScheduler().runTaskLater(RaceAssist.plugin!!, Runnable {
             SettingCircuit.putCanSetInsideCircuit(player.uniqueId, true)
         }, 5)
     }
 
     fun finish(player: Player) {
-        val database = Database()
-        val connection: Connection = database.connection ?: return
+        val connection: Connection = Database.connection ?: return
         try {
             val statement = connection.prepareStatement("DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
             statement.setString(1, SettingCircuit.getRaceID()[player.uniqueId])

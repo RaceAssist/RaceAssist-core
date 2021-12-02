@@ -14,10 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package dev.nikomaru.keibaassist.race.event
+package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.keibaassist.race.commands.SettingCircuit
-import dev.nikomaru.keibaassist.race.utils.OutsideCircuit
+import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.YELLOW
 import net.kyori.adventure.text.format.TextColor
@@ -30,7 +30,7 @@ import java.util.*
 class SetOutsideCircuitEvent : Listener {
     @EventHandler
     fun onSetOutsideCircuitEvent(event: PlayerInteractEvent) {
-        if (Objects.isNull(SettingCircuit.getCanSetOutsideCircuit()[event.player.uniqueId])) {
+        if (SettingCircuit.getCanSetOutsideCircuit()[event.player.uniqueId] == null) {
             return
         }
         val player = event.player

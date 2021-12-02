@@ -14,10 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package dev.nikomaru.keibaassist.race.event
+package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.keibaassist.race.commands.SettingCircuit
-import dev.nikomaru.keibaassist.race.utils.InsideCircuit
+import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.YELLOW
 import net.kyori.adventure.text.format.TextColor

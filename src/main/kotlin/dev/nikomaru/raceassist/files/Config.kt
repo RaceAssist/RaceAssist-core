@@ -14,13 +14,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package dev.nikomaru.keibaassist.files
+package dev.nikomaru.raceassist.files
 
-import dev.nikomaru.keibaassist.KeibaAssist
-import dev.nikomaru.keibaassist.KeibaAssist.Companion.plugin
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import org.bukkit.configuration.file.FileConfiguration
 
-class Config() {
+class Config {
     private var config: FileConfiguration? = null
     var host: String? = null
     var port = 0
@@ -41,7 +40,7 @@ class Config() {
             config!!["SQLSetting.port"] = 3306
         }
         if (!config!!.isString("SQLSetting.database")) {
-            config!!["SQLSetting.database"] = "keibaassist"
+            config!!["SQLSetting.database"] = "raceassist"
         }
         if (!config!!.isString("SQLSetting.username")) {
             config!!["SQLSetting.username"] = "root"

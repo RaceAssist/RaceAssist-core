@@ -14,17 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package dev.nikomaru.keibaassist
+package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
-import dev.nikomaru.keibaassist.commands.CommandManager
-import dev.nikomaru.keibaassist.commands.ControlHorse
-import dev.nikomaru.keibaassist.database.Database
-import dev.nikomaru.keibaassist.files.Config
-import dev.nikomaru.keibaassist.race.commands.SettingCircuit
-import dev.nikomaru.keibaassist.race.commands.SettingRace
-import dev.nikomaru.keibaassist.race.event.SetInsideCircuitEvent
-import dev.nikomaru.keibaassist.race.event.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.commands.SettingRace
+import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
+import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.Connection
@@ -32,7 +30,7 @@ import java.sql.PreparedStatement
 import java.sql.SQLException
 import java.util.*
 
-class KeibaAssist : JavaPlugin() {
+class RaceAssist : JavaPlugin() {
     private var sql: Database? = null
 
     override fun onEnable() {
@@ -48,17 +46,16 @@ class KeibaAssist : JavaPlugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
+        sqlDisconnection()
     }
 
     private fun tabCompletion() {
-        //TODO staticにしたい
-        val database = Database()
-        database.initializeDatabase()
+        Database.initializeDatabase()
         val manager = PaperCommandManager(this)
         manager.commandCompletions.registerAsyncCompletion("AddedPlayer") {
             val groupList = ArrayList<String?>()
             try {
-                val connection: Connection = database.connection!!
+                val connection: Connection = Database.connection!!
                 val statement: PreparedStatement =
                     connection.prepareStatement("SELECT DISTINCT PlayerUUID FROM PlayerList")
                 val rs = statement.executeQuery()
@@ -75,7 +72,7 @@ class KeibaAssist : JavaPlugin() {
         manager.commandCompletions.registerAsyncCompletion("GroupID") {
             val groupList = ArrayList<String>()
             try {
-                val connection: Connection = database.connection!!
+                val connection: Connection = Database.connection!!
                 val statement: PreparedStatement = connection.prepareStatement("SELECT GroupID FROM GroupList")
                 val rs = statement.executeQuery()
                 while (rs.next()) {
@@ -91,35 +88,46 @@ class KeibaAssist : JavaPlugin() {
     }
 
     private fun registerCommands() {
-        val manager = PaperCommandManager(plugin)
-        manager.registerCommand(ControlHorse())
-        manager.registerCommand(CommandManager())
+        val manager = PaperCommandManager(this)
         manager.registerCommand(SettingCircuit())
         manager.registerCommand(SettingRace())
     }
 
     private fun registerEvents() {
-        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), plugin!!)
-        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), plugin!!)
+        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
+        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
     }
 
     private fun sqlConnection() {
-        sql = Database()
+       sql = Database()
         try {
             sql!!.connect()
         } catch (e: ClassNotFoundException) {
-            logger.warning("Database not connected 1")
+            plugin!!.logger.warning("Database not connected")
         } catch (e: SQLException) {
-            logger.warning("Database not connected 2")
+            plugin!!.logger.warning("Database not connected")
         }
-        if (sql!!.isConnected) {
-            logger.info("Database is connected!")
+        if (sql!!.isConnected()) {
+            plugin!!.logger.info("Database is connected!")
+        }
+    }
+
+    private fun sqlDisconnection() {
+        sql = Database()
+        try {
+            sql!!.disconnect()
+        } catch (e: ClassNotFoundException) {
+            plugin!!.logger.warning("Database not disconnected")
+        } catch (e: SQLException) {
+            plugin!!.logger.warning("Database not disconnected")
+        }
+        if (!sql!!.isConnected()) {
+            plugin!!.logger.info("Database is disconnected!")
         }
     }
 
     companion object {
-        var plugin: KeibaAssist? = null
-
+        var plugin: RaceAssist? = null
     }
 }
 

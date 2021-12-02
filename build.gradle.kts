@@ -30,8 +30,8 @@ tasks {
         kotlinOptions.jvmTarget = "11"
     }
     shadowJar {
-        relocate("co.aikar.commands", "dev.nikomaru.keibaassist.acf")
-        relocate("co.aikar.locales", "dev.nikomaru.keibaassist.acf.locales")
+        relocate("co.aikar.commands", "dev.nikomaru.receassist.acf")
+        relocate("co.aikar.locales", "dev.nikomaru.raceassist.acf.locales")
         archiveClassifier.set("")
     }
     build {
