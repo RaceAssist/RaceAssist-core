@@ -29,7 +29,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.awt.Polygon
 import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
@@ -38,31 +37,6 @@ import java.util.*
 @Subcommand("race")
 class SettingRace : BaseCommand() {
 
-    @Subcommand("addPlayer")
-    @CommandCompletion("@RaceID @Player")
-    fun addPlayer(sender: CommandSender, raceID: String, player: Player) {
-        val connection: Connection = Database.connection!!
-
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text("レース作成者しか追加することはできません", TextColor.color(RED)))
-            return
-        }
-        if(getRacePlayerExist(raceID,player.uniqueId)){
-            sender.sendMessage(text("すでにそのプレイヤーは存在します", TextColor.color(YELLOW)))
-            return
-        }
-        try {
-            val statement: PreparedStatement =
-                connection.prepareStatement("INSERT INTO PlayerList(RaceID,PlayerUUID) VALUES (?,?)")
-            statement.setString(1, raceID)
-            statement.setString(2, player.uniqueId.toString())
-            statement.execute()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        sender.sendMessage("${player.name} を $raceID に追加しました ")
-    }
 
     @Subcommand("start")
     @CommandCompletion("@RaceID")
@@ -72,7 +46,6 @@ class SettingRace : BaseCommand() {
         }
         if(!getCircuitExist(raceID)){
             sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
-
             return
         }
 
@@ -96,13 +69,9 @@ class SettingRace : BaseCommand() {
         }
         val connection: Connection = Database.connection ?: return
         try {
-            val statement = connection.prepareStatement("INSERT INTO RaceList(RaceID,Creator,Reverse,Lap,CentralXPoint,CentralYPoint) VALUES (?,?,?,?,?,?)")
+            val statement = connection.prepareStatement("INSERT INTO RaceList(RaceID,Creator,Reverse,Lap,CentralXPoint,CentralYPoint) VALUES (?,?,false,0,0,0)")
             statement.setString(1, raceID)
             statement.setString(2, (sender as Player).uniqueId.toString())
-            statement.setBoolean(3,false)
-            statement.setInt(4,0)
-            statement.setInt(5,0)
-            statement.setInt(6,0)
             statement.execute()
             statement.close()
         } catch (e: SQLException) {
@@ -153,30 +122,13 @@ class SettingRace : BaseCommand() {
         return creatorUUID
     }
 
-    private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
-        val connection: Connection = Database.connection!!
-        var playerExist = false
-        try {
-            val statement = connection.prepareStatement("SELECT FROM PlayerList RaceID = ? AND PlayerUUID = ?")
-            statement.setString(1, RaceID)
-            statement.setString(2, playerUUID.toString())
-            val rs: ResultSet = statement.executeQuery()
-            while (rs.next()) {
-                playerExist = true
-            }
-            rs.close()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        return playerExist
-    }
+
 
     private fun getCircuitExist(raceID: String) : Boolean {
         val connection: Connection = Database.connection!!
         var playerExist = false
         try {
-            val statement = connection.prepareStatement("SELECT FROM PlayerList RaceID = ? AND PlayerUUID = ?")
+            val statement = connection.prepareStatement("SELECT FROM PlayerList WHERE RaceID = ? AND PlayerUUID = ?")
             statement.setString(1, raceID)
             val rs: ResultSet = statement.executeQuery()
             while (rs.next()) {
@@ -210,4 +162,24 @@ class SettingRace : BaseCommand() {
         }
         return polygon
     }
+    companion object{
+        fun getRaceCreator(raceID: String): UUID? {
+            var uuid: UUID? = null
+            try {
+                val connection: Connection = Database.connection!!
+                val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
+                statement.setString(1, raceID)
+                val rs = statement.executeQuery()
+                if (rs.next()) {
+                    uuid = UUID.fromString(rs.getString(2))
+                }
+                rs.close()
+                statement.close()
+            } catch (ex: SQLException) {
+                ex.printStackTrace()
+            }
+            return uuid
+        }
+    }
+
 }

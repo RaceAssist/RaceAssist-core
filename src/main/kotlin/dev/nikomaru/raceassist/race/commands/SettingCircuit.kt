@@ -45,10 +45,10 @@ class SettingCircuit : BaseCommand() {
         //TODO sender check
         val player = sender as Player
 
-        if (getRaceCreator(raceID) == null) {
+        if (SettingRace.getRaceCreator(raceID) == null) {
             player.sendMessage(text("レースが存在しません", TextColor.color(RED)))
             return
-        } else if (getRaceCreator(raceID) != player.uniqueId) {
+        } else if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
             return
         }
@@ -95,31 +95,15 @@ class SettingCircuit : BaseCommand() {
 
     }
 
-    private fun getRaceCreator(raceID: String): UUID? {
-        var uuid: UUID? = null
-        try {
-            val connection: Connection = Database.connection!!
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs = statement.executeQuery()
-            if (rs.next()) {
-                uuid = UUID.fromString(rs.getString(2))
-            }
-            rs.close()
-            statement.close()
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
-        }
-        return uuid
-    }
 
     private fun getInsideRaceExist(raceID: String): Boolean {
         var existRaceInside = false
         try {
             val connection: Connection = Database.connection!!
             val statement = connection.prepareStatement(
-                "SELECT * FROM CircuitPoint WHERE Inside = true"
+                "SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = true"
             )
+            statement.setString(1,raceID)
             val rs = statement.executeQuery()
             if (rs.next()) {
                 existRaceInside = true
