@@ -49,8 +49,6 @@ class SettingRace : BaseCommand() {
             return
         }
 
-        //TODO 5 start レース開始
-
     }
 
     @Subcommand("stop")
@@ -107,7 +105,7 @@ class SettingRace : BaseCommand() {
     }
 
     private fun getRaceCreator(RaceID: String): UUID? {
-        val connection: Connection = Database.connection!!
+        val connection: Connection = Database.connection ?: return null
         var creatorUUID: UUID? = null
         try {
             val statement = connection.prepareStatement("SELECT FROM RaceList WHERE RaceID = ?")
@@ -125,7 +123,7 @@ class SettingRace : BaseCommand() {
 
 
     private fun getCircuitExist(raceID: String) : Boolean {
-        val connection: Connection = Database.connection!!
+        val connection: Connection = Database.connection ?:return false
         var playerExist = false
         try {
             val statement = connection.prepareStatement("SELECT FROM PlayerList WHERE RaceID = ? AND PlayerUUID = ?")
@@ -144,8 +142,7 @@ class SettingRace : BaseCommand() {
 
     private fun getPolygon(raceID: String, inside: Boolean): Polygon {
         val polygon = Polygon()
-        val connection: Connection? = Database.connection
-        if (connection != null) {
+        val connection: Connection = Database.connection ?: return polygon
             try {
                 val statement = connection.prepareStatement(
                     "SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = ?"
@@ -159,14 +156,14 @@ class SettingRace : BaseCommand() {
             } catch (ex: SQLException) {
                 ex.printStackTrace()
             }
-        }
+
         return polygon
     }
     companion object{
         fun getRaceCreator(raceID: String): UUID? {
             var uuid: UUID? = null
             try {
-                val connection: Connection = Database.connection!!
+                val connection: Connection = Database.connection ?: return null
                 val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
                 statement.setString(1, raceID)
                 val rs = statement.executeQuery()

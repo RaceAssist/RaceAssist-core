@@ -75,7 +75,7 @@ class SettingPlayer : BaseCommand() {
 
 
     private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
-        val connection: Connection = Database.connection!!
+        val connection: Connection = Database.connection ?: return false
         var playerExist = false
         try {
             val statement = connection.prepareStatement("SELECT FROM PlayerList WHERE RaceID = ? AND PlayerUUID = ?")

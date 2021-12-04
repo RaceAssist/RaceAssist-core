@@ -30,8 +30,10 @@ import java.sql.PreparedStatement
 import java.sql.SQLException
 import java.util.*
 
+
 class RaceAssist : JavaPlugin() {
     private var sql: Database? = null
+
 
     override fun onEnable() {
         // Plugin startup logic

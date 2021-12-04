@@ -23,13 +23,17 @@ import co.aikar.commands.annotation.Subcommand
 import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
+
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.TextColor
+import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.sql.Connection
+import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
 
@@ -38,8 +42,28 @@ import java.util.*
 class SettingCircuit : BaseCommand() {
 
     //TODO reverse
+    @Subcommand("reverse")
+    @CommandCompletion("@raceID")
+    fun reverse(sender: CommandSender, raceID: String){
+        val player = sender as Player
+        if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
+            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            return
+        }
+        val nowDirection = getDirection(raceID)
+        try {
+            val connection: Connection = Database.connection ?: return
+            val statement = connection.prepareStatement("UPDATE RaceList SET Reverse = ? WHERE RaceID = ?")
+            statement.setBoolean(1,!nowDirection)
+            statement.setString(2,raceID)
+            statement.execute()
+        }catch (e:SQLException){
+            e.printStackTrace()
+        }
+        sender.sendMessage(text("レースの向きを変更しました", TextColor.color(GREEN)))
+    }
 
-    @Subcommand("Circuit")
+    @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
     fun set(sender: CommandSender, raceID: String, type: String) {
         //TODO sender check
@@ -60,7 +84,7 @@ class SettingCircuit : BaseCommand() {
             canSetInsideCircuit[player.uniqueId] = true
             player.sendMessage(text("内側のコース設定モードになりました", TextColor.color(GREEN)))
         } else if (type == "out") {
-            val insideCircuitExist :Boolean = getInsideRaceExist(raceID)
+            val insideCircuitExist: Boolean = getInsideRaceExist(raceID)
             if (!insideCircuitExist) {
                 player.sendMessage("内側のコースが設定されていません")
                 return
@@ -95,15 +119,32 @@ class SettingCircuit : BaseCommand() {
 
     }
 
+    private fun getDirection(raceID:String) :Boolean {
+        var direction= false
+        try{
+            val connection: Connection = Database.connection ?: return false
+            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
+            statement.setString(1, raceID)
+            val rs : ResultSet = statement.executeQuery()
+            if(rs.next() ){
+                direction = rs.getBoolean(3)
+            }
+            rs.close()
+            statement.close()
+        } catch (ex: SQLException) {
+            ex.printStackTrace()
+        }
+        return direction
+    }
 
     private fun getInsideRaceExist(raceID: String): Boolean {
         var existRaceInside = false
         try {
-            val connection: Connection = Database.connection!!
+            val connection: Connection = Database.connection ?: return false
             val statement = connection.prepareStatement(
                 "SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = true"
             )
-            statement.setString(1,raceID)
+            statement.setString(1, raceID)
             val rs = statement.executeQuery()
             if (rs.next()) {
                 existRaceInside = true
@@ -114,6 +155,26 @@ class SettingCircuit : BaseCommand() {
             ex.printStackTrace()
         }
         return existRaceInside
+    }
+
+    private fun getJockeys(raceID: String): ArrayList<OfflinePlayer>? {
+        val jockeys: ArrayList<OfflinePlayer> = ArrayList()
+        try {
+            val connection: Connection = Database.connection ?: return null
+            val statement = connection.prepareStatement(
+                "SELECT * FROM PlayerList WHERE RaceID = ?"
+            )
+            statement.setString(1, raceID)
+            val rs = statement.executeQuery()
+            if (rs.next()) {
+                jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString(2))))
+            }
+            rs.close()
+            statement.close()
+        }catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return jockeys
     }
 
     companion object {
