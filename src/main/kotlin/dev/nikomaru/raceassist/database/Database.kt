@@ -68,7 +68,7 @@ class Database {
             }
             try {
                 val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER NOT NULL,CentralYPoint INTEGER NOT NULL)"
+                    "CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER,CentralYPoint INTEGER,GoalDegree INTEGER)"
                 )
                 preparedStatement.execute()
                 preparedStatement.close()

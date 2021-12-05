@@ -157,25 +157,7 @@ class SettingCircuit : BaseCommand() {
         return existRaceInside
     }
 
-    private fun getJockeys(raceID: String): ArrayList<OfflinePlayer>? {
-        val jockeys: ArrayList<OfflinePlayer> = ArrayList()
-        try {
-            val connection: Connection = Database.connection ?: return null
-            val statement = connection.prepareStatement(
-                "SELECT * FROM PlayerList WHERE RaceID = ?"
-            )
-            statement.setString(1, raceID)
-            val rs = statement.executeQuery()
-            if (rs.next()) {
-                jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString(2))))
-            }
-            rs.close()
-            statement.close()
-        }catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        return jockeys
-    }
+
 
     companion object {
         private var canSetInsideCircuit = HashMap<UUID, Boolean>()

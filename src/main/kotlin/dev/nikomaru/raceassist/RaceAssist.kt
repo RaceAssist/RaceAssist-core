@@ -17,6 +17,7 @@
 package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
+import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.SettingCircuit
@@ -31,11 +32,11 @@ import java.sql.SQLException
 import java.util.*
 
 
-class RaceAssist : JavaPlugin() {
+class RaceAssist : SuspendingJavaPlugin() {
     private var sql: Database? = null
 
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
         val config = Config()
@@ -46,7 +47,7 @@ class RaceAssist : JavaPlugin() {
         tabCompletion()
     }
 
-    override fun onDisable() {
+    override suspend fun onDisableAsync() {
         // Plugin shutdown logic
         sqlDisconnection()
     }
