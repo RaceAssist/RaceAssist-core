@@ -85,6 +85,7 @@ class SettingRace : BaseCommand() {
                 val nowX = it.location.blockX
                 val nowY = it.location.blockZ
                 val currentDegree = atan2((nowX - centralXPoint).toDouble(), (nowY - centralYPoint).toDouble()).toInt()
+                //TODO さすがにゴミコードすぎるのでカスタマイズ性を犠牲にして90度ごとに変更する
                 if (goalDegree + threshold >= 360) {
                     if ((beforePoint[it.uniqueId]!! > goalDegree + threshold && beforePoint[it.uniqueId]!! <= goalDegree) && (currentDegree > goalDegree || currentDegree < (goalDegree + threshold) - 360)) {
                         currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
