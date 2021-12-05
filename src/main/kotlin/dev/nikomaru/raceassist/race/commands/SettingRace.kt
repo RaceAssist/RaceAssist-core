@@ -20,11 +20,14 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
 import co.aikar.commands.annotation.Subcommand
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.Database
 import kotlinx.coroutines.delay
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -34,7 +37,6 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.atan2
 
 @CommandAlias("ra|RaceAssist")
@@ -65,45 +67,113 @@ class SettingRace : BaseCommand() {
             sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
             return
         }
+        val insidePolygon = getPolygon(raceID, true)
+        val outsidePolygon = getPolygon(raceID, false)
         val centralXPoint: Int =
             getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
         val centralYPoint: Int =
             getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
         val goalDegree: Int =
             getGoalDegree(raceID) ?: return sender.sendMessage(text("ゴール角度が存在しません", TextColor.color(YELLOW)))
+        val reverse = getReverse(raceID) ?: false
         val lap: Int = getLapCount(raceID)
         val beforePoint: HashMap<UUID, Int> = HashMap()
         val currentLap: HashMap<UUID, Int> = HashMap()
-        val threshold = 40 % 90
+        val threshold = 40
+
         jockeys.forEach {
             it.sendMessage(text("${sender.name}が開始しました", TextColor.color(GREEN)))
             beforePoint[it.uniqueId] = 0
             currentLap[it.uniqueId] = 0
+        }
+        if (goalDegree % 90 != 0) {
+            sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
+            return
         }
         while (jockeys.size >= 1) {
             jockeys.forEach {
                 val nowX = it.location.blockX
                 val nowY = it.location.blockZ
                 val currentDegree = atan2((nowX - centralXPoint).toDouble(), (nowY - centralYPoint).toDouble()).toInt()
-                //TODO さすがにゴミコードすぎるのでカスタマイズ性を犠牲にして90度ごとに変更する
-                if (goalDegree + threshold >= 360) {
-                    if ((beforePoint[it.uniqueId]!! > goalDegree + threshold && beforePoint[it.uniqueId]!! <= goalDegree) && (currentDegree > goalDegree || currentDegree < (goalDegree + threshold) - 360)) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
-                    } else if ((currentDegree > goalDegree - threshold && currentDegree < goalDegree) && (beforePoint[it.uniqueId]!! > goalDegree && beforePoint[it.uniqueId]!! < (goalDegree + threshold) - 360)) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                val beforeLap = currentLap[it.uniqueId]
+                val jockey = BukkitAudiences.create(RaceAssist.plugin!!).player(it)
+//TODO reverseアリの時
+
+                when (goalDegree) {
+                    0 -> {
+                        if (beforePoint[it.uniqueId] in 360 - threshold until 360) {
+                            if (currentDegree in 0 until threshold) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
+                            }
+                        }
+                        if (beforePoint[it.uniqueId] in 0 until threshold) {
+                            if (currentDegree in 360 - threshold until 360) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                            }
+                        }
                     }
-                } else if (goalDegree - threshold < 0) {
-                    if ((360 - abs(goalDegree - threshold) < beforePoint[it.uniqueId]!! || goalDegree >= beforePoint[it.uniqueId]!!) && ((currentDegree > goalDegree) && (currentDegree < goalDegree + threshold))) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
-                    } else if ((360 - abs(goalDegree - threshold) < currentDegree || goalDegree >= currentDegree) && ((beforePoint[it.uniqueId]!! > goalDegree) && (beforePoint[it.uniqueId]!! < goalDegree + threshold))) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                    90 -> {
+                        if (beforePoint[it.uniqueId] in goalDegree - threshold until goalDegree) {
+                            if (currentDegree in goalDegree until goalDegree + threshold) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
+                            }
+                        }
+                        if (beforePoint[it.uniqueId] in goalDegree until goalDegree + threshold) {
+                            if (currentDegree in goalDegree - threshold until goalDegree) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                            }
+                        }
                     }
-                } else {
-                    if ((beforePoint[it.uniqueId]!! > (goalDegree - threshold) && beforePoint[it.uniqueId]!! <= goalDegree) && ((currentDegree > goalDegree) && (currentDegree < goalDegree + threshold))) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
-                    } else if ((currentDegree > (goalDegree - threshold) && currentDegree <= goalDegree) && (beforePoint[it.uniqueId]!! > goalDegree) && (beforePoint[it.uniqueId]!! < goalDegree + threshold)) {
-                        currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                    180 -> {
+                        if (beforePoint[it.uniqueId] in goalDegree - threshold until goalDegree) {
+                            if (currentDegree in goalDegree until goalDegree + threshold) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
+                            }
+                        }
+                        if (beforePoint[it.uniqueId] in goalDegree until goalDegree + threshold) {
+                            if (currentDegree in goalDegree - threshold until goalDegree) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                            }
+                        }
                     }
+                    270 -> {
+                        if (beforePoint[it.uniqueId] in goalDegree - threshold until goalDegree) {
+                            if (currentDegree in goalDegree until goalDegree + threshold) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! + 1
+                            }
+                        }
+                        if (beforePoint[it.uniqueId] in goalDegree until goalDegree + threshold) {
+                            if (currentDegree in goalDegree - threshold until goalDegree) {
+                                currentLap[it.uniqueId] = currentLap[it.uniqueId]!! - 1
+                            }
+                        }
+                    }
+
+                }
+
+                if (currentLap[it.uniqueId]!! > beforeLap!!) {
+                    jockey.showTitle(
+                        title(
+                            (text(
+                                "現在${currentLap[it.uniqueId]} / ${lap}ラップです ",
+                                TextColor.color(GREEN)
+                            )), text("ラップが一つ進みました", TextColor.color(BLUE))
+                        )
+                    )
+                    delay(500)
+                    jockey.clearTitle()
+                } else if (currentLap[it.uniqueId]!! < beforeLap) {
+                    jockey.showTitle(
+                        title(
+                            text("現在${currentLap[it.uniqueId]} / ${lap}ラップです ", TextColor.color(GREEN)),
+                            text("ラップが一つ戻りました", TextColor.color(RED))
+                        )
+                    )
+                    delay(500)
+                    jockey.clearTitle()
+                }
+                if (!insidePolygon.contains(nowX, nowY) && outsidePolygon.contains(nowX, nowY)) {
+                    jockey.sendActionBar(text("レース場外に出てる可能性があります", TextColor.color(RED)))
                 }
                 beforePoint[it.uniqueId] = currentDegree
                 if (currentLap[it.uniqueId]!! >= lap) {
@@ -171,12 +241,12 @@ class SettingRace : BaseCommand() {
         }
     }
 
-    private fun getRaceCreator(RaceID: String): UUID? {
+    private fun getRaceCreator(raceID: String): UUID? {
         val connection: Connection = Database.connection ?: return null
         var creatorUUID: UUID? = null
         try {
-            val statement = connection.prepareStatement("SELECT FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, RaceID)
+            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
+            statement.setString(1, raceID)
             val rs: ResultSet = statement.executeQuery()
             while (rs.next()) {
                 creatorUUID = UUID.fromString(rs.getString(2))
@@ -187,11 +257,27 @@ class SettingRace : BaseCommand() {
         return creatorUUID
     }
 
+    private fun getReverse(raceID: String): Boolean? {
+        val connection: Connection = Database.connection ?: return null
+        var reverse = false
+        try {
+            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
+            statement.setString(1, raceID)
+            val rs: ResultSet = statement.executeQuery()
+            while (rs.next()) {
+                reverse = rs.getBoolean(3)
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return reverse
+    }
+
     private fun getLapCount(raceID: String): Int {
         val connection: Connection = Database.connection ?: return 1
         var lapCount = 1
         try {
-            val statement = connection.prepareStatement("SELECT FROM RaceList WHERE RaceID = ?")
+            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
             statement.setString(1, raceID)
             val rs: ResultSet = statement.executeQuery()
             while (rs.next()) {
@@ -206,7 +292,7 @@ class SettingRace : BaseCommand() {
     private fun getCentralPoint(raceID: String, xPoint: Boolean): Int? {
         try {
             val connection: Connection = Database.connection ?: return 0
-            val statement = connection.prepareStatement("SELECT CentralXPoint FROM RaceList WHERE RaceID = ?")
+            val statement = connection.prepareStatement("SELECT * CentralXPoint FROM RaceList WHERE RaceID = ?")
             statement.setString(1, raceID)
             val rs: ResultSet = statement.executeQuery()
             if (rs.next()) {
@@ -261,7 +347,7 @@ class SettingRace : BaseCommand() {
         val connection: Connection = Database.connection ?: return false
         var raceExist = false
         try {
-            val statement = connection.prepareStatement("SELECT FROM CircuitPoint WHERE RaceID = ? AND Inside = ?")
+            val statement = connection.prepareStatement("SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = ?")
             statement.setString(1, raceID)
             statement.setBoolean(2, inside)
             val rs: ResultSet = statement.executeQuery()

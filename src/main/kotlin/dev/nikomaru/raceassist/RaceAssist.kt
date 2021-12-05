@@ -22,10 +22,10 @@ import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.SettingCircuit
 import dev.nikomaru.raceassist.race.commands.SettingRace
+import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
-import org.bukkit.plugin.java.JavaPlugin
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.SQLException
@@ -99,6 +99,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     private fun registerEvents() {
         Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
         Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
+        Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
     }
 
     private fun sqlConnection() {

@@ -44,7 +44,7 @@ class SetOutsideCircuitEvent : Listener {
             return
         }
         OutsideCircuit.outsideCircuit(
-            player, SettingCircuit.getRaceID()[player.uniqueId]!!,
+            player, SettingCircuit.getCircuitRaceID()[player.uniqueId]!!,
             Objects.requireNonNull(event.clickedBlock)!!.x,
             event.clickedBlock!!.z
         )

@@ -28,8 +28,6 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.TextColor
-import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.sql.Connection
@@ -41,7 +39,6 @@ import java.util.*
 @Subcommand("place")
 class SettingCircuit : BaseCommand() {
 
-    //TODO reverse
     @Subcommand("reverse")
     @CommandCompletion("@raceID")
     fun reverse(sender: CommandSender, raceID: String){
@@ -63,6 +60,18 @@ class SettingCircuit : BaseCommand() {
         sender.sendMessage(text("レースの向きを変更しました", TextColor.color(GREEN)))
     }
 
+    @Subcommand("central")
+    @CommandCompletion("@raceID")
+    fun central(sender: CommandSender, raceID: String) {
+        val player = sender as Player
+        if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
+            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            return
+        }
+        canSetCentral[player.uniqueId] = true
+        centralRaceID[player.uniqueId] = raceID
+        player.sendMessage(text("中心点を設定してください", TextColor.color(GREEN)))
+    }
     @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
     fun set(sender: CommandSender, raceID: String, type: String) {
@@ -92,7 +101,7 @@ class SettingCircuit : BaseCommand() {
             canSetOutsideCircuit[player.uniqueId] = true
             player.sendMessage(text("外側のコース設定モードになりました", TextColor.color(GREEN)))
         }
-        Companion.raceID[player.uniqueId] = raceID
+        Companion.circuitRaceID[player.uniqueId] = raceID
         player.sendMessage(text("左クリックで設定を開始し,右クリックで中断します", TextColor.color(GREEN)))
         player.sendMessage("設定を終了する場合は/KeibaAssist race circuit finish と入力してください")
     }
@@ -162,7 +171,9 @@ class SettingCircuit : BaseCommand() {
     companion object {
         private var canSetInsideCircuit = HashMap<UUID, Boolean>()
         private var canSetOutsideCircuit = HashMap<UUID, Boolean>()
-        private var raceID = HashMap<UUID, String>()
+        private var circuitRaceID = HashMap<UUID, String>()
+        private var canSetCentral = HashMap<UUID, Boolean>()
+        private var centralRaceID = HashMap<UUID, String>()
 
 
         fun getCanSetInsideCircuit(): HashMap<UUID, Boolean> {
@@ -173,8 +184,8 @@ class SettingCircuit : BaseCommand() {
             return canSetOutsideCircuit
         }
 
-        fun getRaceID(): HashMap<UUID, String> {
-            return raceID
+        fun getCircuitRaceID(): HashMap<UUID, String> {
+            return circuitRaceID
         }
 
         fun putCanSetInsideCircuit(uniqueId: UUID, b: Boolean) {
@@ -191,6 +202,16 @@ class SettingCircuit : BaseCommand() {
 
         fun removeCanSetOutsideCircuit(uniqueId: UUID) {
             canSetOutsideCircuit.remove(uniqueId)
+        }
+
+        fun getCanSetCentral(): HashMap<UUID, Boolean> {
+            return canSetCentral
+        }
+        fun removeCanSetCentral(uniqueId: UUID) {
+            canSetCentral.remove(uniqueId)
+        }
+        fun getCentralRaceID():HashMap<UUID, String>{
+            return centralRaceID
         }
     }
 }

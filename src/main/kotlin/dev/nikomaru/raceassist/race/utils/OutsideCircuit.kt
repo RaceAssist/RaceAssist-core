@@ -68,22 +68,22 @@ object OutsideCircuit {
             val statement = connection.prepareStatement(
                 "DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?"
             )
-            statement.setString(1, SettingCircuit.getRaceID()[player.uniqueId])
+            statement.setString(1, SettingCircuit.getCircuitRaceID()[player.uniqueId])
             statement.setBoolean(2, false)
             statement.execute()
             statement.close()
         } catch (ex: SQLException) {
             ex.printStackTrace()
         }
-        val x = outsidePolygonMap[SettingCircuit.getRaceID()[player.uniqueId]]!!.xpoints
-        val y = outsidePolygonMap[SettingCircuit.getRaceID()[player.uniqueId]]!!.ypoints
-        val n = outsidePolygonMap[SettingCircuit.getRaceID()[player.uniqueId]]!!.npoints
+        val x = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.xpoints
+        val y = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.ypoints
+        val n = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
             try {
                 val statement = connection.prepareStatement(
                     "INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)"
                 )
-                statement.setString(1, SettingCircuit.getRaceID()[player.uniqueId])
+                statement.setString(1, SettingCircuit.getCircuitRaceID()[player.uniqueId])
                 statement.setBoolean(2, false)
                 statement.setInt(3, x[i])
                 statement.setInt(4, y[i])
@@ -93,7 +93,7 @@ object OutsideCircuit {
                 e.printStackTrace()
             }
         }
-        outsidePolygonMap.remove(SettingCircuit.getRaceID()[player.uniqueId])
+        outsidePolygonMap.remove(SettingCircuit.getCircuitRaceID()[player.uniqueId])
         player.sendMessage(text("設定完了しました", TextColor.color(GREEN)))
     }
 }
