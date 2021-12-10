@@ -38,6 +38,7 @@ object InsideCircuit {
         Bukkit.getScheduler().runTaskLater(RaceAssist.plugin!!, Runnable {
             SettingCircuit.putCanSetInsideCircuit(player.uniqueId, true)
         }, 5)
+
     }
 
     fun finish(player: Player) {

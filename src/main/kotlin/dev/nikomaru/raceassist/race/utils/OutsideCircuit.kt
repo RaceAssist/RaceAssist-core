@@ -50,7 +50,7 @@ object OutsideCircuit {
                 ex.printStackTrace()
             }
         }
-        if (!insidePolygonMap[RaceID]!!.contains(x, z)) {
+        if (insidePolygonMap[RaceID]!!.contains(x, z)) {
             player.sendActionBar(text("設定する点は内側に設定した物より外にしてください"))
             return
         }

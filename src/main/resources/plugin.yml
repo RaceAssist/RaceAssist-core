@@ -1,7 +1,4 @@
-name: KeibaAssist
+name: RaceAssist
 version: 1.0.0
-main: dev.nikomaru.keibaassist.KeibaAssist
+main: dev.nikomaru.raceassist.RaceAssist
 api-version: 1.17
-libraries:
-  - com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0
-  - com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0

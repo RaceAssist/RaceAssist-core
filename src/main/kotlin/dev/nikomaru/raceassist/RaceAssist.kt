@@ -17,26 +17,24 @@
 package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
-import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.race.commands.SettingAudience
 import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.commands.SettingPlayer
 import dev.nikomaru.raceassist.race.commands.SettingRace
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
-import java.sql.Connection
-import java.sql.PreparedStatement
+import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
-import java.util.*
 
 
-class RaceAssist : SuspendingJavaPlugin() {
+class RaceAssist : JavaPlugin() {
     private var sql: Database? = null
 
-
-    override suspend fun onEnableAsync() {
+    override fun onEnable() {
         // Plugin startup logic
         plugin = this
         val config = Config()
@@ -44,56 +42,21 @@ class RaceAssist : SuspendingJavaPlugin() {
         sqlConnection()
         registerCommands()
         registerEvents()
-        tabCompletion()
+        Database.initializeDatabase()
     }
 
-    override suspend fun onDisableAsync() {
+    override fun onDisable() {
         // Plugin shutdown logic
         sqlDisconnection()
     }
 
-    private fun tabCompletion() {
-        Database.initializeDatabase()
-        val manager = PaperCommandManager(this)
-        manager.commandCompletions.registerAsyncCompletion("AddedPlayer") {
-            val groupList = ArrayList<String?>()
-            try {
-                val connection: Connection = Database.connection!!
-                val statement: PreparedStatement =
-                    connection.prepareStatement("SELECT DISTINCT PlayerUUID FROM PlayerList")
-                val rs = statement.executeQuery()
-                while (rs.next()) {
-                    groupList.add(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("PlayerUUID"))).name)
-                }
-                rs.close()
-                statement.close()
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
-            groupList
-        }
-        manager.commandCompletions.registerAsyncCompletion("GroupID") {
-            val groupList = ArrayList<String>()
-            try {
-                val connection: Connection = Database.connection!!
-                val statement: PreparedStatement = connection.prepareStatement("SELECT GroupID FROM GroupList")
-                val rs = statement.executeQuery()
-                while (rs.next()) {
-                    groupList.add(rs.getString("GroupID"))
-                }
-                rs.close()
-                statement.close()
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
-            groupList
-        }
-    }
 
     private fun registerCommands() {
         val manager = PaperCommandManager(this)
         manager.registerCommand(SettingCircuit())
         manager.registerCommand(SettingRace())
+        manager.registerCommand(SettingAudience())
+        manager.registerCommand(SettingPlayer())
     }
 
     private fun registerEvents() {

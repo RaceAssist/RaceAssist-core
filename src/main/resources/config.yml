@@ -1,6 +1,6 @@
 SQLSettings:
   host: "localhost"
   port: 3306
-  database: "keibaassist"
+  database: "raceassist"
   username: "root"
   password: ""

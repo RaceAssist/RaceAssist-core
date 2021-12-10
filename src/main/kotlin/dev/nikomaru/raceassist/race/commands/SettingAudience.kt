@@ -1,5 +1,6 @@
 package dev.nikomaru.raceassist.race.commands
 
+import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
 import co.aikar.commands.annotation.Subcommand
@@ -17,7 +18,7 @@ import java.util.*
 
 @CommandAlias("ra|RaceAssist")
 @Subcommand("Audience")
-class SettingAudience {
+class SettingAudience : BaseCommand(){
 
     @Subcommand("join")
     @CommandCompletion("@RaceID")
