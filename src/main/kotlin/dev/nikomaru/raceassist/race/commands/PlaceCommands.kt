@@ -17,10 +17,10 @@
 package dev.nikomaru.raceassist.race.commands
 
 import co.aikar.commands.BaseCommand
-import co.aikar.commands.annotation.CommandAlias
-import co.aikar.commands.annotation.CommandCompletion
-import co.aikar.commands.annotation.Subcommand
+import co.aikar.commands.annotation.*
 import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getCentralPoint
+import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getReverse
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 
@@ -34,16 +34,18 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
+import kotlin.math.atan2
 
 @CommandAlias("ra|RaceAssist")
 @Subcommand("place")
-class SettingCircuit : BaseCommand() {
+class PlaceCommands : BaseCommand() {
 
+    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("reverse")
     @CommandCompletion("@raceID")
-    fun reverse(sender: CommandSender, raceID: String){
+    fun reverse(sender: CommandSender, raceID: String) {
         val player = sender as Player
-        if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
+        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
             return
         }
@@ -51,20 +53,21 @@ class SettingCircuit : BaseCommand() {
         try {
             val connection: Connection = Database.connection ?: return
             val statement = connection.prepareStatement("UPDATE RaceList SET Reverse = ? WHERE RaceID = ?")
-            statement.setBoolean(1,!nowDirection)
-            statement.setString(2,raceID)
+            statement.setBoolean(1, !nowDirection)
+            statement.setString(2, raceID)
             statement.execute()
-        }catch (e:SQLException){
+        } catch (e: SQLException) {
             e.printStackTrace()
         }
         sender.sendMessage(text("レースの向きを変更しました", TextColor.color(GREEN)))
     }
 
+    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("central")
     @CommandCompletion("@raceID")
     fun central(sender: CommandSender, raceID: String) {
         val player = sender as Player
-        if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
+        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
             return
         }
@@ -72,16 +75,102 @@ class SettingCircuit : BaseCommand() {
         centralRaceID[player.uniqueId] = raceID
         player.sendMessage(text("中心点を設定してください", TextColor.color(GREEN)))
     }
+
+    @CommandPermission("RaceAssist.commands.place")
+    @Subcommand("degree")
+    @CommandCompletion("@raceID")
+    fun degree(sender: CommandSender, raceID: String) {
+        val player = sender as Player
+        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
+            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            return
+        }
+        val centralXPoint =
+            getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
+        val centralYPoint =
+            getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
+        val reverse = getReverse(raceID) ?: return sender.sendMessage(text("reverseが設定されていません", TextColor.color(RED)))
+        var nowX = player.location.blockX - centralXPoint
+        val nowY = player.location.blockZ - centralYPoint
+        if (reverse) {
+            nowX = -nowX
+        }
+        val currentDegree = if (Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt() < 0) {
+            360 + Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
+        } else {
+            Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
+        }
+        var degree = 0
+        when (currentDegree) {
+            in 0..45 -> {
+                player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
+                degree = 0
+            }
+            in 46..135 -> {
+                player.sendMessage(text("90度にしました", TextColor.color(GREEN)))
+                degree = 90
+            }
+            in 136..225 -> {
+                player.sendMessage(text("180度にしました", TextColor.color(GREEN)))
+                degree = 180
+            }
+            in 226..315 -> {
+                player.sendMessage(text("270度にしました", TextColor.color(GREEN)))
+                degree = 270
+            }
+            in 316..360 -> {
+                player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
+                degree = 0
+            }
+        }
+        try {
+            val connection: Connection = Database.connection ?: return
+            val statement = connection.prepareStatement("UPDATE RaceList SET GoalDegree = ? WHERE RaceID = ?")
+            statement.setInt(1, degree)
+            statement.setString(2, raceID)
+            statement.execute()
+            statement.close()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+    @CommandPermission("RaceAssist.commands.place")
+    @Subcommand("lap")
+    @CommandCompletion("@raceID @lap")
+    @Syntax("[RaceID] <lap>")
+    fun setLap(sender: CommandSender,@Single raceID: String,@Single lap: Int) {
+        val player = sender as Player
+        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
+            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            return
+        }
+        if (lap < 1) {
+            player.sendMessage(text("1以上の数字を入力してください", TextColor.color(RED)))
+            return
+        }
+        try {
+            val connection: Connection = Database.connection ?: return
+            val statement = connection.prepareStatement("UPDATE RaceList SET Lap = ? WHERE RaceID = ?")
+            statement.setInt(1, lap)
+            statement.setString(2, raceID)
+            statement.execute()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        player.sendMessage(text("ラップ数を設定しました", TextColor.color(GREEN)))
+    }
+
+    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
     fun set(sender: CommandSender, raceID: String, type: String) {
-        //TODO sender check
         val player = sender as Player
 
-        if (SettingRace.getRaceCreator(raceID) == null) {
+        if (RaceCommand.getRaceCreator(raceID) == null) {
             player.sendMessage(text("レースが存在しません", TextColor.color(RED)))
             return
-        } else if (SettingRace.getRaceCreator(raceID) != player.uniqueId) {
+        } else if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
             return
         }
@@ -101,12 +190,12 @@ class SettingCircuit : BaseCommand() {
             canSetOutsideCircuit[player.uniqueId] = true
             player.sendMessage(text("外側のコース設定モードになりました", TextColor.color(GREEN)))
         }
-        Companion.circuitRaceID[player.uniqueId] = raceID
+        circuitRaceID[player.uniqueId] = raceID
         player.sendMessage(text("左クリックで設定を開始し,右クリックで中断します", TextColor.color(GREEN)))
         player.sendMessage("設定を終了する場合は/KeibaAssist race circuit finish と入力してください")
     }
 
-
+    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("finish")
     fun finish(sender: CommandSender) {
         val player = sender as Player
@@ -124,18 +213,16 @@ class SettingCircuit : BaseCommand() {
             OutsideCircuit.finish(player)
             player.sendMessage("外側のコース設定を終了しました")
         }
-
-
     }
 
-    private fun getDirection(raceID:String) :Boolean {
-        var direction= false
-        try{
+    private fun getDirection(raceID: String): Boolean {
+        var direction = false
+        try {
             val connection: Connection = Database.connection ?: return false
             val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
             statement.setString(1, raceID)
-            val rs : ResultSet = statement.executeQuery()
-            if(rs.next() ){
+            val rs: ResultSet = statement.executeQuery()
+            if (rs.next()) {
                 direction = rs.getBoolean(3)
             }
             rs.close()
@@ -166,15 +253,12 @@ class SettingCircuit : BaseCommand() {
         return existRaceInside
     }
 
-
-
     companion object {
         private var canSetInsideCircuit = HashMap<UUID, Boolean>()
         private var canSetOutsideCircuit = HashMap<UUID, Boolean>()
         private var circuitRaceID = HashMap<UUID, String>()
         private var canSetCentral = HashMap<UUID, Boolean>()
         private var centralRaceID = HashMap<UUID, String>()
-
 
         fun getCanSetInsideCircuit(): HashMap<UUID, Boolean> {
             return canSetInsideCircuit
@@ -207,10 +291,12 @@ class SettingCircuit : BaseCommand() {
         fun getCanSetCentral(): HashMap<UUID, Boolean> {
             return canSetCentral
         }
+
         fun removeCanSetCentral(uniqueId: UUID) {
             canSetCentral.remove(uniqueId)
         }
-        fun getCentralRaceID():HashMap<UUID, String>{
+
+        fun getCentralRaceID(): HashMap<UUID, String> {
             return centralRaceID
         }
     }

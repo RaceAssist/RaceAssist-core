@@ -19,17 +19,16 @@ package dev.nikomaru.raceassist
 import co.aikar.commands.PaperCommandManager
 import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.SettingAudience
-import dev.nikomaru.raceassist.race.commands.SettingCircuit
-import dev.nikomaru.raceassist.race.commands.SettingPlayer
-import dev.nikomaru.raceassist.race.commands.SettingRace
+import dev.nikomaru.raceassist.race.commands.AudienceCommand
+import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.race.commands.PlayerCommand
+import dev.nikomaru.raceassist.race.commands.RaceCommand
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
-
 
 class RaceAssist : JavaPlugin() {
     private var sql: Database? = null
@@ -45,19 +44,18 @@ class RaceAssist : JavaPlugin() {
         Database.initializeDatabase()
     }
 
+
     override fun onDisable() {
         // Plugin shutdown logic
         sqlDisconnection()
-
     }
-
 
     private fun registerCommands() {
         val manager = PaperCommandManager(this)
-        manager.registerCommand(SettingCircuit())
-        manager.registerCommand(SettingRace())
-        manager.registerCommand(SettingAudience())
-        manager.registerCommand(SettingPlayer())
+        manager.registerCommand(PlaceCommands())
+        manager.registerCommand(RaceCommand())
+        manager.registerCommand(AudienceCommand())
+        manager.registerCommand(PlayerCommand())
     }
 
     private fun registerEvents() {
@@ -67,7 +65,7 @@ class RaceAssist : JavaPlugin() {
     }
 
     private fun sqlConnection() {
-       sql = Database()
+        sql = Database()
         try {
             sql!!.connect()
         } catch (e: ClassNotFoundException) {

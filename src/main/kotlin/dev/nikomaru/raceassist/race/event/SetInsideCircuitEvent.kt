@@ -16,7 +16,7 @@
  */
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.YELLOW
@@ -30,13 +30,13 @@ import java.util.*
 class SetInsideCircuitEvent : Listener {
     @EventHandler
     fun onSetInsideCircuitEvent(event: PlayerInteractEvent) {
-        if (Objects.isNull(SettingCircuit.getCanSetInsideCircuit()[event.player.uniqueId])) {
+        if (Objects.isNull(PlaceCommands.getCanSetInsideCircuit()[event.player.uniqueId])) {
             return
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
             player.sendMessage(text("処理を中断しました", TextColor.color(YELLOW)))
-            SettingCircuit.removeCanSetInsideCircuit(player.uniqueId)
+            PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
@@ -44,7 +44,8 @@ class SetInsideCircuitEvent : Listener {
             return
         }
         InsideCircuit.insideCircuit(
-            player, SettingCircuit.getCircuitRaceID()[player.uniqueId]!!,
+            player,
+            PlaceCommands.getCircuitRaceID()[player.uniqueId]!!,
             Objects.requireNonNull(event.clickedBlock)!!.x,
             event.clickedBlock!!.z
         )

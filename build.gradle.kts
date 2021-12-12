@@ -17,13 +17,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("co.aikar:acf-paper:0.5.0-SNAPSHOT")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
 }
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
 
 tasks {
     compileKotlin {

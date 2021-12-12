@@ -1,4 +1,4 @@
 name: RaceAssist
 version: 1.0.0
 main: dev.nikomaru.raceassist.RaceAssist
-api-version: 1.17
+api-version: 1.18

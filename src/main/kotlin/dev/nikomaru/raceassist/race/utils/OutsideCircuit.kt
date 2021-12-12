@@ -18,7 +18,7 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.Database
-import dev.nikomaru.raceassist.race.commands.SettingCircuit
+import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.TextColor
@@ -56,9 +56,9 @@ object OutsideCircuit {
         }
         outsidePolygonMap[RaceID]!!.addPoint(x, z)
         player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
-        SettingCircuit.removeCanSetOutsideCircuit(player.uniqueId)
+        PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(RaceAssist.plugin!!, Runnable {
-            SettingCircuit.putCanSetOutsideCircuit(player.uniqueId, true)
+            PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
         }, 5)
     }
 
@@ -68,22 +68,22 @@ object OutsideCircuit {
             val statement = connection.prepareStatement(
                 "DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?"
             )
-            statement.setString(1, SettingCircuit.getCircuitRaceID()[player.uniqueId])
+            statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
             statement.setBoolean(2, false)
             statement.execute()
             statement.close()
         } catch (ex: SQLException) {
             ex.printStackTrace()
         }
-        val x = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.xpoints
-        val y = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.ypoints
-        val n = outsidePolygonMap[SettingCircuit.getCircuitRaceID()[player.uniqueId]]!!.npoints
+        val x = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
+        val y = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
+        val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
             try {
                 val statement = connection.prepareStatement(
                     "INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)"
                 )
-                statement.setString(1, SettingCircuit.getCircuitRaceID()[player.uniqueId])
+                statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
                 statement.setBoolean(2, false)
                 statement.setInt(3, x[i])
                 statement.setInt(4, y[i])
@@ -93,7 +93,7 @@ object OutsideCircuit {
                 e.printStackTrace()
             }
         }
-        outsidePolygonMap.remove(SettingCircuit.getCircuitRaceID()[player.uniqueId])
+        outsidePolygonMap.remove(PlaceCommands.getCircuitRaceID()[player.uniqueId])
         player.sendMessage(text("設定完了しました", TextColor.color(GREEN)))
     }
 }

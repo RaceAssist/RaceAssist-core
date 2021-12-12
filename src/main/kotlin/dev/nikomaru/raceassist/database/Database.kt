@@ -23,11 +23,9 @@ import java.sql.SQLException
 
 class Database {
 
-
     fun isConnected(): Boolean {
         return connection != null
     }
-
 
     @Throws(ClassNotFoundException::class, SQLException::class)
     fun connect() {
@@ -54,7 +52,6 @@ class Database {
     companion object {
 
         var connection: Connection? = null
-
         fun initializeDatabase() {
 
             try {
@@ -84,8 +81,6 @@ class Database {
             } catch (ex: SQLException) {
                 ex.printStackTrace()
             }
-
         }
     }
-
 }

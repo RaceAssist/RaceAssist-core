@@ -18,7 +18,7 @@ import java.util.*
 
 @CommandAlias("ra|RaceAssist")
 @Subcommand("Audience")
-class SettingAudience : BaseCommand(){
+class AudienceCommand : BaseCommand() {
 
     @Subcommand("join")
     @CommandCompletion("@RaceID")
@@ -44,7 +44,6 @@ class SettingAudience : BaseCommand(){
         audience[raceID]?.remove((sender as Player).uniqueId)
         sender.sendMessage(text("退出しました", TextColor.color(GREEN)))
     }
-
 
     private fun getRaceExist(raceID: String): Boolean {
         var raceExist = false
