@@ -102,11 +102,11 @@ class PlaceCommands : BaseCommand() {
         }
         var degree = 0
         when (currentDegree) {
-            in 0..45 -> {
+            in 0..45    -> {
                 player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
                 degree = 0
             }
-            in 46..135 -> {
+            in 46..135  -> {
                 player.sendMessage(text("90度にしました", TextColor.color(GREEN)))
                 degree = 90
             }
@@ -139,7 +139,7 @@ class PlaceCommands : BaseCommand() {
     @Subcommand("lap")
     @CommandCompletion("@raceID @lap")
     @Syntax("[RaceID] <lap>")
-    fun setLap(sender: CommandSender,@Single raceID: String,@Single lap: Int) {
+    fun setLap(sender: CommandSender, @Single raceID: String, @Single lap: Int) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))

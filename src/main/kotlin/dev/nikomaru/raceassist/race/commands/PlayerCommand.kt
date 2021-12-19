@@ -47,6 +47,7 @@ class PlayerCommand : BaseCommand() {
         }
         sender.sendMessage("${player.name} を $raceID に追加しました ")
     }
+
     @CommandPermission("RaceAssist.commands.player")
     @Subcommand("remove")
     @CommandCompletion("@RaceID")

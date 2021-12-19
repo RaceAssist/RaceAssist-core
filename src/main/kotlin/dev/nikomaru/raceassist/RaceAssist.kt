@@ -44,7 +44,6 @@ class RaceAssist : JavaPlugin() {
         Database.initializeDatabase()
     }
 
-
     override fun onDisable() {
         // Plugin shutdown logic
         sqlDisconnection()

@@ -18,9 +18,14 @@ package dev.nikomaru.raceassist.race.commands
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.Database
 import dev.nikomaru.raceassist.race.commands.AudienceCommand.Companion.audience
+import dev.nikomaru.raceassist.utils.coroutines.DispatcherContainer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextColor
@@ -38,104 +43,108 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-@CommandAlias("ra|RaceAssist") @Subcommand("race") class RaceCommand : BaseCommand() {
+@CommandAlias("ra|RaceAssist")
+@Subcommand("race")
+class RaceCommand : BaseCommand() {
 
-    @CommandPermission("RaceAssist.commands.race") @Subcommand("start") @CommandCompletion("@RaceID") fun start(
-        sender: CommandSender, raceID: String
-    ) {
-        if (starting) {
-            sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
-            return
-        }
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
-            return
-        }
-        if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-            sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
-            return
-        }
-        val jockeys: ArrayList<Player> = ArrayList()
-        getAllJockeys(raceID)?.forEach { jockey ->
-            if (jockey.isOnline) {
-                jockeys.add(jockey as Player)
-                sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
-            } else {
-                sender.sendMessage(text("${jockey.name}はオフラインです", TextColor.color(YELLOW)))
+    @CommandPermission("RaceAssist.commands.race")
+    @Subcommand("start")
+    @CommandCompletion("@RaceID")
+    fun start(sender: CommandSender, raceID: String) {
+        plugin!!.launch {
+            if (starting) {
+                sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
+                return@launch
             }
-        }
-        if (jockeys.size < 2) {
-            sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
-            return
-        }
-
-        val centralXPoint: Int = getCentralPoint(raceID, true) ?: return sender.sendMessage(
-            text("中心点が存在しません", TextColor.color(YELLOW))
-        )
-        val centralYPoint: Int = getCentralPoint(raceID, false) ?: return sender.sendMessage(
-            text("中心点が存在しません", TextColor.color(YELLOW))
-        )
-        val goalDegree: Int = getGoalDegree(raceID) ?: return sender.sendMessage(
-            text("ゴール角度が存在しません", TextColor.color(YELLOW))
-        )
-
-        if (goalDegree % 90 != 0) {
-            sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
-            return
-        }
-        starting = true
-        val jockeyCount = jockeys.size
-        val finishJockey: ArrayList<UUID> = ArrayList<UUID>()
-        val totalDegree: HashMap<UUID, Int> = HashMap()
-        val insidePolygon = getPolygon(raceID, true)
-        val outsidePolygon = getPolygon(raceID, false)
-        val reverse = getReverse(raceID) ?: false
-        val lap: Int = getLapCount(raceID)
-        val beforeDegree: HashMap<UUID, Int> = HashMap()
-        val currentLap: HashMap<UUID, Int> = HashMap()
-        val threshold = 40
-        val raceAudience: ArrayList<UUID> = ArrayList()
-        val passBorders: HashMap<UUID, Int> = HashMap()
-
-        //内周の距離のカウント
-        //TODO なんか長い
-        var innerCircumference = 0.0
-        val insideX = insidePolygon.xpoints
-        val insideY = insidePolygon.ypoints
-        for (i in 0 until insidePolygon.npoints) {
-            innerCircumference += if (i <= insidePolygon.npoints - 1) {
-                kotlin.math.sqrt(
-                    (insideX[i] - insideX[i + 1]).toDouble().pow(2.0) + (insideY[i] - insideY[i + 1]).toDouble()
-                        .pow(2.0)
-                )
-            } else {
-                kotlin.math.sqrt(
-                    (insideX[i] - insideX[0]).toDouble().pow(2.0) + (insideY[i] - 0).toDouble().pow(2.0)
-                )
+            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
+                sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
+                return@launch
             }
-        }
-
-        //観客(スコアボードを表示する人)の設定
-        audience[raceID]?.forEach {
-            if (Bukkit.getPlayer(it) != null && Bukkit.getPlayer(it)?.isOnline == true) {
-                raceAudience.add(it)
+            if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
+                sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
+                return@launch
             }
-        }
-        jockeys.forEach {
-            raceAudience.add(it.uniqueId)
-        }
-
-        //5.4.3...1 のカウント
-        var timer1 = 0
-        object : BukkitRunnable() {
-            override fun run() {
-                if (timer1 >= 4) {
-                    cancel()
+            val jockeys: ArrayList<Player> = ArrayList()
+            getAllJockeys(raceID)?.forEach { jockey ->
+                if (jockey.isOnline) {
+                    jockeys.add(jockey as Player)
+                    sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
+                } else {
+                    sender.sendMessage(text("${jockey.name}はオフラインです", TextColor.color(YELLOW)))
                 }
+            }
+            if (jockeys.size < 2) {
+                sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
+                return@launch
+            }
+
+            val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
+                text("中心点が存在しません", TextColor.color(YELLOW))
+            )
+            val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
+                text("中心点が存在しません", TextColor.color(YELLOW))
+            )
+            val goalDegree: Int = getGoalDegree(raceID) ?: return@launch sender.sendMessage(
+                text("ゴール角度が存在しません", TextColor.color(YELLOW))
+            )
+
+            if (goalDegree % 90 != 0) {
+                sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
+                return@launch
+            }
+
+            starting = true
+            val jockeyCount = jockeys.size
+            val finishJockey: ArrayList<UUID> = ArrayList<UUID>()
+            val totalDegree: HashMap<UUID, Int> = HashMap()
+            val insidePolygon = getPolygon(raceID, true)
+            val outsidePolygon = getPolygon(raceID, false)
+            val reverse = getReverse(raceID) ?: false
+            val lap: Int = getLapCount(raceID)
+            val beforeDegree: HashMap<UUID, Int> = HashMap()
+            val currentLap: HashMap<UUID, Int> = HashMap()
+            val threshold = 40
+            val raceAudience: ArrayList<UUID> = ArrayList()
+            val passBorders: HashMap<UUID, Int> = HashMap()
+
+            //内周の距離のカウント
+            var innerCircumference = 0.0
+            val calculateInsideDistance = async(Dispatchers.async) {
+                val insideX = insidePolygon.xpoints
+                val insideY = insidePolygon.ypoints
+                for (i in 0 until insidePolygon.npoints) {
+                    innerCircumference += if (i <= insidePolygon.npoints - 2) {
+                        kotlin.math.sqrt(
+                            (insideX[i] - insideX[i + 1]).toDouble().pow(2.0) + (insideY[i] - insideY[i + 1]).toDouble()
+                                .pow(2.0)
+                        )
+                    } else {
+                        kotlin.math.sqrt(
+                            (insideX[i] - insideX[0]).toDouble().pow(2.0) + (insideY[i] - insideY[0]).toDouble()
+                                .pow(2.0)
+                        )
+                    }
+                }
+            }
+            //観客(スコアボードを表示する人)の設定
+            audience[raceID]?.forEach {
+                if (Bukkit.getPlayer(it) != null && Bukkit.getPlayer(it)?.isOnline == true) {
+                    raceAudience.add(it)
+                }
+            }
+            jockeys.forEach {
+                raceAudience.add(it.uniqueId)
+            }
+            raceAudience.add(sender.uniqueId)
+
+            //5.4.3...1 のカウント
+            var timer1 = 0
+            while (timer1 <= 4) {
                 jockeys.forEach {
                     it.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
                 }
@@ -144,102 +153,111 @@ import kotlin.math.roundToInt
                 }
                 sender.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
                 timer1++
+                delay(1000)
             }
-        }.runTaskTimer(plugin!!, 0, 20)
 
-        object : BukkitRunnable() {
-            override fun run() {
-                jockeys.forEach {
-                    it.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
-                    beforeDegree[it.uniqueId] = getRaceDegree(if (!reverse) it.location.blockX - centralXPoint
-                    else -(it.location.blockX - centralXPoint),it.location.blockZ - centralYPoint)
-                    currentLap[it.uniqueId] = 0
-                    passBorders[it.uniqueId] = 0
-                }
-                raceAudience.forEach {
-                    Bukkit.getPlayer(it)?.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
-                }
-                val randomJockey = jockeys.random()
-                val startDegree = getRaceDegree(
-                    randomJockey.location.blockZ - centralYPoint, if (reverse) {
-                        -(randomJockey.location.blockX - centralXPoint)
-                    } else {
-                        randomJockey.location.blockX - centralXPoint
-                    }
+            calculateInsideDistance.await()
+
+            jockeys.forEach {
+                it.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
+                beforeDegree[it.uniqueId] = getRaceDegree(
+                    if (!reverse) it.location.blockX - centralXPoint
+                    else -(it.location.blockX - centralXPoint), it.location.blockZ - centralYPoint
                 )
-
-                //TODO absolute degree
-                //レースの処理
-                object : BukkitRunnable() {
-                    override fun run() {
-                        val iterator = jockeys.iterator()
-                        while (iterator.hasNext()) {
-                            val player: Player = iterator.next()
-                            if (!player.isOnline) {
-                                iterator.remove()
-                                continue
-                            }
-                            val relativeNowX = if (!reverse) player.location.blockX - centralXPoint else -(player.location.blockX - centralXPoint)
-                            val relativeNowY = player.location.blockZ - centralYPoint
-                            val currentDegree = getRaceDegree(relativeNowY, relativeNowX)
-                            val beforeLap = currentLap[player.uniqueId]
-
-                            currentLap[player.uniqueId] = currentLap[player.uniqueId]!! + judgeLap(
-                                goalDegree, reverse, beforeDegree[player.uniqueId], currentDegree, threshold
-                            )
-                            passBorders[player.uniqueId] = passBorders[player.uniqueId]!! + judgeLap(
-                                0, reverse, beforeDegree[player.uniqueId], currentDegree, threshold
-                            )
-
-                            displayLap(currentLap[player.uniqueId], beforeLap, player, lap)
-
-                            if (insidePolygon.contains(
-                                    player.location.blockX, player.location.blockZ
-                                ) || !outsidePolygon.contains(player.location.blockX, player.location.blockZ)
-                            ) {
-                                player.sendActionBar(text("レース場外に出てる可能性があります", TextColor.color(RED)))
-                            }
-                            beforeDegree[player.uniqueId] = currentDegree
-                            if (currentLap[player.uniqueId]!! >= lap) {
-                                iterator.remove()
-                                finishJockey.add(player.uniqueId)
-                                totalDegree.remove(player.uniqueId)
-                                currentLap.remove(player.uniqueId)
-                                totalDegree.remove(player.uniqueId)
-                                player.sendMessage(
-                                    text("${jockeyCount - jockeys.size}/$jockeyCount 位です", TextColor.color(GREEN))
-                                )
-                                continue
-                            }
-
-                            totalDegree[player.uniqueId] = currentDegree + (passBorders[player.uniqueId]!! * 360)
-                        }
-                        if (jockeys.size < 1 || stop[raceID] == true) {
-                            object : BukkitRunnable() {
-                                override fun run() {
-                                    Bukkit.getOnlinePlayers().forEach {
-                                        it.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
-                                    }
-                                }
-                            }.runTaskLater(plugin!!, 40)
-                            starting = false
-                            cancel()
-                        }
-                        val raceAudienceIterator = raceAudience.iterator()
-                        while (raceAudienceIterator.hasNext()) {
-                            val it = raceAudienceIterator.next()
-                            if (!Bukkit.getOfflinePlayer(it).isOnline) {
-                                raceAudienceIterator.remove()
-                            }
-                        }
-                        displayScoreboard(
-                            finishJockey.plus(decideRanking(totalDegree)), currentLap, totalDegree, raceAudience,
-                            innerCircumference.roundToInt(), startDegree, lap
-                        )
-                    }
-                }.runTaskTimer(plugin!!, 0, (20 * 0.2).toLong())
+                currentLap[it.uniqueId] = 0
+                passBorders[it.uniqueId] = 0
             }
-        }.runTaskLater(plugin!!, 20 * 5)
+            raceAudience.forEach {
+                Bukkit.getPlayer(it)?.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
+            }
+            val randomJockey = jockeys.random()
+            val startDegree = getRaceDegree(
+                randomJockey.location.blockZ - centralYPoint, if (reverse) {
+                    -(randomJockey.location.blockX - centralXPoint)
+                } else {
+                    randomJockey.location.blockX - centralXPoint
+                }
+            )
+            delay(1000)
+
+            //レースの処理
+            while (jockeys.size >= 1 && stop[raceID] != true) {
+
+                val iterator = jockeys.iterator()
+                while (iterator.hasNext()) {
+                    val player: Player = iterator.next()
+                    if (!player.isOnline) {
+                        iterator.remove()
+                        continue
+                    }
+
+                    val nowX: Int = player.location.blockX
+                    val nowY = player.location.blockZ
+                    val relativeNowX = if (!reverse) nowX - centralXPoint else -(nowX - centralXPoint)
+                    val relativeNowY = nowY - centralYPoint
+                    val currentDegree = getRaceDegree(relativeNowY, relativeNowX)
+                    val uuid = player.uniqueId
+
+                    val beforeLap = currentLap[uuid]
+                    val calculateLap = async(Dispatchers.async) {
+                        currentLap[uuid] = currentLap[uuid]!! + judgeLap(
+                            goalDegree, reverse, beforeDegree[uuid], currentDegree, threshold
+                        )
+                        passBorders[uuid] =
+                            passBorders[uuid]!! + judgeLap(0, reverse, beforeDegree[uuid], currentDegree, threshold)
+                        displayLap(currentLap[uuid], beforeLap, player, lap)
+                        beforeDegree[uuid] = currentDegree
+                        totalDegree[uuid] = currentDegree + (passBorders[uuid]!! * 360)
+                    }
+
+                    if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
+                        player.sendActionBar(text("レース場外に出てる可能性があります", TextColor.color(RED)))
+                    }
+
+                    calculateLap.await()
+
+                    if (currentLap[uuid]!! >= lap) {
+                        iterator.remove()
+                        finishJockey.add(uuid)
+                        totalDegree.remove(uuid)
+                        currentLap.remove(uuid)
+                        player.sendMessage(
+                            text("${jockeyCount - jockeys.size}/$jockeyCount 位です", TextColor.color(GREEN))
+                        )
+                        continue
+                    }
+                }
+                val displayRanking = async(Dispatchers.minecraft) {
+                    val raceAudienceIterator = raceAudience.iterator()
+                    while (raceAudienceIterator.hasNext()) {
+                        val it = raceAudienceIterator.next()
+                        if (!Bukkit.getOfflinePlayer(it).isOnline) {
+                            raceAudienceIterator.remove()
+                        }
+                    }
+                    displayScoreboard(
+                        finishJockey.plus(decideRanking(totalDegree)),
+                        currentLap,
+                        totalDegree,
+                        raceAudience,
+                        innerCircumference.roundToInt(),
+                        startDegree,
+                        lap
+                    )
+                }
+                delay(50)
+                displayRanking.await()
+            }
+
+
+            delay(2000)
+            Bukkit.getOnlinePlayers().forEach {
+                it.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
+            }
+
+            starting = false
+
+        }
     }
 
     private fun getRaceDegree(Y: Int, X: Int): Int {
@@ -250,7 +268,10 @@ import kotlin.math.roundToInt
         }
     }
 
-    @CommandPermission("RaceAssist.commands.race") @Subcommand("debug") @CommandCompletion("@RaceID") fun debug(
+    @CommandPermission("RaceAssist.commands.race")
+    @Subcommand("debug")
+    @CommandCompletion("@RaceID")
+    fun debug(
         sender: CommandSender, @Single raceID: String
     ) {
         if (starting) {
@@ -357,17 +378,15 @@ import kotlin.math.roundToInt
     fun judgeLap(goalDegree: Int, reverse: Boolean, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
         if (currentDegree == null) return 0
         when (goalDegree) {
-            0 -> {
+            0   -> {
                 if ((beforeDegree in 360 - threshold until 360) && (currentDegree in 0 until threshold)) {
-                    Bukkit.getLogger().info("1")
                     return if (!reverse) 1 else -1
                 }
                 if ((beforeDegree in 0 until threshold) && (currentDegree in 360 - threshold until 360)) {
-                    Bukkit.getLogger().info("2")
                     return if (!reverse) -1 else 1
                 }
             }
-            90 -> {
+            90  -> {
 
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
                     return if (!reverse) 1 else -1
@@ -386,11 +405,9 @@ import kotlin.math.roundToInt
             }
             270 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
-                    Bukkit.getLogger().info("9")
                     return if (!reverse) 1 else -1
                 }
                 if ((beforeDegree in goalDegree until goalDegree + threshold) && (currentDegree in goalDegree - threshold until goalDegree)) {
-                    Bukkit.getLogger().info("10")
                     return if (!reverse) -1 else 1
                 }
             }
@@ -398,7 +415,10 @@ import kotlin.math.roundToInt
         return 0
     }
 
-    @CommandPermission("RaceAssist.commands.race") @Subcommand("stop") @CommandCompletion("@RaceID") fun stop(
+    @CommandPermission("RaceAssist.commands.race")
+    @Subcommand("stop")
+    @CommandCompletion("@RaceID")
+    fun stop(
         sender: CommandSender, raceID: String
     ) {
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
@@ -412,7 +432,10 @@ import kotlin.math.roundToInt
         }.runTaskLater(plugin!!, 20)
     }
 
-    @CommandPermission("RaceAssist.commands.race") @Subcommand("create") @CommandCompletion("@RaceID") fun create(
+    @CommandPermission("RaceAssist.commands.race")
+    @Subcommand("create")
+    @CommandCompletion("@RaceID")
+    fun create(
         sender: CommandSender, raceID: String
     ) {
         if (getRaceCreator(raceID) != null) {
@@ -434,7 +457,10 @@ import kotlin.math.roundToInt
         sender.sendMessage("レース場を作成しました")
     }
 
-    @CommandPermission("RaceAssist.commands.race") @Subcommand("delete") @CommandCompletion("@RaceID") fun delete(
+    @CommandPermission("RaceAssist.commands.race")
+    @Subcommand("delete")
+    @CommandCompletion("@RaceID")
+    fun delete(
         sender: CommandSender, raceID: String
     ) {
         val connection: Connection = Database.connection ?: return
@@ -497,8 +523,7 @@ import kotlin.math.roundToInt
     }
 
     fun displayScoreboard(
-        nowRankings: List<UUID>, currentLap: HashMap<UUID, Int>, currentDegree: HashMap<UUID, Int>,
-        raceAudience: ArrayList<UUID>, innerCircumference: Int, startDegree: Int, lap: Int
+        nowRankings: List<UUID>, currentLap: HashMap<UUID, Int>, currentDegree: HashMap<UUID, Int>, raceAudience: ArrayList<UUID>, innerCircumference: Int, startDegree: Int, lap: Int
     ) {
         val manager: ScoreboardManager = Bukkit.getScoreboardManager()
         val scoreboard = manager.newScoreboard
@@ -625,6 +650,15 @@ import kotlin.math.roundToInt
         }
         return raceExist
     }
+
+    val Dispatchers.async: CoroutineContext
+        get() = DispatcherContainer.async
+
+    /**
+     * Minecraft sync dispatcher.
+     */
+    val Dispatchers.minecraft: CoroutineContext
+        get() = DispatcherContainer.sync
 
     private fun getPolygon(raceID: String, inside: Boolean): Polygon {
         val polygon = Polygon()
