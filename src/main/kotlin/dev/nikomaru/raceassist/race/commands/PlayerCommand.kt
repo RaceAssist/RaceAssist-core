@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.nikomaru.raceassist.race.commands
 
 import co.aikar.commands.BaseCommand
@@ -36,8 +52,7 @@ class PlayerCommand : BaseCommand() {
         val connection: Connection = Database.connection ?: return
 
         try {
-            val statement: PreparedStatement =
-                connection.prepareStatement("INSERT INTO PlayerList(RaceID,PlayerUUID) VALUES (?,?)")
+            val statement: PreparedStatement = connection.prepareStatement("INSERT INTO PlayerList(RaceID,PlayerUUID) VALUES (?,?)")
             statement.setString(1, raceID)
             statement.setString(2, player.uniqueId.toString())
             statement.execute()
@@ -51,7 +66,7 @@ class PlayerCommand : BaseCommand() {
     @CommandPermission("RaceAssist.commands.player")
     @Subcommand("remove")
     @CommandCompletion("@RaceID")
-    private fun removePlayer(sender: CommandSender, raceID: String) {
+    private fun removePlayer(sender: CommandSender, @Single raceID: String) {
         if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
             sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
             return

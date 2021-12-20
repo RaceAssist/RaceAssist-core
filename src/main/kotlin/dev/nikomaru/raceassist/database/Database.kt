@@ -1,7 +1,6 @@
 /*
- *  Copyright © 2021 Nikomaru
- *
- *  This program is free software: you can redistribute it and/or modify
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -31,11 +30,8 @@ class Database {
     fun connect() {
         val config = Config()
         if (!isConnected()) {
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://" + config.host + ":" + config.port + "/" + config.database + "?useSSL=false",
-                config.username,
-                config.password
-            )
+            connection = DriverManager.getConnection("jdbc:mysql://" + config.host + ":" + config.port + "/" + config.database + "?useSSL=false",
+                                                     config.username, config.password)
         }
     }
 
@@ -56,8 +52,7 @@ class Database {
 
             try {
                 val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS PlayerList (RaceID VARCHAR(30) NOT NULL,PlayerUUID VARCHAR(40) NOT NULL)"
-                )
+                    "CREATE TABLE IF NOT EXISTS PlayerList (RaceID VARCHAR(30) NOT NULL,PlayerUUID VARCHAR(40) NOT NULL)")
                 preparedStatement.execute()
                 preparedStatement.close()
             } catch (ex: SQLException) {
@@ -65,8 +60,7 @@ class Database {
             }
             try {
                 val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER,CentralYPoint INTEGER,GoalDegree INTEGER)"
-                )
+                    "CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER,CentralYPoint INTEGER,GoalDegree INTEGER)")
                 preparedStatement.execute()
                 preparedStatement.close()
             } catch (ex: SQLException) {
@@ -74,8 +68,7 @@ class Database {
             }
             try {
                 val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS CircuitPoint(RaceID VARCHAR(30) NOT NULL,Inside BOOLEAN NOT NULL,XPoint INTEGER NOT NULL,YPoint INTEGER NOT NULL)"
-                )
+                    "CREATE TABLE IF NOT EXISTS CircuitPoint(RaceID VARCHAR(30) NOT NULL,Inside BOOLEAN NOT NULL,XPoint INTEGER NOT NULL,YPoint INTEGER NOT NULL)")
                 preparedStatement.execute()
                 preparedStatement.close()
             } catch (ex: SQLException) {

@@ -1,7 +1,6 @@
 /*
- *  Copyright © 2021 Nikomaru
- *
- *  This program is free software: you can redistribute it and/or modify
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -43,12 +42,8 @@ class SetInsideCircuitEvent : Listener {
             event.player.sendMessage(text("ブロックをクリックしてください", TextColor.color(YELLOW)))
             return
         }
-        InsideCircuit.insideCircuit(
-            player,
-            PlaceCommands.getCircuitRaceID()[player.uniqueId]!!,
-            Objects.requireNonNull(event.clickedBlock)!!.x,
-            event.clickedBlock!!.z
-        )
+        InsideCircuit.insideCircuit(player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
+                                    event.clickedBlock!!.z)
     }
 }
 

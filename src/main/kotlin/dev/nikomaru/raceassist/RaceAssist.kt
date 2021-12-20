@@ -1,7 +1,6 @@
 /*
- *  Copyright © 2021 Nikomaru
- *
- *  This program is free software: you can redistribute it and/or modify
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -46,7 +45,7 @@ class RaceAssist : JavaPlugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
-        sqlDisconnection()
+        sql?.disconnect()
     }
 
     private fun registerCommands() {
@@ -58,9 +57,15 @@ class RaceAssist : JavaPlugin() {
     }
 
     private fun registerEvents() {
-        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
+        Bukkit
+            .getPluginManager()
+            .registerEvents(SetInsideCircuitEvent(), this)
+        Bukkit
+            .getPluginManager()
+            .registerEvents(SetOutsideCircuitEvent(), this)
+        Bukkit
+            .getPluginManager()
+            .registerEvents(SetCentralPointEvent(), this)
     }
 
     private fun sqlConnection() {
@@ -74,20 +79,6 @@ class RaceAssist : JavaPlugin() {
         }
         if (sql!!.isConnected()) {
             plugin!!.logger.info("Database is connected!")
-        }
-    }
-
-    private fun sqlDisconnection() {
-        sql = Database()
-        try {
-            sql!!.disconnect()
-        } catch (e: ClassNotFoundException) {
-            plugin!!.logger.warning("Database not disconnected")
-        } catch (e: SQLException) {
-            plugin!!.logger.warning("Database not disconnected")
-        }
-        if (!sql!!.isConnected()) {
-            plugin!!.logger.info("Database is disconnected!")
         }
     }
 

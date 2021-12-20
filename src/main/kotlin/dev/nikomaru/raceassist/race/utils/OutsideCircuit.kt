@@ -1,7 +1,6 @@
 /*
- *  Copyright © 2021 Nikomaru
- *
- *  This program is free software: you can redistribute it and/or modify
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -37,9 +36,7 @@ object OutsideCircuit {
         if (insidePolygonMap[RaceID]!!.npoints == 0) {
             try {
                 val connection: Connection = Database.connection ?: return
-                val statement = connection.prepareStatement(
-                    "SELECT * FROM circuitPoint WHERE RaceID = ? AND Inside = ?"
-                )
+                val statement = connection.prepareStatement("SELECT * FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
                 statement.setString(1, RaceID)
                 statement.setBoolean(2, true)
                 val rs = statement.executeQuery()
@@ -57,17 +54,17 @@ object OutsideCircuit {
         outsidePolygonMap[RaceID]!!.addPoint(x, z)
         player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
         PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
-        Bukkit.getScheduler().runTaskLater(RaceAssist.plugin!!, Runnable {
-            PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
-        }, 5)
+        Bukkit
+            .getScheduler()
+            .runTaskLater(RaceAssist.plugin!!, Runnable {
+                PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
+            }, 5)
     }
 
     fun finish(player: Player) {
         val connection: Connection = Database.connection ?: return
         try {
-            val statement = connection.prepareStatement(
-                "DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?"
-            )
+            val statement = connection.prepareStatement("DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
             statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
             statement.setBoolean(2, false)
             statement.execute()
@@ -80,9 +77,7 @@ object OutsideCircuit {
         val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
             try {
-                val statement = connection.prepareStatement(
-                    "INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)"
-                )
+                val statement = connection.prepareStatement("INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)")
                 statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
                 statement.setBoolean(2, false)
                 statement.setInt(3, x[i])

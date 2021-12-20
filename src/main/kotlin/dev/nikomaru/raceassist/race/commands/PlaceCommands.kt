@@ -1,7 +1,6 @@
 /*
- *  Copyright © 2021 Nikomaru
- *
- *  This program is free software: you can redistribute it and/or modify
+ * Copyright © 2021 Nikomaru
+ * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -43,7 +42,7 @@ class PlaceCommands : BaseCommand() {
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("reverse")
     @CommandCompletion("@raceID")
-    fun reverse(sender: CommandSender, raceID: String) {
+    fun reverse(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
@@ -65,7 +64,7 @@ class PlaceCommands : BaseCommand() {
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("central")
     @CommandCompletion("@raceID")
-    fun central(sender: CommandSender, raceID: String) {
+    fun central(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
@@ -79,26 +78,31 @@ class PlaceCommands : BaseCommand() {
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("degree")
     @CommandCompletion("@raceID")
-    fun degree(sender: CommandSender, raceID: String) {
+    fun degree(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
             player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
             return
         }
-        val centralXPoint =
-            getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
-        val centralYPoint =
-            getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
+        val centralXPoint = getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
+        val centralYPoint = getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
         val reverse = getReverse(raceID) ?: return sender.sendMessage(text("reverseが設定されていません", TextColor.color(RED)))
         var nowX = player.location.blockX - centralXPoint
         val nowY = player.location.blockZ - centralYPoint
         if (reverse) {
             nowX = -nowX
         }
-        val currentDegree = if (Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt() < 0) {
-            360 + Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
+        val currentDegree = if (Math
+                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
+                .toInt() < 0
+        ) {
+            360 + Math
+                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
+                .toInt()
         } else {
-            Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
+            Math
+                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
+                .toInt()
         }
         var degree = 0
         when (currentDegree) {
@@ -164,7 +168,7 @@ class PlaceCommands : BaseCommand() {
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
-    fun set(sender: CommandSender, raceID: String, type: String) {
+    fun set(sender: CommandSender, @Single raceID: String, @Single type: String) {
         val player = sender as Player
 
         if (RaceCommand.getRaceCreator(raceID) == null) {
@@ -237,9 +241,7 @@ class PlaceCommands : BaseCommand() {
         var existRaceInside = false
         try {
             val connection: Connection = Database.connection ?: return false
-            val statement = connection.prepareStatement(
-                "SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = true"
-            )
+            val statement = connection.prepareStatement("SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = true")
             statement.setString(1, raceID)
             val rs = statement.executeQuery()
             if (rs.next()) {
