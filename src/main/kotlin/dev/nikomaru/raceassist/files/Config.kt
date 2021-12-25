@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 package dev.nikomaru.raceassist.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import org.bukkit.Bukkit
 import org.bukkit.configuration.file.FileConfiguration
 
 class Config {
@@ -25,6 +26,8 @@ class Config {
     var database: String? = null
     var username: String? = null
     var password: String? = null
+    var threshold: Int? = null
+    var discordWebHook: String? = null
 
     fun load() {
         plugin!!.saveDefaultConfig()
@@ -47,11 +50,20 @@ class Config {
         if (!config!!.isString("SQLSetting.password")) {
             config!!["SQLSetting.password"] = ""
         }
+        if (!config!!.isInt("RaceSetting.threshold")) {
+            config!!["RaceSetting.threshold"] = 40
+        }
+        if (!config!!.isString("NetworkSettings.discord")) {
+            Bukkit.getLogger().info(config!!.getString("NetworkSettings.discord"))
+            config!!["NetworkSettings.discord"] = null
+        }
         host = config!!.getString("SQLSetting.host")
         port = config!!.getInt("SQLSetting.port")
         database = config!!.getString("SQLSetting.database")
         username = config!!.getString("SQLSetting.username")
         password = config!!.getString("SQLSetting.password")
+        threshold = config!!.getInt("RaceSetting.threshold")
+        discordWebHook = config!!.getString("NetworkSettings.discord")
     }
 
     init {

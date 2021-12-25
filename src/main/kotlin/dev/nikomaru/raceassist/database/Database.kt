@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -30,6 +30,7 @@ class Database {
     fun connect() {
         val config = Config()
         if (!isConnected()) {
+            Class.forName("com.mysql.cj.jdbc.Driver")
             connection = DriverManager.getConnection("jdbc:mysql://" + config.host + ":" + config.port + "/" + config.database + "?useSSL=false",
                                                      config.username, config.password)
         }

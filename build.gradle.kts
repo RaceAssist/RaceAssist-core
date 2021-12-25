@@ -1,8 +1,25 @@
-import org.gradle.kotlin.dsl.*
+/*
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 plugins {
+    id("java")
+    id("eclipse")
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.0.1"
     kotlin("jvm") version "1.6.0"
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 group = "dev.nikomaru"
@@ -23,15 +40,16 @@ dependencies {
     implementation("net.kyori:adventure-platform-bukkit:4.0.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC3")
-    dependencies {
-        implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
-        implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
-    }
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
+    implementation("mysql:mysql-connector-java:8.0.27")
 }
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
+
+
 
 tasks {
     compileKotlin {
@@ -41,6 +59,7 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "11"
     }
+
     shadowJar {
         relocate("co.aikar.commands", "dev.nikomaru.receassist.acf")
         relocate("co.aikar.locales", "dev.nikomaru.raceassist.acf.locales")

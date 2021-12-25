@@ -4,3 +4,7 @@ SQLSettings:
   database: "raceassist"
   username: "root"
   password: ""
+RaceSetting:
+  threshold: 40
+NetworkSettings:
+  discord:
