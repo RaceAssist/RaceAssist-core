@@ -57,15 +57,9 @@ class RaceAssist : JavaPlugin() {
     }
 
     private fun registerEvents() {
-        Bukkit
-            .getPluginManager()
-            .registerEvents(SetInsideCircuitEvent(), this)
-        Bukkit
-            .getPluginManager()
-            .registerEvents(SetOutsideCircuitEvent(), this)
-        Bukkit
-            .getPluginManager()
-            .registerEvents(SetCentralPointEvent(), this)
+        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
+        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
+        Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
     }
 
     private fun sqlConnection() {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -54,11 +54,9 @@ object OutsideCircuit {
         outsidePolygonMap[RaceID]!!.addPoint(x, z)
         player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
         PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
-        Bukkit
-            .getScheduler()
-            .runTaskLater(RaceAssist.plugin!!, Runnable {
-                PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
-            }, 5)
+        Bukkit.getScheduler().runTaskLater(RaceAssist.plugin!!, Runnable {
+            PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
+        }, 5)
     }
 
     fun finish(player: Player) {

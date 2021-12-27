@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -92,17 +92,10 @@ class PlaceCommands : BaseCommand() {
         if (reverse) {
             nowX = -nowX
         }
-        val currentDegree = if (Math
-                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
-                .toInt() < 0
-        ) {
-            360 + Math
-                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
-                .toInt()
+        val currentDegree = if (Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt() < 0) {
+            360 + Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
         } else {
-            Math
-                .toDegrees(atan2(nowY.toDouble(), nowX.toDouble()))
-                .toInt()
+            Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
         }
         var degree = 0
         when (currentDegree) {

@@ -31,6 +31,7 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://jitpack.io/")
 }
 
 dependencies {
@@ -43,6 +44,8 @@ dependencies {
     implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
     implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
     implementation("mysql:mysql-connector-java:8.0.27")
+    implementation("com.github.okkero:skedule:1.2.6")
+
 }
 
 java {

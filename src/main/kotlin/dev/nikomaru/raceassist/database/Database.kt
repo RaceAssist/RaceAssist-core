@@ -31,8 +31,7 @@ class Database {
         val config = Config()
         if (!isConnected()) {
             Class.forName("com.mysql.cj.jdbc.Driver")
-            connection = DriverManager.getConnection("jdbc:mysql://" + config.host + ":" + config.port + "/" + config.database + "?useSSL=false",
-                                                     config.username, config.password)
+            connection = DriverManager.getConnection("jdbc:mysql://" + config.host + ":" + config.port + "/" + config.database + "?useSSL=false", config.username, config.password)
         }
     }
 
@@ -50,26 +49,24 @@ class Database {
 
         var connection: Connection? = null
         fun initializeDatabase() {
+            try {
+                val preparedStatement = connection!!.prepareStatement("CREATE TABLE IF NOT EXISTS PlayerList (RaceID VARCHAR(30) NOT NULL,PlayerUUID VARCHAR(40) NOT NULL)")
+                preparedStatement.execute()
+                preparedStatement.close()
+            } catch (ex: SQLException) {
+                ex.printStackTrace()
+            }
 
             try {
-                val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS PlayerList (RaceID VARCHAR(30) NOT NULL,PlayerUUID VARCHAR(40) NOT NULL)")
+                val preparedStatement = connection!!.prepareStatement("CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER,CentralYPoint INTEGER,GoalDegree INTEGER)")
                 preparedStatement.execute()
                 preparedStatement.close()
             } catch (ex: SQLException) {
                 ex.printStackTrace()
             }
+
             try {
-                val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS RaceList (RaceID VARCHAR(30) NOT NULL,Creator VARCHAR(40) NOT NULL,Reverse Boolean NOT NULL,Lap INTEGER NOT NULL,CentralXPoint INTEGER,CentralYPoint INTEGER,GoalDegree INTEGER)")
-                preparedStatement.execute()
-                preparedStatement.close()
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
-            }
-            try {
-                val preparedStatement = connection!!.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS CircuitPoint(RaceID VARCHAR(30) NOT NULL,Inside BOOLEAN NOT NULL,XPoint INTEGER NOT NULL,YPoint INTEGER NOT NULL)")
+                val preparedStatement = connection!!.prepareStatement("CREATE TABLE IF NOT EXISTS CircuitPoint(RaceID VARCHAR(30) NOT NULL,Inside BOOLEAN NOT NULL,XPoint INTEGER NOT NULL,YPoint INTEGER NOT NULL)")
                 preparedStatement.execute()
                 preparedStatement.close()
             } catch (ex: SQLException) {
