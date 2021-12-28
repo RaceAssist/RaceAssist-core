@@ -16,16 +16,18 @@
 package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Polygon
-import java.sql.Connection
-import java.sql.SQLException
 
 object InsideCircuit {
     private var insidePolygonMap = HashMap<String, Polygon>()
@@ -40,30 +42,22 @@ object InsideCircuit {
     }
 
     fun finish(player: Player) {
-        val connection: Connection = Database.connection ?: return
-        try {
-            val statement = connection.prepareStatement("DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
-            statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
-            statement.setBoolean(2, true)
-            statement.execute()
-            statement.close()
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
+        transaction {
+            CircuitPoint.deleteWhere { (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq true) }
         }
+
         val x = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
         val y = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
         val n = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
+
         for (i in 0 until n) {
-            try {
-                val statement = connection.prepareStatement("INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)")
-                statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
-                statement.setBoolean(2, true)
-                statement.setInt(3, x[i])
-                statement.setInt(4, y[i])
-                statement.execute()
-                statement.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            transaction {
+                CircuitPoint.insert {
+                    it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
+                    it[inside] = true
+                    it[XPoint] = x[i]
+                    it[YPoint] = y[i]
+                }
             }
         }
         insidePolygonMap.remove(PlaceCommands.getCircuitRaceID()[player.uniqueId])

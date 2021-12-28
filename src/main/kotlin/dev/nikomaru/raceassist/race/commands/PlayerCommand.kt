@@ -19,16 +19,17 @@ package dev.nikomaru.raceassist.race.commands
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import co.aikar.commands.bukkit.contexts.OnlinePlayer
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.PlayerList
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.SQLException
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
@@ -49,16 +50,11 @@ class PlayerCommand : BaseCommand() {
             sender.sendMessage(Component.text("すでにそのプレイヤーは既に存在します", TextColor.color(NamedTextColor.YELLOW)))
             return
         }
-        val connection: Connection = Database.connection ?: return
-
-        try {
-            val statement: PreparedStatement = connection.prepareStatement("INSERT INTO PlayerList(RaceID,PlayerUUID) VALUES (?,?)")
-            statement.setString(1, raceID)
-            statement.setString(2, player.uniqueId.toString())
-            statement.execute()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            PlayerList.insert {
+                it[this.raceID] = raceID
+                it[playerUUID] = player.uniqueId.toString()
+            }
         }
         sender.sendMessage("${player.name} を $raceID に追加しました ")
     }
@@ -72,33 +68,17 @@ class PlayerCommand : BaseCommand() {
             return
         }
 
-        val connection: Connection = Database.connection ?: return
-        try {
-            val statement: PreparedStatement = connection.prepareStatement("DELETE FROM PlayerList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            statement.execute()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            PlayerList.deleteWhere { PlayerList.raceID eq raceID }
         }
         sender.sendMessage("$raceID から全てのプレイヤーを削除しました")
     }
 
     private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
-        val connection: Connection = Database.connection ?: return false
         var playerExist = false
-        try {
-            val statement = connection.prepareStatement("SELECT * FROM PlayerList WHERE RaceID = ? AND PlayerUUID = ?")
-            statement.setString(1, RaceID)
-            statement.setString(2, playerUUID.toString())
-            val rs: ResultSet = statement.executeQuery()
-            while (rs.next()) {
-                playerExist = true
-            }
-            rs.close()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+
+        transaction {
+            playerExist = PlayerList.select { (PlayerList.raceID eq RaceID) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
         }
         return playerExist
     }

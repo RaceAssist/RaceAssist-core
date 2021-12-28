@@ -19,7 +19,9 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.CircuitPoint
+import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.AudienceCommand.Companion.audience
 import dev.nikomaru.raceassist.transport.discord.DiscordWebhook
@@ -40,12 +42,14 @@ import org.bukkit.entity.Player
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.ScoreboardManager
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import java.awt.Polygon
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -74,7 +78,7 @@ class RaceCommand : BaseCommand() {
             return
         }
         val jockeys: ArrayList<Player> = ArrayList()
-        getAllJockeys(raceID)?.forEach { jockey ->
+        getAllJockeys(raceID).forEach { jockey ->
             if (jockey.isOnline) {
                 jockeys.add(jockey as Player)
                 sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
@@ -102,8 +106,7 @@ class RaceCommand : BaseCommand() {
             val totalDegree: HashMap<UUID, Int> = HashMap()
             val beforeDegree: HashMap<UUID, Int> = HashMap()
             val currentLap: HashMap<UUID, Int> = HashMap()
-            val config = Config()
-            val threshold = config.threshold!!
+            val threshold = Config.threshold!!
             val raceAudience: TreeSet<UUID> = TreeSet()
             val passBorders: HashMap<UUID, Int> = HashMap()
             val time: HashMap<UUID, Int> = HashMap()
@@ -171,8 +174,10 @@ class RaceCommand : BaseCommand() {
             calculateCircumference.await()
 
             jockeys.forEach {
-                beforeDegree[it.uniqueId] = getRaceDegree(if (!reverse) it.location.blockX - centralXPoint
-                else -(it.location.blockX - centralXPoint), it.location.blockZ - centralYPoint)
+                beforeDegree[it.uniqueId] = getRaceDegree(
+                    if (!reverse) it.location.blockX - centralXPoint
+                    else -(it.location.blockX - centralXPoint), it.location.blockZ - centralYPoint
+                )
                 currentLap[it.uniqueId] = 0
                 passBorders[it.uniqueId] = 0
             }
@@ -182,11 +187,13 @@ class RaceCommand : BaseCommand() {
             }
 
             val randomJockey = jockeys.random()
-            val startDegree = getRaceDegree(randomJockey.location.blockZ - centralYPoint, if (reverse) {
-                -(randomJockey.location.blockX - centralXPoint)
-            } else {
-                randomJockey.location.blockX - centralXPoint
-            })
+            val startDegree = getRaceDegree(
+                randomJockey.location.blockZ - centralYPoint, if (reverse) {
+                    -(randomJockey.location.blockX - centralXPoint)
+                } else {
+                    randomJockey.location.blockX - centralXPoint
+                }
+            )
 
             //レースの処理
             while (jockeys.size >= 1 && stop[raceID] != true) {
@@ -239,7 +246,15 @@ class RaceCommand : BaseCommand() {
                             raceAudienceIterator.remove()
                         }
                     }
-                    displayScoreboard(finishJockey.plus(decideRanking(totalDegree)), currentLap, totalDegree, raceAudience, innerCircumference.roundToInt(), startDegree, lap)
+                    displayScoreboard(
+                        finishJockey.plus(decideRanking(totalDegree)),
+                        currentLap,
+                        totalDegree,
+                        raceAudience,
+                        innerCircumference.roundToInt(),
+                        startDegree,
+                        lap
+                    )
                 }
                 delay(100)
                 displayRanking.await()
@@ -253,8 +268,9 @@ class RaceCommand : BaseCommand() {
                 }
             }
 
-            sendWebHook(finishJockey, time, sender.uniqueId, raceID)
-
+            if (Config.discordWebHook != null) {
+                sendWebHook(finishJockey, time, sender.uniqueId, raceID)
+            }
             Bukkit.getOnlinePlayers().forEach {
                 it.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
             }
@@ -278,7 +294,12 @@ class RaceCommand : BaseCommand() {
         for (i in 0 until finishJockey.size) {
             val playerResult = JSONObject()
             playerResult["name"] = "${i + 1}位"
-            playerResult["value"] = String.format("%s %2d:%02d", Bukkit.getPlayer(finishJockey[i])?.name, floor((time[finishJockey[i]]!!.toDouble() / 60)).toInt(), time[finishJockey[i]]!! % 60)
+            playerResult["value"] = String.format(
+                "%s %2d:%02d",
+                Bukkit.getPlayer(finishJockey[i])?.name,
+                floor((time[finishJockey[i]]!!.toDouble() / 60)).toInt(),
+                time[finishJockey[i]]!! % 60
+            )
             playerResult["inline"] = true
             result.add(playerResult)
         }
@@ -392,7 +413,7 @@ class RaceCommand : BaseCommand() {
     private fun judgeLap(goalDegree: Int, reverse: Boolean, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
         if (currentDegree == null) return 0
         when (goalDegree) {
-            0   -> {
+            0 -> {
                 if ((beforeDegree in 360 - threshold until 360) && (currentDegree in 0 until threshold)) {
                     return if (!reverse) 1 else -1
                 }
@@ -400,7 +421,7 @@ class RaceCommand : BaseCommand() {
                     return if (!reverse) -1 else 1
                 }
             }
-            90  -> {
+            90 -> {
 
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
                     return if (!reverse) 1 else -1
@@ -452,15 +473,16 @@ class RaceCommand : BaseCommand() {
             sender.sendMessage("その名前のレース場は既に設定されています")
             return
         }
-        val connection: Connection = Database.connection ?: return
-        try {
-            val statement = connection.prepareStatement("INSERT INTO RaceList(RaceID,Creator,Reverse,Lap,CentralXPoint,CentralYPoint,GoalDegree) VALUES (?,?,false,1,null,null,null)")
-            statement.setString(1, raceID)
-            statement.setString(2, (sender as Player).uniqueId.toString())
-            statement.execute()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            RaceList.insert {
+                it[this.raceID] = raceID
+                it[this.creator] = (sender as Player).uniqueId.toString()
+                it[this.reverse] = false
+                it[this.lap] = 1
+                it[this.centralXPoint] = null
+                it[this.centralYPoint] = null
+                it[this.goalDegree] = null
+            }
         }
         sender.sendMessage("レース場を作成しました")
     }
@@ -469,7 +491,6 @@ class RaceCommand : BaseCommand() {
     @Subcommand("delete")
     @CommandCompletion("@RaceID")
     fun delete(sender: CommandSender, @Single raceID: String) {
-        val connection: Connection = Database.connection ?: return
 
         if (getRaceCreator(raceID) == null) {
             sender.sendMessage("レース場が設定されていません")
@@ -479,18 +500,14 @@ class RaceCommand : BaseCommand() {
             sender.sendMessage("レース場作成者が設定してください")
             return
         }
-        try {
-            val statement = connection.prepareStatement("DELETE FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            statement.execute()
-            statement.close()
-            val statement2 = connection.prepareStatement("DELETE FROM CircuitPoint WHERE RaceID = ?")
-            statement2.setString(1, raceID)
-            statement2.execute()
-            statement2.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+
+
+        transaction {
+            RaceList.deleteWhere { RaceList.raceID eq raceID }
+            CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
+            PlayerList.deleteWhere { PlayerList.raceID eq raceID }
         }
+        sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")
     }
 
     private fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
@@ -514,7 +531,15 @@ class RaceCommand : BaseCommand() {
         }
     }
 
-    private fun displayScoreboard(nowRankings: List<UUID>, currentLap: HashMap<UUID, Int>, currentDegree: HashMap<UUID, Int>, raceAudience: TreeSet<UUID>, innerCircumference: Int, startDegree: Int, lap: Int) {
+    private fun displayScoreboard(
+        nowRankings: List<UUID>,
+        currentLap: HashMap<UUID, Int>,
+        currentDegree: HashMap<UUID, Int>,
+        raceAudience: TreeSet<UUID>,
+        innerCircumference: Int,
+        startDegree: Int,
+        lap: Int
+    ) {
         val manager: ScoreboardManager = Bukkit.getScoreboardManager()
         val scoreboard = manager.newScoreboard
         val objective: Objective = scoreboard.registerNewObjective("ranking", "dummy", text("現在のランキング", TextColor.color(YELLOW)))
@@ -552,85 +577,46 @@ class RaceCommand : BaseCommand() {
     }
 
     private fun getRaceCreator(raceID: String): UUID? {
-        val connection: Connection = Database.connection ?: return null
         var creatorUUID: UUID? = null
-        try {
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs: ResultSet = statement.executeQuery()
-            while (rs.next()) {
-                creatorUUID = UUID.fromString(rs.getString(2))
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            creatorUUID = UUID.fromString(RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.creator])
         }
         return creatorUUID
     }
 
     private fun getLapCount(raceID: String): Int {
-        val connection: Connection = Database.connection ?: return 1
+
         var lapCount = 1
-        try {
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs: ResultSet = statement.executeQuery()
-            while (rs.next()) {
-                lapCount = rs.getInt(4)
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            lapCount = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.lap]
         }
         return lapCount
     }
 
-    private fun getAllJockeys(raceID: String): ArrayList<OfflinePlayer>? {
+    private fun getAllJockeys(raceID: String): ArrayList<OfflinePlayer> {
         val jockeys: ArrayList<OfflinePlayer> = ArrayList()
-        try {
-            val connection: Connection = Database.connection ?: return null
-            val statement = connection.prepareStatement("SELECT * FROM PlayerList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs = statement.executeQuery()
-            while (rs.next()) {
-                jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString(2))))
+        transaction {
+            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])))
             }
-            rs.close()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
         }
         return jockeys
     }
 
     private fun getGoalDegree(raceID: String): Int? {
-        try {
-            val connection: Connection = Database.connection ?: return 0
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs: ResultSet = statement.executeQuery()
-            if (rs.next()) {
-                return rs.getInt(7)
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        var goalDegree: Int? = null
+        transaction {
+            goalDegree = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.goalDegree]
         }
-        return null
+        return goalDegree
     }
 
     private fun getCircuitExist(raceID: String, inside: Boolean): Boolean {
-        val connection: Connection = Database.connection ?: return false
         var raceExist = false
-        try {
-            val statement = connection.prepareStatement("SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = ?")
-            statement.setString(1, raceID)
-            statement.setBoolean(2, inside)
-            val rs: ResultSet = statement.executeQuery()
-            if (rs.next()) {
-                raceExist = true
-            }
-            rs.close()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+
+        transaction {
+            raceExist = CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.count() > 0
+
         }
         return raceExist
     }
@@ -638,19 +624,11 @@ class RaceCommand : BaseCommand() {
 
     private fun getPolygon(raceID: String, inside: Boolean): Polygon {
         val polygon = Polygon()
-        val connection: Connection = Database.connection ?: return polygon
-        try {
-            val statement = connection.prepareStatement("SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = ?")
-            statement.setString(1, raceID)
-            statement.setBoolean(2, inside)
-            val rs = statement.executeQuery()
-            while (rs.next()) {
-                polygon.addPoint(rs.getInt(3), rs.getInt(4))
+        transaction {
+            CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.forEach {
+                polygon.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
             }
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
         }
-
         return polygon
     }
 
@@ -661,53 +639,32 @@ class RaceCommand : BaseCommand() {
 
         fun getRaceCreator(raceID: String): UUID? {
             var uuid: UUID? = null
-            try {
-                val connection: Connection = Database.connection ?: return null
-                val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-                statement.setString(1, raceID)
-                val rs = statement.executeQuery()
-                if (rs.next()) {
-                    uuid = UUID.fromString(rs.getString(2))
-                }
-                rs.close()
-                statement.close()
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
+            transaction {
+                uuid = UUID.fromString(RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.creator])
             }
             return uuid
         }
 
         fun getCentralPoint(raceID: String, xPoint: Boolean): Int? {
-            try {
-                val connection: Connection = Database.connection ?: return 0
-                val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-                statement.setString(1, raceID)
-                val rs: ResultSet = statement.executeQuery()
-                if (rs.next()) {
-                    return if (xPoint) {
-                        rs.getInt(5)
+            var centralPoint: Int? = null
+            transaction {
+                RaceList.select { RaceList.raceID eq raceID }.forEach {
+                    centralPoint = if (xPoint) {
+                        it[RaceList.centralXPoint]
                     } else {
-                        rs.getInt(6)
+                        it[RaceList.centralYPoint]
                     }
                 }
-            } catch (e: SQLException) {
-                e.printStackTrace()
             }
-            return null
+            return centralPoint
         }
 
         fun getReverse(raceID: String): Boolean? {
-            val connection: Connection = Database.connection ?: return null
-            var reverse = false
-            try {
-                val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-                statement.setString(1, raceID)
-                val rs: ResultSet = statement.executeQuery()
-                while (rs.next()) {
-                    reverse = rs.getBoolean(3)
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
+            var reverse: Boolean? = null
+
+            transaction {
+                reverse = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.reverse]
+
             }
             return reverse
         }

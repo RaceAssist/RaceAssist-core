@@ -21,13 +21,7 @@ import org.bukkit.configuration.file.FileConfiguration
 
 class Config {
     private var config: FileConfiguration? = null
-    var host: String? = null
-    var port = 0
-    var database: String? = null
-    var username: String? = null
-    var password: String? = null
-    var threshold: Int? = null
-    var discordWebHook: String? = null
+
 
     fun load() {
         plugin!!.saveDefaultConfig()
@@ -69,6 +63,17 @@ class Config {
     init {
         load()
     }
+
+    companion object {
+        var host: String? = null
+        var port = 0
+        var database: String? = null
+        var username: String? = null
+        var password: String? = null
+        var threshold: Int? = null
+        var discordWebHook: String? = null
+    }
+
 }
 
 

@@ -17,21 +17,22 @@ package dev.nikomaru.raceassist.race.commands
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.CircuitPoint
+import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getCentralPoint
 import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getReverse
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
-
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.util.*
 import kotlin.math.atan2
 
@@ -49,14 +50,11 @@ class PlaceCommands : BaseCommand() {
             return
         }
         val nowDirection = getDirection(raceID)
-        try {
-            val connection: Connection = Database.connection ?: return
-            val statement = connection.prepareStatement("UPDATE RaceList SET Reverse = ? WHERE RaceID = ?")
-            statement.setBoolean(1, !nowDirection)
-            statement.setString(2, raceID)
-            statement.execute()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+
+        transaction {
+            RaceList.update({ RaceList.raceID eq raceID }) {
+                it[reverse] = !nowDirection
+            }
         }
         sender.sendMessage(text("レースの向きを変更しました", TextColor.color(GREEN)))
     }
@@ -120,15 +118,10 @@ class PlaceCommands : BaseCommand() {
                 degree = 0
             }
         }
-        try {
-            val connection: Connection = Database.connection ?: return
-            val statement = connection.prepareStatement("UPDATE RaceList SET GoalDegree = ? WHERE RaceID = ?")
-            statement.setInt(1, degree)
-            statement.setString(2, raceID)
-            statement.execute()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            RaceList.update({ RaceList.raceID eq raceID }) {
+                it[goalDegree] = degree
+            }
         }
     }
 
@@ -146,14 +139,10 @@ class PlaceCommands : BaseCommand() {
             player.sendMessage(text("1以上の数字を入力してください", TextColor.color(RED)))
             return
         }
-        try {
-            val connection: Connection = Database.connection ?: return
-            val statement = connection.prepareStatement("UPDATE RaceList SET Lap = ? WHERE RaceID = ?")
-            statement.setInt(1, lap)
-            statement.setString(2, raceID)
-            statement.execute()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            RaceList.update({ RaceList.raceID eq raceID }) {
+                it[this.lap] = lap
+            }
         }
         player.sendMessage(text("ラップ数を設定しました", TextColor.color(GREEN)))
     }
@@ -214,36 +203,16 @@ class PlaceCommands : BaseCommand() {
 
     private fun getDirection(raceID: String): Boolean {
         var direction = false
-        try {
-            val connection: Connection = Database.connection ?: return false
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs: ResultSet = statement.executeQuery()
-            if (rs.next()) {
-                direction = rs.getBoolean(3)
-            }
-            rs.close()
-            statement.close()
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
+        transaction {
+            direction = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.reverse]
         }
         return direction
     }
 
     private fun getInsideRaceExist(raceID: String): Boolean {
         var existRaceInside = false
-        try {
-            val connection: Connection = Database.connection ?: return false
-            val statement = connection.prepareStatement("SELECT * FROM CircuitPoint WHERE RaceID = ? AND Inside = true")
-            statement.setString(1, raceID)
-            val rs = statement.executeQuery()
-            if (rs.next()) {
-                existRaceInside = true
-            }
-            rs.close()
-            statement.close()
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
+        transaction {
+            existRaceInside = CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq true) }.count() > 0
         }
         return existRaceInside
     }

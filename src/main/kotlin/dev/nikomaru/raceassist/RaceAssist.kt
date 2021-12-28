@@ -16,7 +16,9 @@
 package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.CircuitPoint
+import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.AudienceCommand
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
@@ -27,25 +29,39 @@ import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
-import java.sql.SQLException
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class RaceAssist : JavaPlugin() {
-    private var sql: Database? = null
 
     override fun onEnable() {
         // Plugin startup logic
         plugin = this
+        settingDatabase()
         val config = Config()
         config.load()
-        sqlConnection()
         registerCommands()
         registerEvents()
-        Database.initializeDatabase()
+
+    }
+
+    private fun settingDatabase() {
+        org.jetbrains.exposed.sql.Database.connect(
+            "jdbc:jdbc:mysql://" + Config.host + ":" + Config.port + "/" + Config.database + "?useSSL=false",
+            "com.mysql.jdbc.Driver",
+            Config.username!!,
+            Config.password!!
+        )
+        transaction {
+            addLogger(StdOutSqlLogger)
+            SchemaUtils.create(CircuitPoint, PlayerList, RaceList)
+        }
     }
 
     override fun onDisable() {
         // Plugin shutdown logic
-        sql?.disconnect()
     }
 
     private fun registerCommands() {
@@ -62,20 +78,6 @@ class RaceAssist : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
     }
 
-    private fun sqlConnection() {
-        sql = Database()
-        try {
-            sql!!.connect()
-        } catch (e: ClassNotFoundException) {
-            plugin!!.logger.warning("Database not connected")
-        } catch (e: SQLException) {
-            plugin!!.logger.warning("Database not connected")
-        }
-        if (sql!!.isConnected()) {
-            plugin!!.logger.info("Database is connected!")
-        }
-
-    }
 
     companion object {
         var plugin: RaceAssist? = null

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru
+ * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -20,16 +20,17 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
 import co.aikar.commands.annotation.Subcommand
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.RaceList
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
@@ -63,16 +64,9 @@ class AudienceCommand : BaseCommand() {
 
     private fun getRaceExist(raceID: String): Boolean {
         var raceExist = false
-        try {
-            val connection: Connection = Database.connection ?: return false
-            val statement = connection.prepareStatement("SELECT * FROM RaceList WHERE RaceID = ?")
-            statement.setString(1, raceID)
-            val rs: ResultSet = statement.executeQuery()
-            raceExist = rs.next()
-            rs.close()
-            statement.close()
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        transaction {
+            addLogger(StdOutSqlLogger)
+            raceExist = RaceList.select { RaceList.raceID eq raceID }.count() > 0
         }
         return raceExist
     }
