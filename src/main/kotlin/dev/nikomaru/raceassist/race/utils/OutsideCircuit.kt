@@ -16,16 +16,19 @@
 package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.database.Database
+import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Polygon
-import java.sql.Connection
-import java.sql.SQLException
 
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
@@ -34,19 +37,13 @@ object OutsideCircuit {
         outsidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
         insidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
         if (insidePolygonMap[RaceID]!!.npoints == 0) {
-            try {
-                val connection: Connection = Database.connection ?: return
-                val statement = connection.prepareStatement("SELECT * FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
-                statement.setString(1, RaceID)
-                statement.setBoolean(2, true)
-                val rs = statement.executeQuery()
-                while (rs.next()) {
-                    insidePolygonMap[RaceID]!!.addPoint(rs.getInt("XPoint"), rs.getInt("YPoint"))
+            transaction {
+                CircuitPoint.select { (CircuitPoint.raceID eq RaceID) and (CircuitPoint.inside eq true) }.forEach {
+                    insidePolygonMap[RaceID]!!.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
                 }
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
             }
         }
+
         if (insidePolygonMap[RaceID]!!.contains(x, z)) {
             player.sendActionBar(text("設定する点は内側に設定した物より外にしてください"))
             return
@@ -60,30 +57,25 @@ object OutsideCircuit {
     }
 
     fun finish(player: Player) {
-        val connection: Connection = Database.connection ?: return
-        try {
-            val statement = connection.prepareStatement("DELETE FROM circuitPoint WHERE RaceID = ? AND Inside = ?")
-            statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
-            statement.setBoolean(2, false)
-            statement.execute()
-            statement.close()
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
+
+
+        transaction {
+            CircuitPoint.deleteWhere {
+                (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq
+                        false)
+            }
         }
         val x = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
         val y = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
         val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
-            try {
-                val statement = connection.prepareStatement("INSERT INTO circuitPoint (RaceID,Inside,XPoint,YPoint) VALUES (?, ?, ?, ?)")
-                statement.setString(1, PlaceCommands.getCircuitRaceID()[player.uniqueId])
-                statement.setBoolean(2, false)
-                statement.setInt(3, x[i])
-                statement.setInt(4, y[i])
-                statement.execute()
-                statement.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            transaction {
+                CircuitPoint.insert {
+                    it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
+                    it[inside] = false
+                    it[XPoint] = x[i]
+                    it[YPoint] = y[i]
+                }
             }
         }
         outsidePolygonMap.remove(PlaceCommands.getCircuitRaceID()[player.uniqueId])

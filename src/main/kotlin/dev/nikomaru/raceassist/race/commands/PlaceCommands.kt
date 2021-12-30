@@ -204,7 +204,7 @@ class PlaceCommands : BaseCommand() {
     private fun getDirection(raceID: String): Boolean {
         var direction = false
         transaction {
-            direction = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.reverse]
+            direction = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse) == true
         }
         return direction
     }

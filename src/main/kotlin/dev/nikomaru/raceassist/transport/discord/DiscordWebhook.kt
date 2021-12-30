@@ -27,8 +27,7 @@ class DiscordWebhook {
 
     fun sendWebHook(json: String) {
         try {
-            val config = Config()
-            val webHookUrl = URL(config.discordWebHook)
+            val webHookUrl = URL(Config.discordWebHook)
             val con: HttpsURLConnection = (webHookUrl.openConnection() as HttpsURLConnection)
 
             con.addRequestProperty("Content-Type", "application/JSON; charset=utf-8")

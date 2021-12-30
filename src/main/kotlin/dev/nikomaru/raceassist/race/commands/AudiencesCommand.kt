@@ -19,29 +19,35 @@ package dev.nikomaru.raceassist.race.commands
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
+import co.aikar.commands.annotation.Single
 import co.aikar.commands.annotation.Subcommand
+import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.database.PlayerList.playerUUID
 import dev.nikomaru.raceassist.database.RaceList
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.TextColor
+import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
 @Subcommand("Audience")
-class AudienceCommand : BaseCommand() {
+class AudiencesCommand : BaseCommand() {
 
     @Subcommand("join")
     @CommandCompletion("@RaceID")
-    private fun join(sender: CommandSender, raceID: String) {
+    private fun join(sender: CommandSender, @Single raceID: String) {
         if (!getRaceExist(raceID)) {
             sender.sendMessage(text("そのレースは見つかりません", TextColor.color(RED)))
+            return
+        }
+        if (audience[raceID]?.contains((sender as Player).uniqueId) == true) {
+            sender.sendMessage(text("すでに参加しています", TextColor.color(RED)))
             return
         }
         if (!audience.containsKey(raceID)) {
@@ -53,7 +59,7 @@ class AudienceCommand : BaseCommand() {
 
     @Subcommand("leave")
     @CommandCompletion("@RaceID")
-    private fun leave(sender: CommandSender, raceID: String) {
+    private fun leave(sender: CommandSender, @Single raceID: String) {
         if (audience[raceID]?.contains((sender as Player).uniqueId) == false) {
             sender.sendMessage(text("参加していません", TextColor.color(RED)))
             return
@@ -62,10 +68,26 @@ class AudienceCommand : BaseCommand() {
         sender.sendMessage(text("退出しました", TextColor.color(GREEN)))
     }
 
+    @Subcommand("list")
+    @CommandCompletion("@RaceID")
+    private fun list(sender: CommandSender, @Single raceID: String) {
+        val player = sender as Player
+        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
+            player.sendMessage(text("レース作成者しかみることはできません", TextColor.color(RED)))
+            return
+        }
+        sender.sendMessage(text("参加者一覧", TextColor.color(GREEN)))
+        transaction {
+            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                sender.sendMessage(text("${Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID]))}", TextColor.color(GREEN)))
+            }
+        }
+    }
+
+
     private fun getRaceExist(raceID: String): Boolean {
         var raceExist = false
         transaction {
-            addLogger(StdOutSqlLogger)
             raceExist = RaceList.select { RaceList.raceID eq raceID }.count() > 0
         }
         return raceExist

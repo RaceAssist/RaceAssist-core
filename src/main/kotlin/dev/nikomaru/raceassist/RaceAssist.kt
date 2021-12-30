@@ -20,7 +20,7 @@ import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.AudienceCommand
+import dev.nikomaru.raceassist.race.commands.AudiencesCommand
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import dev.nikomaru.raceassist.race.commands.PlayerCommand
 import dev.nikomaru.raceassist.race.commands.RaceCommand
@@ -30,8 +30,6 @@ import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class RaceAssist : JavaPlugin() {
@@ -39,9 +37,9 @@ class RaceAssist : JavaPlugin() {
     override fun onEnable() {
         // Plugin startup logic
         plugin = this
-        settingDatabase()
         val config = Config()
         config.load()
+        settingDatabase()
         registerCommands()
         registerEvents()
 
@@ -49,13 +47,12 @@ class RaceAssist : JavaPlugin() {
 
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(
-            "jdbc:jdbc:mysql://" + Config.host + ":" + Config.port + "/" + Config.database + "?useSSL=false",
-            "com.mysql.jdbc.Driver",
-            Config.username!!,
-            Config.password!!
+            "jdbc:mysql://" + Config.host + ":" + Config.port + "/" + Config.database + "?useSSL=false",
+            driver = "com.mysql.cj.jdbc.Driver",
+            user = Config.username!!,
+            password = Config.password!!
         )
         transaction {
-            addLogger(StdOutSqlLogger)
             SchemaUtils.create(CircuitPoint, PlayerList, RaceList)
         }
     }
@@ -68,7 +65,7 @@ class RaceAssist : JavaPlugin() {
         val manager = PaperCommandManager(this)
         manager.registerCommand(PlaceCommands())
         manager.registerCommand(RaceCommand())
-        manager.registerCommand(AudienceCommand())
+        manager.registerCommand(AudiencesCommand())
         manager.registerCommand(PlayerCommand())
     }
 
@@ -77,7 +74,6 @@ class RaceAssist : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
         Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
     }
-
 
     companion object {
         var plugin: RaceAssist? = null

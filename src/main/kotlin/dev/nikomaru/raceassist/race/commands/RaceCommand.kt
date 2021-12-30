@@ -23,7 +23,7 @@ import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.AudienceCommand.Companion.audience
+import dev.nikomaru.raceassist.race.commands.AudiencesCommand.Companion.audience
 import dev.nikomaru.raceassist.transport.discord.DiscordWebhook
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -402,8 +402,10 @@ class RaceCommand : BaseCommand() {
                 residue.score = 1
                 sender.scoreboard = scoreboard
                 counter++
+                delay(1000)
             }
             delay(2000)
+
             sender.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
             starting = false
 
@@ -579,7 +581,10 @@ class RaceCommand : BaseCommand() {
     private fun getRaceCreator(raceID: String): UUID? {
         var creatorUUID: UUID? = null
         transaction {
-            creatorUUID = UUID.fromString(RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.creator])
+
+            RaceList.select { RaceList.raceID eq raceID }.forEach {
+                creatorUUID = UUID.fromString(it[RaceList.creator])
+            }
         }
         return creatorUUID
     }
@@ -606,7 +611,7 @@ class RaceCommand : BaseCommand() {
     private fun getGoalDegree(raceID: String): Int? {
         var goalDegree: Int? = null
         transaction {
-            goalDegree = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.goalDegree]
+            goalDegree = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.goalDegree)
         }
         return goalDegree
     }
@@ -640,7 +645,9 @@ class RaceCommand : BaseCommand() {
         fun getRaceCreator(raceID: String): UUID? {
             var uuid: UUID? = null
             transaction {
-                uuid = UUID.fromString(RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.creator])
+                RaceList.select { RaceList.raceID eq raceID }.forEach {
+                    uuid = UUID.fromString(it[RaceList.creator])
+                }
             }
             return uuid
         }
@@ -650,9 +657,9 @@ class RaceCommand : BaseCommand() {
             transaction {
                 RaceList.select { RaceList.raceID eq raceID }.forEach {
                     centralPoint = if (xPoint) {
-                        it[RaceList.centralXPoint]
+                        it.getOrNull(RaceList.centralXPoint)
                     } else {
-                        it[RaceList.centralYPoint]
+                        it.getOrNull(RaceList.centralYPoint)
                     }
                 }
             }
@@ -663,7 +670,7 @@ class RaceCommand : BaseCommand() {
             var reverse: Boolean? = null
 
             transaction {
-                reverse = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.reverse]
+                reverse = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse)
 
             }
             return reverse

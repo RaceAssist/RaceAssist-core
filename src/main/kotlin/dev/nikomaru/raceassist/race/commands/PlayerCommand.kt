@@ -23,6 +23,7 @@ import dev.nikomaru.raceassist.database.PlayerList
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
+import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
@@ -62,7 +63,22 @@ class PlayerCommand : BaseCommand() {
     @CommandPermission("RaceAssist.commands.player")
     @Subcommand("remove")
     @CommandCompletion("@RaceID")
-    private fun removePlayer(sender: CommandSender, @Single raceID: String) {
+    private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
+        if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
+            sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
+            return
+        }
+
+        transaction {
+            PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
+        }
+        sender.sendMessage("$raceID から対象のプレイヤーを削除しました")
+    }
+
+    @CommandPermission("RaceAssist.commands.player")
+    @Subcommand("delete")
+    @CommandCompletion("@RaceID")
+    private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
         if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
             sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
             return
@@ -72,6 +88,30 @@ class PlayerCommand : BaseCommand() {
             PlayerList.deleteWhere { PlayerList.raceID eq raceID }
         }
         sender.sendMessage("$raceID から全てのプレイヤーを削除しました")
+    }
+
+    @CommandPermission("RaceAssist.commands.player")
+    @Subcommand("list")
+    @CommandCompletion("@RaceID")
+    private fun displayPlayerList(sender: CommandSender, @Single raceID: String) {
+        if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
+            sender.sendMessage(Component.text("レース作成者しか表示することはできません", TextColor.color(NamedTextColor.RED)))
+            return
+        }
+
+        transaction {
+            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                sender.sendMessage(
+                    Component.text(
+                        Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString(), TextColor.color
+                            (
+                            NamedTextColor
+                                .YELLOW
+                        )
+                    )
+                )
+            }
+        }
     }
 
     private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
