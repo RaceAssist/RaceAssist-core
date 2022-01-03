@@ -14,13 +14,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.database
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.datetime
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
+object BetList : Table() {
+    val rowNum = integer("rowNum")
+    val raceID = varchar("raceID", 30)
+    val timeStamp = datetime("timeStamp")
+    val playerName = varchar("playerName", 16)
+    val jockey = varchar("jockey", 16)
+    val betting = integer("betting")
 
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+}

@@ -14,13 +14,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.api
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import net.milkbowl.vault.economy.Economy
+import org.bukkit.Bukkit.getServer
+import org.bukkit.plugin.RegisteredServiceProvider
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
+object VaultAPI {
 
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+    private var econ: Economy? = null
+
+    fun setupEconomy(): Boolean {
+        if (getServer().pluginManager.getPlugin("Vault") == null) {
+            return false
+        }
+        val rsp: RegisteredServiceProvider<Economy> = getServer().servicesManager.getRegistration(Economy::class.java) ?: return false
+        econ = rsp.provider
+        return true
+    }
+
+    fun getEconomy(): Economy? {
+        return econ
+    }
+}

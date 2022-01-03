@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -14,7 +14,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.transport.discord
+package dev.nikomaru.raceassist.dispatch.discord
 
 import dev.nikomaru.raceassist.files.Config
 import java.io.OutputStream

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -19,12 +19,14 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.RaceAssist.Companion.setRaceID
+import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.AudiencesCommand.Companion.audience
-import dev.nikomaru.raceassist.transport.discord.DiscordWebhook
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
@@ -469,7 +471,6 @@ class RaceCommand : BaseCommand() {
 
     @CommandPermission("RaceAssist.commands.race")
     @Subcommand("create")
-    @CommandCompletion("@RaceID")
     fun create(sender: CommandSender, @Single raceID: String) {
         if (getRaceCreator(raceID) != null) {
             sender.sendMessage("その名前のレース場は既に設定されています")
@@ -485,7 +486,14 @@ class RaceCommand : BaseCommand() {
                 it[this.centralYPoint] = null
                 it[this.goalDegree] = null
             }
+            BetSetting.insert {
+                it[this.raceID] = raceID
+                it[this.canBet] = false
+                it[this.returnPercent] = 75
+                it[this.creator] = (sender as Player).uniqueId.toString()
+            }
         }
+        setRaceID()
         sender.sendMessage("レース場を作成しました")
     }
 
@@ -509,6 +517,7 @@ class RaceCommand : BaseCommand() {
             CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
             PlayerList.deleteWhere { PlayerList.raceID eq raceID }
         }
+        setRaceID()
         sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")
     }
 

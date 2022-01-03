@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -79,7 +79,7 @@ class AudiencesCommand : BaseCommand() {
         sender.sendMessage(text("参加者一覧", TextColor.color(GREEN)))
         transaction {
             PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                sender.sendMessage(text("${Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID]))}", TextColor.color(GREEN)))
+                sender.sendMessage(text(Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID])).name!!, TextColor.color(GREEN)))
             }
         }
     }

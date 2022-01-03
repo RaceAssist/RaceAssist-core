@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -42,7 +42,7 @@ class PlaceCommands : BaseCommand() {
 
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("reverse")
-    @CommandCompletion("@raceID")
+    @CommandCompletion("@RaceID")
     fun reverse(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
@@ -61,7 +61,7 @@ class PlaceCommands : BaseCommand() {
 
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("central")
-    @CommandCompletion("@raceID")
+    @CommandCompletion("@RaceID")
     fun central(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
@@ -75,7 +75,7 @@ class PlaceCommands : BaseCommand() {
 
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("degree")
-    @CommandCompletion("@raceID")
+    @CommandCompletion("@RaceID")
     fun degree(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
@@ -127,7 +127,7 @@ class PlaceCommands : BaseCommand() {
 
     @CommandPermission("RaceAssist.commands.place")
     @Subcommand("lap")
-    @CommandCompletion("@raceID @lap")
+    @CommandCompletion("@RaceID @lap")
     @Syntax("[RaceID] <lap>")
     fun setLap(sender: CommandSender, @Single raceID: String, @Single lap: Int) {
         val player = sender as Player
