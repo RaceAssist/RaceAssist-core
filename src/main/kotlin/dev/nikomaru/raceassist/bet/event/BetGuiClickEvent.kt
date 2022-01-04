@@ -21,9 +21,13 @@ import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetList
+import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -67,8 +71,8 @@ class BetGuiClickEvent : Listener {
                     return
                 }
                 val selectedNowBet: Int = getNowBet(raceID, player, slot)
-                transaction {
 
+                transaction {
                     TempBetData.update({
                         (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
                             slot
@@ -76,7 +80,13 @@ class BetGuiClickEvent : Listener {
                     }) {
                         it[bet] = selectedNowBet + 10
                     }
+
                 }
+                val selectedAfterBet: Int = getNowBet(raceID, player, (slot))
+                val item = event.inventory.getItem(slot + 18)!!
+                val itemMeta = item.itemMeta
+                itemMeta.displayName(text("1000円単位 : ${selectedAfterBet * 1000}円かけています", TextColor.fromHexString("#00ff7f")))
+                item.itemMeta = itemMeta
             }
             in 9..16 -> {
                 if (slot > (limit + 9)) {
@@ -92,6 +102,11 @@ class BetGuiClickEvent : Listener {
                         it[bet] = selectedNowBet + 1
                     }
                 }
+                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 9))
+                val item = event.inventory.getItem(slot + 9)!!
+                val itemMeta = item.itemMeta
+                itemMeta.displayName(text("1000円単位 : ${selectedAfterBet * 1000}円かけています", TextColor.fromHexString("#00ff7f")))
+                item.itemMeta = itemMeta
             }
             in 27..34 -> {
                 if (slot > (limit + 27)) {
@@ -118,7 +133,13 @@ class BetGuiClickEvent : Listener {
                     }) {
                         it[bet] = selectedNowBet - 1
                     }
+
                 }
+                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 27))
+                val item = event.inventory.getItem(slot - 9)!!
+                val itemMeta = item.itemMeta
+                itemMeta.displayName(text("1000円単位 : ${selectedAfterBet * 1000}円かけています", TextColor.fromHexString("#00ff7f")))
+                item.itemMeta = itemMeta
             }
             in 36..43 -> {
                 if (slot > (limit + 36)) {
@@ -144,7 +165,13 @@ class BetGuiClickEvent : Listener {
                     }) {
                         it[bet] = selectedNowBet - 10
                     }
+
                 }
+                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 36))
+                val item = event.inventory.getItem(slot - 18)!!
+                val itemMeta = item.itemMeta
+                itemMeta.displayName(text("1000円単位 : ${selectedAfterBet * 1000}円かけています", TextColor.fromHexString("#00ff7f")))
+                item.itemMeta = itemMeta
             }
             17 -> {
                 transaction {
@@ -157,7 +184,12 @@ class BetGuiClickEvent : Listener {
                             it[bet] = 0
                         }
                     }
-
+                }
+                for (i in 0 until limit + 1) {
+                    val item = event.inventory.getItem(i + 18)!!
+                    val itemMeta = item.itemMeta
+                    itemMeta.displayName(text("1000円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
+                    item.itemMeta = itemMeta
                 }
             }
             35 -> {
@@ -177,7 +209,10 @@ class BetGuiClickEvent : Listener {
                     return
                 }
                 player.closeInventory()
-
+                val eco: Economy = VaultAPI.getEconomy()!!
+                val owner = Bukkit.getOfflinePlayer(UUID.fromString(transaction {
+                    BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator]
+                }))
 
 
                 transaction {
@@ -198,11 +233,15 @@ class BetGuiClickEvent : Listener {
                             player.sendMessage(
                                 "番号${row + 1} : ${Bukkit.getOfflinePlayer(UUID.fromString(t[TempBetData.jockey])).name.toString()} に" + " ${t[TempBetData.bet] * 1000}円"
                             )
+                            eco.withdrawPlayer(player, t[TempBetData.bet] * 1000.0)
+                            if (owner.isOnline) {
+                                (owner as Player).sendMessage("${player.name} が ${t[TempBetData.bet] * 1000}円 を賭けました")
+                            }
+                            eco.depositPlayer(owner, t[TempBetData.bet] * 1000.0)
                             row++
                         }
                     }
                     TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
-                    //TODO お金 オッズ アイテム数
                 }
 
             }
@@ -210,7 +249,7 @@ class BetGuiClickEvent : Listener {
         val accept = event.inventory.getItem(44)!!
         val acceptMeta = accept.itemMeta
         val acceptLore: ArrayList<Component> = ArrayList<Component>()
-        acceptLore.add(Component.text("${getAllBet(raceID, player) * 1000}円必要です"))
+        acceptLore.add(text("${getAllBet(raceID, player) * 1000}円必要です"))
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
 

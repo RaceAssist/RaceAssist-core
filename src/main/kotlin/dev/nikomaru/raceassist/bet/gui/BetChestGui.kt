@@ -49,15 +49,15 @@ class BetChestGui {
             Material.PINK_WOOL,
             Material.WHITE_WOOL
         )
-        val rate = transaction {
+        val rate: Int = transaction {
             BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
         }
-        val players: ArrayList<Player> = ArrayList()
-        val odds: HashMap<Player, Double> = HashMap()
+        val players: ArrayList<UUID> = ArrayList()
+        val odds: HashMap<UUID, Double> = HashMap()
         AllPlayers[raceID] = ArrayList<UUID>()
         transaction {
             PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                players.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])) as Player)
+                players.add(UUID.fromString(it[PlayerList.playerUUID]))
                 AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
             }
         }
@@ -70,10 +70,10 @@ class BetChestGui {
         players.forEach { jockey ->
             transaction {
                 var jockeySum = 0
-                BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq jockey.uniqueId.toString()) }.forEach {
+                BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
                     jockeySum += it[BetList.betting]
                 }
-                odds[jockey] = (floor((sum * (rate / 100).toDouble()) / jockeySum * 100)) / 100
+                odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
             }
         }
 
@@ -84,9 +84,9 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(text("1000円単位", TextColor.fromHexString("#00ff7f")))
+            prevMeta.displayName(text("1000円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
             val lore: ArrayList<Component> = ArrayList<Component>()
-            lore.add(text("騎手 : ${players[i].name} ", TextColor.fromHexString("#00a497")))
+            lore.add(text("騎手 : ${Bukkit.getOfflinePlayer(players[i]).name} ", TextColor.fromHexString("#00a497")))
             lore.add(text("オッズ : ${odds[players[i]]} ", TextColor.fromHexString("#e6b422")))
             prevMeta.lore(lore)
             item.itemMeta = prevMeta
