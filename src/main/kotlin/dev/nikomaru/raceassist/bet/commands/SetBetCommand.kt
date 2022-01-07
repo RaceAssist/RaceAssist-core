@@ -34,8 +34,13 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("can")
     @CommandCompletion("@RaceID on|off")
     fun setCanBet(player: Player, @Single raceID: String, @Single type: String) {
+        if (!raceExist(raceID)) {
+            player.sendMessage("${raceID}のレースは存在しません")
+            return
+        }
         if (transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] } != player.uniqueId.toString()) {
             player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+            return
         }
         if (type == "on") {
             transaction {
@@ -57,8 +62,13 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("rate")
     @CommandCompletion("@RaceID ")
     fun setRate(player: Player, @Single raceID: String, @Single rate: Int) {
+        if (!raceExist(raceID)) {
+            player.sendMessage("${raceID}のレースは存在しません")
+            return
+        }
         if (transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] } != player.uniqueId.toString()) {
             player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+            return
         }
         if (rate !in 1..100) {
             player.sendMessage("1から100までの数字を入力してください")
@@ -70,5 +80,13 @@ class SetBetCommand : BaseCommand() {
             }
         }
         player.sendMessage("${raceID}のレースのベットレートを${rate}に設定しました")
+    }
+
+    private fun raceExist(raceID: String): Boolean {
+        var exist = false
+        transaction {
+            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
+        }
+        return exist
     }
 }

@@ -23,37 +23,37 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 
-class GuiComponent {
-    companion object {
-        fun guiComponent(): TextComponent {
-            return text("レース賭け自販機").color(TextColor.fromHexString("#228b22"))
-        }
+object GuiComponent {
 
-        fun onceUp(): ItemStack {
-            val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
-            val onceUpMeta: ItemMeta = onceUp.itemMeta
-            onceUpMeta.displayName(text("1単位 1000円 賭ける").color(TextColor.fromHexString("#f08080")))
-            onceUp.itemMeta = onceUpMeta
-            return onceUp
-        }
+    fun guiComponent(): TextComponent {
+        return text("レース賭け自販機").color(TextColor.fromHexString("#228b22"))
+    }
 
-        fun onceDown(): ItemStack {
-            val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
-            val onceDownMeta: ItemMeta = onceDown.itemMeta
-            onceDownMeta.displayName(text("1単位 1000円 下げる").color(TextColor.fromHexString("#add8e6")))
-            onceDown.itemMeta = onceDownMeta
-            return onceDown
-        }
+    fun onceUp(): ItemStack {
+        val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
+        val onceUpMeta: ItemMeta = onceUp.itemMeta
+        onceUpMeta.displayName(text("1単位 1000円 賭ける").color(TextColor.fromHexString("#f08080")))
+        onceUp.itemMeta = onceUpMeta
+        return onceUp
+    }
 
-        fun tenTimesUp(): ItemStack {
-            val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
-            val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-            tenTimesUpMeta.displayName(text("10単位 10000円 賭ける").color(TextColor.fromHexString("#ff0000")))
-            tenTimesUp.itemMeta = tenTimesUpMeta
-            return tenTimesUp
-        }
+    fun onceDown(): ItemStack {
+        val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
+        val onceDownMeta: ItemMeta = onceDown.itemMeta
+        onceDownMeta.displayName(text("1単位 1000円 下げる").color(TextColor.fromHexString("#add8e6")))
+        onceDown.itemMeta = onceDownMeta
+        return onceDown
+    }
 
-        fun tenTimesDown(): ItemStack {
+    fun tenTimesUp(): ItemStack {
+        val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
+        val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
+        tenTimesUpMeta.displayName(text("10単位 10000円 賭ける").color(TextColor.fromHexString("#ff0000")))
+        tenTimesUp.itemMeta = tenTimesUpMeta
+        return tenTimesUp
+    }
+
+    fun tenTimesDown(): ItemStack {
             val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
             val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
             tenTimesDownMeta.displayName(text("10単位 10000円 下げる").color(TextColor.fromHexString("#0000cd")))
@@ -108,7 +108,6 @@ class GuiComponent {
             noHaveMoney.itemMeta = noHaveMoneyMeta
             return noHaveMoney
         }
-    }
 
 }
 

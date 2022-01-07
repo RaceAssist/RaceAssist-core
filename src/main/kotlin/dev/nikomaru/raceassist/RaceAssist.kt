@@ -16,6 +16,7 @@
 package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
+import com.github.shynixn.mccoroutine.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.commands.OpenBetGuiCommand
 import dev.nikomaru.raceassist.bet.commands.SetBetCommand
@@ -89,7 +90,7 @@ class RaceAssist : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
         Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
         Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
-        Bukkit.getPluginManager().registerEvents(BetGuiClickEvent(), this)
+        server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
     }
 
     companion object {

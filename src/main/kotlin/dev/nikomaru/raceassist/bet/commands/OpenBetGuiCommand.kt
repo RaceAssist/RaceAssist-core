@@ -35,10 +35,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 @CommandAlias("ra|RaceAssist")
 class OpenBetGuiCommand : BaseCommand() {
 
-    @Subcommand("bet")
+    @Subcommand("bet open")
     @CommandCompletion("@RaceID")
     fun openVending(player: Player, @Single raceID: String) {
-
+        if (!raceExist(raceID)) {
+            player.sendMessage("${raceID}のレースは存在しません")
+            return
+        }
         val vending = BetChestGui()
         val canBet = transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
         if (!canBet) {
@@ -63,5 +66,13 @@ class OpenBetGuiCommand : BaseCommand() {
             }
         }
 
+    }
+
+    private fun raceExist(raceID: String): Boolean {
+        var exist = false
+        transaction {
+            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
+        }
+        return exist
     }
 }

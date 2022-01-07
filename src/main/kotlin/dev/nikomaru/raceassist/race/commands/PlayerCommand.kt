@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -51,6 +51,10 @@ class PlayerCommand : BaseCommand() {
             sender.sendMessage(Component.text("すでにそのプレイヤーは既に存在します", TextColor.color(NamedTextColor.YELLOW)))
             return
         }
+        if (getRacePlayerAmount() >= 8) {
+            sender.sendMessage(Component.text("プレイヤーは最大で8人しか設定することはできません", TextColor.color(NamedTextColor.RED)))
+            return
+        }
         transaction {
             PlayerList.insert {
                 it[this.raceID] = raceID
@@ -60,25 +64,32 @@ class PlayerCommand : BaseCommand() {
         sender.sendMessage("${player.name} を $raceID に追加しました ")
     }
 
-    @CommandPermission("RaceAssist.commands.player")
-    @Subcommand("remove")
-    @CommandCompletion("@RaceID")
-    private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
-        if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
-            return
-        }
+    private fun getRacePlayerAmount(): Long = transaction {
+        PlayerList.select {
+            PlayerList.raceID eq "raceID"
+        }.count()
+    }
+}
 
-        transaction {
-            PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
-        }
-        sender.sendMessage("$raceID から対象のプレイヤーを削除しました")
+@CommandPermission("RaceAssist.commands.player")
+@Subcommand("remove")
+@CommandCompletion("@RaceID")
+private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
+    if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
+        sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
+        return
     }
 
-    @CommandPermission("RaceAssist.commands.player")
-    @Subcommand("delete")
-    @CommandCompletion("@RaceID")
-    private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
+    transaction {
+        PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
+    }
+    sender.sendMessage("$raceID から対象のプレイヤーを削除しました")
+}
+
+@CommandPermission("RaceAssist.commands.player")
+@Subcommand("delete")
+@CommandCompletion("@RaceID")
+private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
         if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
             sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
             return
@@ -122,4 +133,3 @@ class PlayerCommand : BaseCommand() {
         }
         return playerExist
     }
-}

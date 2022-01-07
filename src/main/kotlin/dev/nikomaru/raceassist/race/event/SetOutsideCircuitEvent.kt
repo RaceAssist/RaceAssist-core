@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -42,6 +42,10 @@ class SetOutsideCircuitEvent : Listener {
             event.player.sendMessage(text("ブロックをクリックしてください", TextColor.color(YELLOW)))
             return
         }
-        OutsideCircuit.outsideCircuit(player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
+
+        OutsideCircuit.outsideCircuit(
+            player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
+            event.clickedBlock!!.z
+        )
     }
 }

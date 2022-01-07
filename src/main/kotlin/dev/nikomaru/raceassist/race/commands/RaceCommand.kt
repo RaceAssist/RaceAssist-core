@@ -26,13 +26,15 @@ import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.AudiencesCommand.Companion.audience
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.identity.Identity
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextColor
@@ -110,6 +112,7 @@ class RaceCommand : BaseCommand() {
             val currentLap: HashMap<UUID, Int> = HashMap()
             val threshold = Config.threshold!!
             val raceAudience: TreeSet<UUID> = TreeSet()
+
             val passBorders: HashMap<UUID, Int> = HashMap()
             val time: HashMap<UUID, Int> = HashMap()
 
@@ -147,23 +150,28 @@ class RaceCommand : BaseCommand() {
             }
 
             //観客(スコアボードを表示する人)の設定
-            audience[raceID]?.forEach {
-                if (Bukkit.getPlayer(it) != null && Bukkit.getPlayer(it)?.isOnline == true) {
-                    raceAudience.add(it)
-                }
+
+            val audiences: HashSet<Audience> = HashSet()
+            val audience: Audience = Audience.audience(audiences)
+
+            AudiencesCommand.audience[raceID]?.forEach {
+                audiences.add(BukkitAudiences.create(plugin!!).player(it))
             }
+
             jockeys.forEach {
-                raceAudience.add(it.uniqueId)
+                audiences.add(BukkitAudiences.create(plugin!!).player(it))
             }
-            raceAudience.add(sender.uniqueId)
+            audiences.add(BukkitAudiences.create(plugin!!).player(sender.uniqueId))
+
+            audience.forEachAudience {
+                raceAudience.add(it.get(Identity.UUID).get())
+            }
 
             //5.4.3...1 のカウント
             var timer1 = 0
             while (timer1 <= 4) {
                 val sendTimer = async(Dispatchers.minecraft) {
-                    raceAudience.forEach {
-                        Bukkit.getPlayer(it)?.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
-                    }
+                    audience.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
                 }
                 delay(1000)
                 sendTimer.await()
@@ -183,10 +191,9 @@ class RaceCommand : BaseCommand() {
                 currentLap[it.uniqueId] = 0
                 passBorders[it.uniqueId] = 0
             }
+
             val beforeTime = System.currentTimeMillis()
-            raceAudience.forEach {
-                Bukkit.getPlayer(it)?.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
-            }
+            audience.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
 
             val randomJockey = jockeys.random()
             val startDegree = getRaceDegree(
@@ -241,13 +248,7 @@ class RaceCommand : BaseCommand() {
                     }
                 }
                 val displayRanking = async(Dispatchers.minecraft) {
-                    val raceAudienceIterator = raceAudience.iterator()
-                    while (raceAudienceIterator.hasNext()) {
-                        val it = raceAudienceIterator.next()
-                        if (!Bukkit.getOfflinePlayer(it).isOnline) {
-                            raceAudienceIterator.remove()
-                        }
-                    }
+
                     displayScoreboard(
                         finishJockey.plus(decideRanking(totalDegree)),
                         currentLap,
@@ -263,11 +264,10 @@ class RaceCommand : BaseCommand() {
             }
 
             delay(2000)
-            raceAudience.forEach {
-                Bukkit.getPlayer(it)?.showTitle(title(text("レースが終了しました", TextColor.color(GREEN)), text("")))
-                for (i in 0 until finishJockey.size) {
-                    Bukkit.getPlayer(it)?.sendMessage("${i + 1}位  ${Bukkit.getPlayer(finishJockey[i])?.name}")
-                }
+
+            audience.showTitle(title(text("レースが終了しました", TextColor.color(GREEN)), text("")))
+            for (i in 0 until finishJockey.size) {
+                audience.sendMessage(text("${i + 1}位  ${Bukkit.getPlayer(finishJockey[i])?.name}"))
             }
 
             if (Config.discordWebHook != null) {
@@ -573,7 +573,9 @@ class RaceCommand : BaseCommand() {
             displayDegree.score = nowRankings.size * 2 - 2 * i - 2
         }
         raceAudience.forEach {
-            Bukkit.getPlayer(it)?.scoreboard = scoreboard
+            if (Bukkit.getOfflinePlayer(it).isOnline) {
+                Bukkit.getPlayer(it)?.scoreboard = scoreboard
+            }
         }
     }
 
@@ -634,7 +636,6 @@ class RaceCommand : BaseCommand() {
         }
         return raceExist
     }
-
 
     private fun getPolygon(raceID: String, inside: Boolean): Polygon {
         val polygon = Polygon()
