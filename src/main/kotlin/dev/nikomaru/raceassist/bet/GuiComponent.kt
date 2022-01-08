@@ -54,60 +54,68 @@ object GuiComponent {
     }
 
     fun tenTimesDown(): ItemStack {
-            val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
-            val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-            tenTimesDownMeta.displayName(text("10単位 10000円 下げる").color(TextColor.fromHexString("#0000cd")))
-            tenTimesDown.itemMeta = tenTimesDownMeta
-            return tenTimesDown
-        }
+        val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
+        val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
+        tenTimesDownMeta.displayName(text("10単位 10000円 下げる").color(TextColor.fromHexString("#0000cd")))
+        tenTimesDown.itemMeta = tenTimesDownMeta
+        return tenTimesDown
+    }
 
-        fun accept(): ItemStack {
-            val accept = ItemStack(Material.GREEN_WOOL)
-            val acceptMeta: ItemMeta = accept.itemMeta
-            acceptMeta.displayName(text("決定する").color(TextColor.fromHexString("#228b22")))
-            accept.itemMeta = acceptMeta
-            return accept
-        }
+    fun accept(): ItemStack {
+        val accept = ItemStack(Material.GREEN_WOOL)
+        val acceptMeta: ItemMeta = accept.itemMeta
+        acceptMeta.displayName(text("決定する").color(TextColor.fromHexString("#228b22")))
+        accept.itemMeta = acceptMeta
+        return accept
+    }
 
-        fun deny(): ItemStack {
-            val deny = ItemStack(Material.RED_WOOL)
-            val denyMeta: ItemMeta = deny.itemMeta
-            denyMeta.displayName(text("キャンセルする").color(TextColor.fromHexString("#ff0000")))
-            deny.itemMeta = denyMeta
-            return deny
-        }
+    fun deny(): ItemStack {
+        val deny = ItemStack(Material.RED_WOOL)
+        val denyMeta: ItemMeta = deny.itemMeta
+        denyMeta.displayName(text("キャンセルする").color(TextColor.fromHexString("#ff0000")))
+        deny.itemMeta = denyMeta
+        return deny
+    }
 
-        fun reset(): ItemStack {
-            val reset = ItemStack(Material.WHITE_WOOL)
-            val resetMeta: ItemMeta = reset.itemMeta
-            resetMeta.displayName(text("リセットする").color(TextColor.fromHexString("#ffffff")))
-            reset.itemMeta = resetMeta
-            return reset
-        }
+    fun reset(): ItemStack {
+        val reset = ItemStack(Material.WHITE_WOOL)
+        val resetMeta: ItemMeta = reset.itemMeta
+        resetMeta.displayName(text("リセットする").color(TextColor.fromHexString("#ffffff")))
+        reset.itemMeta = resetMeta
+        return reset
+    }
 
-        fun onceAll(): ItemStack {
-            val onceAll = ItemStack(Material.GRAY_WOOL)
-            val onceAllMeta: ItemMeta = onceAll.itemMeta
-            onceAllMeta.displayName(text("全てに1単位 1000円 賭ける").color(TextColor.fromHexString("#808080")))
-            onceAll.itemMeta = onceAllMeta
-            return onceAll
-        }
+    fun onceAll(): ItemStack {
+        val onceAll = ItemStack(Material.GRAY_WOOL)
+        val onceAllMeta: ItemMeta = onceAll.itemMeta
+        onceAllMeta.displayName(text("全てに1単位 1000円 賭ける").color(TextColor.fromHexString("#808080")))
+        onceAll.itemMeta = onceAllMeta
+        return onceAll
+    }
 
-        fun noUnderNotice(): ItemStack {
-            val noUnderNotice = ItemStack(Material.BARRIER)
-            val noUnderNoticeMeta: ItemMeta = noUnderNotice.itemMeta
-            noUnderNoticeMeta.displayName(text("これ以上金額を減らすことはできません", TextColor.fromHexString("#ff0000")))
-            noUnderNotice.itemMeta = noUnderNoticeMeta
-            return noUnderNotice
-        }
+    fun noBet(): ItemStack {
+        val noBet = ItemStack(Material.BARRIER)
+        val noBetMeta: ItemMeta = noBet.itemMeta
+        noBetMeta.displayName(text("誰にも賭けられていません").color(TextColor.fromHexString("#ff0000")))
+        noBet.itemMeta = noBetMeta
+        return noBet
+    }
 
-        fun noHaveMoney(): ItemStack {
-            val noHaveMoney = ItemStack(Material.BARRIER)
-            val noHaveMoneyMeta: ItemMeta = noHaveMoney.itemMeta
-            noHaveMoneyMeta.displayName(text("あなたにはお金がありません", TextColor.fromHexString("#ff0000")))
-            noHaveMoney.itemMeta = noHaveMoneyMeta
-            return noHaveMoney
-        }
+    fun noUnderNotice(): ItemStack {
+        val noUnderNotice = ItemStack(Material.BARRIER)
+        val noUnderNoticeMeta: ItemMeta = noUnderNotice.itemMeta
+        noUnderNoticeMeta.displayName(text("これ以上金額を減らすことはできません", TextColor.fromHexString("#ff0000")))
+        noUnderNotice.itemMeta = noUnderNoticeMeta
+        return noUnderNotice
+    }
+
+    fun noHaveMoney(): ItemStack {
+        val noHaveMoney = ItemStack(Material.BARRIER)
+        val noHaveMoneyMeta: ItemMeta = noHaveMoney.itemMeta
+        noHaveMoneyMeta.displayName(text("あなたにはお金がありません", TextColor.fromHexString("#ff0000")))
+        noHaveMoney.itemMeta = noHaveMoneyMeta
+        return noHaveMoney
+    }
 
 }
 
