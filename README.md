@@ -53,7 +53,7 @@ Sheets:
 
 ### credentials.jsonの設定
 
-基本はAPIのダウンロードしたものをそのままでもいいですがclient_secretを追加してください
+Sheets APIの管理画面からダウンロードしたものにclient_secretを追加してください
 
 ```json
 {
