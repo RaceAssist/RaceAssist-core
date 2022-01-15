@@ -18,12 +18,11 @@ package dev.nikomaru.raceassist.race.commands
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.github.shynixn.mccoroutine.launch
+import com.google.api.services.sheets.v4.model.ClearValuesRequest
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.RaceAssist.Companion.setRaceID
-import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.CircuitPoint
-import dev.nikomaru.raceassist.database.PlayerList
-import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil
+import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.coroutines.async
@@ -68,42 +67,42 @@ class RaceCommand : BaseCommand() {
     @Subcommand("start")
     @CommandCompletion("@RaceID")
     fun start(sender: CommandSender, @Single raceID: String) {
-
-        if (starting) {
-            sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
-            return
-        }
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
-            return
-        }
-        if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-            sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
-            return
-        }
-        val jockeys: ArrayList<Player> = ArrayList()
-        getAllJockeys(raceID).forEach { jockey ->
-            if (jockey.isOnline) {
-                jockeys.add(jockey as Player)
-                sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
-            } else {
-                sender.sendMessage(text("${jockey.name}はオフラインです", TextColor.color(YELLOW)))
-            }
-        }
-        if (jockeys.size < 2) {
-            sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
-            return
-        }
-
-        val centralXPoint: Int = getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-        val centralYPoint: Int = getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-        val goalDegree: Int = getGoalDegree(raceID) ?: return sender.sendMessage(text("ゴール角度が存在しません", TextColor.color(YELLOW)))
-
-        if (goalDegree % 90 != 0) {
-            sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
-            return
-        }
         plugin!!.launch {
+            if (starting) {
+                sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
+                return@launch
+            }
+            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
+                sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
+                return@launch
+            }
+            if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
+                sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
+                return@launch
+            }
+            val jockeys: ArrayList<Player> = ArrayList()
+            getAllJockeys(raceID).forEach { jockey ->
+                if (jockey.isOnline) {
+                    jockeys.add(jockey as Player)
+                    sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
+                } else {
+                    sender.sendMessage(text("${jockey.name}はオフラインです", TextColor.color(YELLOW)))
+                }
+            }
+            if (jockeys.size < 2) {
+                sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
+                return@launch
+            }
+
+            val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
+            val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
+            val goalDegree: Int = getGoalDegree(raceID) ?: return@launch sender.sendMessage(text("ゴール角度が存在しません", TextColor.color(YELLOW)))
+
+            if (goalDegree % 90 != 0) {
+                sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
+                return@launch
+            }
+
             starting = true
             val jockeyCount = jockeys.size
             val finishJockey: ArrayList<UUID> = ArrayList<UUID>()
@@ -117,36 +116,34 @@ class RaceCommand : BaseCommand() {
             val time: HashMap<UUID, Int> = HashMap()
 
             var insidePolygon = Polygon()
-            var outsidePolygon = Polygon()
             val setInsidePolygon = async(Dispatchers.IO) {
                 insidePolygon = getPolygon(raceID, true)
 
             }
-            var reverse = false
-            var innerCircumference = 0.0
 
-            var lap = 1
             val getLap = async(Dispatchers.IO) {
-                lap = getLapCount(raceID)
+                getLapCount(raceID)
             }
             val setOutsidePolygon = async(Dispatchers.IO) {
-                outsidePolygon = getPolygon(raceID, false)
+                getPolygon(raceID, false)
             }
             val setReverse = async(Dispatchers.IO) {
-                reverse = getReverse(raceID) ?: false
+                getReverse(raceID) ?: false
             }
             val calculateCircumference = async(Dispatchers.async) {
                 //内周の距離のカウント
+                var total = 0.0
                 val insideX = insidePolygon.xpoints
                 val insideY = insidePolygon.ypoints
                 setInsidePolygon.await()
                 for (i in 0 until insidePolygon.npoints) {
-                    innerCircumference += if (i <= insidePolygon.npoints - 2) {
+                    total += if (i <= insidePolygon.npoints - 2) {
                         hypot((insideX[i] - insideX[i + 1]).toDouble(), (insideY[i] - insideY[i + 1]).toDouble())
                     } else {
                         hypot((insideX[i] - insideX[0]).toDouble(), (insideY[i] - insideY[0]).toDouble())
                     }
                 }
+                total
             }
 
             //観客(スコアボードを表示する人)の設定
@@ -178,10 +175,10 @@ class RaceCommand : BaseCommand() {
                 timer1++
             }
 
-            getLap.await()
-            setOutsidePolygon.await()
-            setReverse.await()
-            calculateCircumference.await()
+            val lap = getLap.await()
+            val outsidePolygon = setOutsidePolygon.await()
+            val reverse = setReverse.await()
+            val innerCircumference = calculateCircumference.await()
 
             jockeys.forEach {
                 beforeDegree[it.uniqueId] = getRaceDegree(
@@ -270,8 +267,10 @@ class RaceCommand : BaseCommand() {
                 audience.sendMessage(text("${i + 1}位  ${Bukkit.getPlayer(finishJockey[i])?.name}"))
             }
 
-            if (Config.discordWebHook != null) {
-                sendWebHook(finishJockey, time, sender.uniqueId, raceID)
+            async(Dispatchers.IO) {
+                if (Config.discordWebHook != null) {
+                    sendWebHook(finishJockey, time, sender.uniqueId, raceID)
+                }
             }
             Bukkit.getOnlinePlayers().forEach {
                 it.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
@@ -516,6 +515,18 @@ class RaceCommand : BaseCommand() {
             RaceList.deleteWhere { RaceList.raceID eq raceID }
             CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
             PlayerList.deleteWhere { PlayerList.raceID eq raceID }
+            BetList.deleteWhere { BetList.raceID eq raceID }
+            BetSetting.deleteWhere { BetSetting.raceID eq raceID }
+            TempBetData.deleteWhere { TempBetData.raceID eq raceID }
+
+            if (Config.applicationName != null && Config.spreadsheetId != null) {
+                val sheetsService = SheetsServiceUtil.getSheetsService()
+
+                val range = "${raceID}_RaceAssist!A1:E"
+                val requestBody = ClearValuesRequest()
+                val request = sheetsService!!.spreadsheets().values().clear(Config.spreadsheetId, range, requestBody)
+                request.execute()
+            }
         }
         setRaceID()
         sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")

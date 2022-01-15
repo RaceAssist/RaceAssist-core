@@ -16,6 +16,7 @@
 
 package dev.nikomaru.raceassist.bet
 
+import dev.nikomaru.raceassist.files.Config.betUnit
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
@@ -32,7 +33,7 @@ object GuiComponent {
     fun onceUp(): ItemStack {
         val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
         val onceUpMeta: ItemMeta = onceUp.itemMeta
-        onceUpMeta.displayName(text("1単位 1000円 賭ける").color(TextColor.fromHexString("#f08080")))
+        onceUpMeta.displayName(text("1単位 ${betUnit}円 賭ける").color(TextColor.fromHexString("#f08080")))
         onceUp.itemMeta = onceUpMeta
         return onceUp
     }
@@ -40,7 +41,7 @@ object GuiComponent {
     fun onceDown(): ItemStack {
         val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
         val onceDownMeta: ItemMeta = onceDown.itemMeta
-        onceDownMeta.displayName(text("1単位 1000円 下げる").color(TextColor.fromHexString("#add8e6")))
+        onceDownMeta.displayName(text("1単位 ${betUnit}円 下げる").color(TextColor.fromHexString("#add8e6")))
         onceDown.itemMeta = onceDownMeta
         return onceDown
     }
@@ -48,7 +49,7 @@ object GuiComponent {
     fun tenTimesUp(): ItemStack {
         val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
         val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-        tenTimesUpMeta.displayName(text("10単位 10000円 賭ける").color(TextColor.fromHexString("#ff0000")))
+        tenTimesUpMeta.displayName(text("10単位 ${betUnit * 10}円 賭ける").color(TextColor.fromHexString("#ff0000")))
         tenTimesUp.itemMeta = tenTimesUpMeta
         return tenTimesUp
     }
@@ -56,7 +57,7 @@ object GuiComponent {
     fun tenTimesDown(): ItemStack {
         val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
         val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-        tenTimesDownMeta.displayName(text("10単位 10000円 下げる").color(TextColor.fromHexString("#0000cd")))
+        tenTimesDownMeta.displayName(text("10単位 ${betUnit * 10}円 下げる").color(TextColor.fromHexString("#0000cd")))
         tenTimesDown.itemMeta = tenTimesDownMeta
         return tenTimesDown
     }
@@ -83,14 +84,6 @@ object GuiComponent {
         resetMeta.displayName(text("リセットする").color(TextColor.fromHexString("#ffffff")))
         reset.itemMeta = resetMeta
         return reset
-    }
-
-    fun onceAll(): ItemStack {
-        val onceAll = ItemStack(Material.GRAY_WOOL)
-        val onceAllMeta: ItemMeta = onceAll.itemMeta
-        onceAllMeta.displayName(text("全てに1単位 1000円 賭ける").color(TextColor.fromHexString("#808080")))
-        onceAll.itemMeta = onceAllMeta
-        return onceAll
     }
 
     fun noBet(): ItemStack {

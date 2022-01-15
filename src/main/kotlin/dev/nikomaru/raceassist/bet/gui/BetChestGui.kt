@@ -21,6 +21,7 @@ import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.files.Config.betUnit
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
@@ -84,7 +85,7 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(text("1000円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
+            prevMeta.displayName(text("${betUnit}円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
             val lore: ArrayList<Component> = ArrayList<Component>()
             lore.add(text("騎手 : ${Bukkit.getOfflinePlayer(players[i]).name} ", TextColor.fromHexString("#00a497")))
             lore.add(text("オッズ : ${odds[players[i]]} ", TextColor.fromHexString("#e6b422")))

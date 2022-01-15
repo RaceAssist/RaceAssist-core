@@ -31,18 +31,21 @@ import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 
 class RaceAssist : JavaPlugin() {
 
     override fun onEnable() {
         // Plugin startup logic
         plugin = this
-        val config = Config()
-        config.load()
+        saveDefaultConfig()
+        Config.config = YamlConfiguration.loadConfiguration(File(dataFolder, "config.yml"))
+        Config.load()
         settingDatabase()
         setRaceID()
         registerCommands()
@@ -57,10 +60,8 @@ class RaceAssist : JavaPlugin() {
 
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(
-            "jdbc:mysql://" + Config.host + ":" + Config.port + "/" + Config.database + "?useSSL=false",
-            driver = "com.mysql.cj.jdbc.Driver",
-            user = Config.username!!,
-            password = Config.password!!
+            "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
+            driver = "org.sqlite.JDBC"
         )
         transaction {
             SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, TempBetData, BetSetting)

@@ -97,11 +97,11 @@ class PlaceCommands : BaseCommand() {
         }
         var degree = 0
         when (currentDegree) {
-            in 0..45    -> {
+            in 0..45 -> {
                 player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
                 degree = 0
             }
-            in 46..135  -> {
+            in 46..135 -> {
                 player.sendMessage(text("90度にしました", TextColor.color(GREEN)))
                 degree = 90
             }

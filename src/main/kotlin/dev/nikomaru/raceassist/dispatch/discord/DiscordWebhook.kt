@@ -22,7 +22,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-
 class DiscordWebhook {
 
     fun sendWebHook(json: String) {

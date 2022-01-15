@@ -84,7 +84,6 @@ class AudiencesCommand : BaseCommand() {
         }
     }
 
-
     private fun getRaceExist(raceID: String): Boolean {
         var raceExist = false
         transaction {
