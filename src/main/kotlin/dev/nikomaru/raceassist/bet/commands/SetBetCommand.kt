@@ -23,11 +23,14 @@ import co.aikar.commands.annotation.Single
 import co.aikar.commands.annotation.Subcommand
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import net.milkbowl.vault.economy.Economy
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
@@ -110,19 +113,87 @@ class SetBetCommand : BaseCommand() {
                 }
             }
 
-
             if (canDelete[player.uniqueId] == true) {
                 newSuspendedTransaction(Dispatchers.IO) {
                     BetList.deleteWhere { BetList.raceID eq raceID }
                 }
                 player.sendMessage("${raceID}のレースを削除しました")
             } else {
-
                 canDelete[player.uniqueId] = true
                 player.sendMessage("${raceID}のレースを削除するには、5秒以内にもう一度同じコマンドを実行してください")
                 delay(5000)
                 canDelete.remove(player.uniqueId)
+            }
+        }
+    }
 
+    @Subcommand("revert")
+    @CommandCompletion("@RaceID")
+    fun revert(player: Player, @Single raceID: String) {
+        val eco: Economy = VaultAPI.getEconomy()!!
+        plugin!!.launch {
+            withContext(Dispatchers.IO) {
+                if (!raceExist(raceID)) {
+                    player.sendMessage("${raceID}のレースは存在しません")
+                    return@withContext
+                }
+                if (getRaceCreator(raceID) != player.uniqueId.toString()) {
+                    player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                    return@withContext
+                }
+                if (eco.getBalance(player) < BetList.select { BetList.raceID eq raceID }.sumOf { it[BetList.betting] }) {
+                    player.sendMessage("お金が足りません")
+                    return@withContext
+                }
+            }
+
+            if (canRevert[player.uniqueId] == true) {
+
+                newSuspendedTransaction(Dispatchers.Main) {
+
+                    BetList.select { BetList.raceID eq raceID }.forEach {
+
+                        val receiver = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID].toString()))
+                        eco.withdrawPlayer(player, it[BetList.betting].toDouble())
+
+                        eco.depositPlayer(receiver, it[BetList.betting].toDouble())
+                        player.sendMessage("${receiver.name}に${it[BetList.betting]}円を返しました")
+
+                        if (receiver.isOnline) {
+                            (receiver as Player).sendMessage(
+                                "${player.name}から${it[BetList.raceID]}で${it[BetList.jockey]}にかけていた${it[BetList.betting]}円が返金されました"
+                            )
+                        }
+                    }
+                }
+                player.sendMessage("${raceID}の賭け金の返還を完了しました")
+            } else {
+                canRevert[player.uniqueId] = true
+                player.sendMessage("${raceID}のレースですべて返金する場合は、5秒以内にもう一度同じコマンドを実行してください")
+                delay(5000)
+                canRevert.remove(player.uniqueId)
+            }
+        }
+    }
+
+    @Subcommand("sheet")
+    @CommandAlias("@RaceID")
+    fun sheet(player: Player, @Single raceID: String, @Single sheetId: String) {
+        plugin!!.launch {
+            withContext(Dispatchers.IO) {
+                if (!raceExist(raceID)) {
+                    player.sendMessage("${raceID}のレースは存在しません")
+                    return@withContext
+                }
+                if (getRaceCreator(raceID) != player.uniqueId.toString()) {
+                    player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                    return@withContext
+                }
+            }
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetSetting.update({ BetSetting.raceID eq raceID }) {
+                    it[spreadsheetId] = sheetId
+                }
             }
         }
     }
@@ -167,5 +238,6 @@ class SetBetCommand : BaseCommand() {
 
     companion object {
         val canDelete: HashMap<UUID, Boolean> = HashMap()
+        val canRevert: HashMap<UUID, Boolean> = HashMap()
     }
 }

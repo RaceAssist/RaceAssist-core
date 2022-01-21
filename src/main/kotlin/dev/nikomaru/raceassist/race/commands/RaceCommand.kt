@@ -49,6 +49,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
@@ -220,7 +221,7 @@ class RaceCommand : BaseCommand() {
                     val uuid = player.uniqueId
 
                     val beforeLap = currentLap[uuid]
-                    val calculateLap = async(Dispatchers.async) {
+                    val calculateLap = async(Dispatchers.Default) {
                         currentLap[uuid] = currentLap[uuid]!! + judgeLap(goalDegree, reverse, beforeDegree[uuid], currentDegree, threshold)
                         passBorders[uuid] = passBorders[uuid]!! + judgeLap(0, reverse, beforeDegree[uuid], currentDegree, threshold)
                         displayLap(currentLap[uuid], beforeLap, player, lap)
@@ -259,15 +260,14 @@ class RaceCommand : BaseCommand() {
                 delay(100)
                 displayRanking.await()
             }
-
+            audience.showTitle(title(text("レースが終了しました", TextColor.color(GREEN)), text("")))
             delay(2000)
 
-            audience.showTitle(title(text("レースが終了しました", TextColor.color(GREEN)), text("")))
             for (i in 0 until finishJockey.size) {
                 audience.sendMessage(text("${i + 1}位  ${Bukkit.getPlayer(finishJockey[i])?.name}"))
             }
 
-            async(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
                 if (Config.discordWebHook != null) {
                     sendWebHook(finishJockey, time, sender.uniqueId, raceID)
                 }
@@ -490,6 +490,7 @@ class RaceCommand : BaseCommand() {
                 it[this.canBet] = false
                 it[this.returnPercent] = 75
                 it[this.creator] = (sender as Player).uniqueId.toString()
+                it[this.spreadsheetId] = null
             }
         }
         setRaceID()
@@ -510,26 +511,33 @@ class RaceCommand : BaseCommand() {
             return
         }
 
+        plugin!!.launch {
 
-        transaction {
-            RaceList.deleteWhere { RaceList.raceID eq raceID }
-            CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
-            PlayerList.deleteWhere { PlayerList.raceID eq raceID }
-            BetList.deleteWhere { BetList.raceID eq raceID }
-            BetSetting.deleteWhere { BetSetting.raceID eq raceID }
-            TempBetData.deleteWhere { TempBetData.raceID eq raceID }
+            newSuspendedTransaction(Dispatchers.IO) {
+                RaceList.deleteWhere { RaceList.raceID eq raceID }
+                CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
+                PlayerList.deleteWhere { PlayerList.raceID eq raceID }
+                BetList.deleteWhere { BetList.raceID eq raceID }
+                BetSetting.deleteWhere { BetSetting.raceID eq raceID }
+                TempBetData.deleteWhere { TempBetData.raceID eq raceID }
 
-            if (Config.applicationName != null && Config.spreadsheetId != null) {
-                val sheetsService = SheetsServiceUtil.getSheetsService()
+                if (getSheetID(raceID) != null) {
+                    val sheetsService = SheetsServiceUtil.getSheetsService()
 
-                val range = "${raceID}_RaceAssist!A1:E"
-                val requestBody = ClearValuesRequest()
-                val request = sheetsService!!.spreadsheets().values().clear(Config.spreadsheetId, range, requestBody)
-                request.execute()
+                    val range = "${raceID}_RaceAssist!A1:E"
+                    val requestBody = ClearValuesRequest()
+                    val request = sheetsService!!.spreadsheets().values().clear("RaceAssist", range, requestBody)
+                    request.execute()
+
+                }
+                setRaceID()
+                sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")
             }
         }
-        setRaceID()
-        sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")
+    }
+
+    private suspend fun getSheetID(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceID eq raceID }.firstOrNull()?.get(BetSetting.spreadsheetId)
     }
 
     private fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {

@@ -29,8 +29,6 @@ object Config {
     var threshold: Int? = null
     var discordWebHook: String? = null
     var betUnit: Int = 0
-    var applicationName: String? = null
-    var spreadsheetId: String? = null
 
     fun load() {
         if (config != null) {
@@ -45,8 +43,6 @@ object Config {
         threshold = config!!.getInt("RaceSetting.threshold")
         betUnit = config!!.getInt("RaceSetting.bet")
         discordWebHook = config!!.getString("NetworkSettings.discord")
-        applicationName = config!!.getString("Sheets.applicationName")
-        spreadsheetId = config!!.getString("Sheets.spreadsheetId")
     }
 
 }

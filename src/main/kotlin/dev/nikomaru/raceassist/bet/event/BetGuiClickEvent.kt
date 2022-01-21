@@ -25,7 +25,6 @@ import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
-import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.files.Config.betUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -282,6 +281,7 @@ class BetGuiClickEvent : Listener {
                                     BetList.insert { bet ->
                                         bet[BetList.raceID] = raceID
                                         bet[playerName] = player.name
+                                        bet[playerUUID] = player.uniqueId.toString()
                                         bet[jockey] = Bukkit.getOfflinePlayer(UUID.fromString(temp[TempBetData.jockey])).name.toString()
                                         bet[betting] = temp[TempBetData.bet] * betUnit
                                         bet[timeStamp] = LocalDateTime.now()
@@ -294,9 +294,7 @@ class BetGuiClickEvent : Listener {
                         TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
                     }
                 }
-                withContext(Dispatchers.IO) {
-                    putSheetsData(raceID)
-                }
+                putSheetsData(raceID)
             }
         }
 
@@ -348,9 +346,10 @@ class BetGuiClickEvent : Listener {
         TempBetData.select { (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) }.sumOf { it[TempBetData.bet] }
     }
 
-    private suspend fun putSheetsData(raceID: String) {
-        if (Config.applicationName == null || Config.spreadsheetId == null) {
-            return
+    private suspend fun putSheetsData(raceID: String) = withContext(Dispatchers.Default) {
+
+        if (getSheetID(raceID) == null) {
+            return@withContext
         }
         val sheetsService = getSheetsService()
 
@@ -359,10 +358,7 @@ class BetGuiClickEvent : Listener {
         data.add(
             ValueRange().setRange("${raceID}_RaceAssist!A${i}").setValues(
                 listOf(
-                    listOf(
-                        "タイムスタンプ", "マイクラネーム", "対象プレイヤー", "賭け金", "ベッド倍率 (%)->",
-                        getBetPercent(raceID)
-                    )
+                    listOf("タイムスタンプ", "マイクラネーム", "対象プレイヤー", "賭け金", "ベッド倍率 (%)->", getBetPercent(raceID))
                 )
             )
         )
@@ -390,15 +386,18 @@ class BetGuiClickEvent : Listener {
                 .setValueInputOption("USER_ENTERED")
                 .setData(data)
 
-            sheetsService?.spreadsheets()?.values()?.batchUpdate(Config.spreadsheetId, batchBody)?.execute()
+            sheetsService?.spreadsheets()?.values()?.batchUpdate(getSheetID(raceID), batchBody)?.execute()
         }
 
     }
 
-    private fun getBetPercent(raceID: String): Int =
-        transaction {
-            BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
-        }
+    private suspend fun getSheetID(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceID eq raceID }.firstOrNull()?.get(BetSetting.spreadsheetId)
+    }
+
+    private suspend fun getBetPercent(raceID: String): Int = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
+    }
 
     companion object {
         //Prevention of chattering-like phenomena

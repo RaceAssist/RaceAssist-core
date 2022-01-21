@@ -22,6 +22,9 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
+
+
+
 group = "dev.nikomaru"
 version = "1.0-SNAPSHOT"
 
@@ -32,7 +35,9 @@ repositories {
     maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://jitpack.io")
+    maven("https://plugins.gradle.org/m2/")
 }
+
 val exposedVersion: String by project
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
@@ -57,8 +62,6 @@ dependencies {
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
-
-
 
 tasks {
     compileKotlin {
