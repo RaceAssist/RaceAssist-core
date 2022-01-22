@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.database
 import org.jetbrains.exposed.sql.Table
 
 object BetSetting : Table() {
-    val raceID = varchar("raceID", 30)
+    val raceID = varchar("raceID", 30)  aa
     val creator = varchar("creator", 40)
     val canBet = bool("canBet")
     val returnPercent = integer("returnPercent")
