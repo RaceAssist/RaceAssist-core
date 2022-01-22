@@ -40,5 +40,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/libs/
+        asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT.jar
         asset_name: RaceAssist.jar
