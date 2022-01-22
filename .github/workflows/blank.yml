@@ -1,6 +1,5 @@
-- name: Gradle Build Action
-  # You may pin to the exact commit or the version.
-  # uses: gradle/gradle-build-action@3edb3cb004617998d8cf56fe2ebf9d59602e713e
+name: Gradle Build Action
+
 on:
   push:
     tags:
@@ -24,7 +23,7 @@ jobs:
 
     - name: Build with Gradle
     #適宜変更
-      run: ./gradlew shadowJar
+      run: ./gradlew build
 
     - name: Zip
     #適宜変更
@@ -36,7 +35,7 @@ jobs:
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:`github.GITHUB_REF` when a user pushes a new tag
+        with: 'github.GITHUB_REF'
         tag_name: $${{ github.ref }}
         release_name: Release ${{ github.ref }}
         prerelease: false
@@ -51,8 +50,3 @@ jobs:
         asset_path: ./artifact.zip
         asset_name: artifact.zip
         asset_content_type: application/zip
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: test-result-${{ matrix.os }}
-          path: build/reports/tests
