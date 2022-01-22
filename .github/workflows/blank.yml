@@ -26,9 +26,9 @@ jobs:
     - name: Zip output
       run: |
         ls
-        cd ./build
+        cd ./gradle
         ls
-        cd ./build/libs
+        cd ./gradle/libs
         zip release *.*
     - name: Create release
       id: create_release
