@@ -23,9 +23,10 @@ jobs:
       uses: fossa-contrib/fossa-action@v1
       with:
         fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-    - name: Sleep for 10 seconds
-      run: sleep 10s
-      shell: bash
+    - name: Sleep for 30 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '30s'
     - name: Zip output
       run: |
         ls -a
