@@ -1,6 +1,6 @@
 # RaceAssist
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_shield)
-
+[![Gradle Build Action](https://github.com/nikomaru1990/RaceAssist/actions/workflows/blank.yml/badge.svg)](https://github.com/nikomaru1990/RaceAssist/actions/workflows/blank.yml)
 
 ## Commands
 
