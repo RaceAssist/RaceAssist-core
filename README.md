@@ -1,6 +1,7 @@
 # RaceAssist
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_shield)
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist/actions/workflows/blank.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ## Commands
 
 ### Audience
