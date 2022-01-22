@@ -26,8 +26,11 @@ jobs:
     - name: Zip output
       run: |
         ls
+        echo 1
         cd ./gradle
+        echo 2
         ls
+        echo 3
         cd ./gradle/libs
         zip release *.*
     - name: Create release
