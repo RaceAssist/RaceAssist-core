@@ -16,22 +16,17 @@ jobs:
     - name: Change wrapper permissions
       run: chmod +x ./gradlew
     - name: Build with Gradle
-      run: ./gradlew build
-    - name: Checkout code
-      uses: actions/checkout@v2
+      run: |
+         ./gradlew build
+         ls -a     
     - name: Run FOSSA scan and upload build data
       uses: fossa-contrib/fossa-action@v1
       with:
         fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-    - name: Sleep for 30 seconds
-      uses: jakejarvis/wait-action@master
-      with:
-        time: '30s'
     - name: Zip output
       run: |
         ls -a
         cd ./build/libs
-        ls
         zip release *.*
     - name: Create release
       id: create_release
