@@ -1,52 +1,16 @@
 name: Gradle Build Action
 
-on:
-  push:
-    tags:
-    - v*
+on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up JDK 16
-      uses: actions/setup-java@v1
+    - uses: actions/setup-java@v2
       with:
-        java-version: 16
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Build with Gradle
-    #適宜変更
-      run: ./gradlew build
-
-    - name: Zip
-    #適宜変更
-      run: |
-        zip -j artifact ./build/libs/artifact.jar
-
-    - name: Create a Release
-      id: create-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with: 'github.GITHUB_REF'
-        tag_name: $${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        prerelease: false
-
-    - name: Upload a Release Asset
-      uses: actions/upload-release-asset@v1.0.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create-release.outputs.upload_url }}
-    #適宜変更
-        asset_path: ./artifact.zip
-        asset_name: artifact.zip
-        asset_content_type: application/zip
+        distribution: 'temurin'
+        java-version: '11'
+        cache: 'gradle'
+    - run: ./gradlew build --no-daemon
