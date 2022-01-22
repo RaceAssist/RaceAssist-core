@@ -21,14 +21,18 @@ jobs:
       uses: fossa-contrib/fossa-action@v1
       with:
         fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
+    - name: Set current datetime as env variable
+      env:
+           TZ: 'Asia/Tokyo' 
+      run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
     - name: Create release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ env.CURRENT_DATETIME }}
+        release_name: Release RaceAssist ${{ env.CURRENT_DATETIME }}
         draft: false
         prerelease: false
     - name: Upload Release Asset
