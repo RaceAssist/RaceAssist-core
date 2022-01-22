@@ -13,11 +13,12 @@
 ### Bet
 
 /raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します 
-/raceassist bet delete [RaceID]        賭けを削除します 
-/raceassist bet list [RaceID]          賭けの一覧を表示します
-/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます 
-/raceassist bet rate [RaceID]          賭けのレートを変更します
-/raceassist bet sheet [RaceID] <SheetID> https://docs.google.com/spreadsheets/d/***********/edit#gid=0  *****の部分をSheetIDに入力 spreadsheetを登録します
+/raceassist bet delete [RaceID]        賭けを削除します <br>
+/raceassist bet list [RaceID]          賭けの一覧を表示します<br>
+/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます <br>
+/raceassist bet rate [RaceID]          賭けのレートを変更します<br>
+/raceassist bet sheet [RaceID] <SheetID><br>
+https://docs.google.com/spreadsheets/d/***********/edit#gid=0  *****の部分をSheetIDに入力 spreadsheetを登録します<br>
 
      
 
