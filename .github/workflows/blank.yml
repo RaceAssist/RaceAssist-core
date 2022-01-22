@@ -1,35 +1,56 @@
 - name: Gradle Build Action
   # You may pin to the exact commit or the version.
   # uses: gradle/gradle-build-action@3edb3cb004617998d8cf56fe2ebf9d59602e713e
+on:
+  push:
+    tags:
+    - v*
+
 jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+  build:
+
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
-      - name: "Cache ~/.gradle/caches"
-        uses: actions/cache@preview
-        with:
-          path: "~/.gradle/caches"
-          key: ${{ runner.os }}-gradle-${{ hashFiles('build.gradle.kts') }}
-          restore-keys: ${{ runner.os }}-gradle-
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
 
-      - name: "Setup Java"
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-      - name: run test
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: test
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    - name: Build with Gradle
+    #適宜変更
+      run: ./gradlew shadowJar
 
+    - name: Zip
+    #適宜変更
+      run: |
+        zip -j artifact ./build/libs/artifact.jar
+
+    - name: Create a Release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:`github.GITHUB_REF` when a user pushes a new tag
+        tag_name: $${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        prerelease: false
+
+    - name: Upload a Release Asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+    #適宜変更
+        asset_path: ./artifact.zip
+        asset_name: artifact.zip
+        asset_content_type: application/zip
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
