@@ -21,10 +21,6 @@ jobs:
       uses: fossa-contrib/fossa-action@v1
       with:
         fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-    - name: Zip output
-      run: |
-        cd ./build/libs
-        zip release *.*
     - name: Create release
       id: create_release
       uses: actions/create-release@v1
@@ -42,6 +38,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/libs/release.zip
-        asset_name: RaceAssist.zip
-        asset_content_type: application/zip
+        asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT.jar
+        asset_name: RaceAssist.jar
+        asset_content_type: application/jar
