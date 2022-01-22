@@ -24,7 +24,7 @@ object BetList : Table() {
     val raceID = varchar("raceID", 30)
     val timeStamp = datetime("timeStamp")
     val playerName = varchar("playerName", 16)
+    val playerUUID = varchar("playerUUID", 40)
     val jockey = varchar("jockey", 16)
     val betting = integer("betting")
-
 }

@@ -23,4 +23,5 @@ object BetSetting : Table() {
     val creator = varchar("creator", 40)
     val canBet = bool("canBet")
     val returnPercent = integer("returnPercent")
+    val spreadsheetId = varchar("spreadsheetId", 50).nullable()
 }

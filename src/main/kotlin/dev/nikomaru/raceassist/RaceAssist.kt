@@ -33,6 +33,7 @@ import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -59,7 +60,7 @@ class RaceAssist : JavaPlugin() {
     }
 
     private fun settingDatabase() {
-        org.jetbrains.exposed.sql.Database.connect(
+        Database.connect(
             "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
             driver = "org.sqlite.JDBC"
         )
