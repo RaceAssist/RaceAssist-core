@@ -1,6 +1,6 @@
 # RaceAssist
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_shield)
-[![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist/actions/workflows/blank.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_shield)
+[![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ## Commands
 
@@ -12,8 +12,14 @@
 
 ### Bet
 
-/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します /raceassist bet delete [RaceID]        賭けを削除します /raceassist bet list [RaceID]賭けの一覧を表示します
-/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます /raceassist bet rate [RaceID]          賭けのレートを変更します
+/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します 
+/raceassist bet delete [RaceID]        賭けを削除します 
+/raceassist bet list [RaceID]          賭けの一覧を表示します
+/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます 
+/raceassist bet rate [RaceID]          賭けのレートを変更します
+/raceassist bet sheet [RaceID] <SheetID> https://docs.google.com/spreadsheets/d/***********/edit#gid=0  *****の部分をSheetIDに入力 spreadsheetを登録します
+
+     
 
 ### Place
 
@@ -76,4 +82,4 @@ Sheets:
 
 ## License
 
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist.svg?type=large)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=large)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_large)
