@@ -17,3 +17,28 @@ jobs:
       run: chmod +x ./gradlew
     - name: Build with Gradle
       run: ./gradlew shadowJar
+    - name: Zip
+    #適宜変更
+      run: |
+        zip -j artifact ./build/libs/artifact.jar
+
+    - name: Create a Release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: $${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          prerelease: false
+
+    - name: Upload a Release Asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+    #適宜変更
+        asset_path: ./artifact.zip
+        asset_name: artifact.zip
+        asset_content_type: application/zip
