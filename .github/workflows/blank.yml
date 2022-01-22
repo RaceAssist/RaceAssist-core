@@ -25,9 +25,9 @@ jobs:
         fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
     - name: Zip output
       run: |
-        ls
+        ls -a
         echo 1
-        cd ./gradle/wrapper
+        cd ./.build/libs
         echo 2
         ls
         echo 3
