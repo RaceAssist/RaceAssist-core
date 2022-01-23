@@ -27,8 +27,8 @@ object SheetsServiceUtil {
 
 
     @Throws(IOException::class, GeneralSecurityException::class)
-    fun getSheetsService(): Sheets? {
-        val credential: Credential = GoogleAuthorizeUtil.authorize()
+    fun getSheetsService(spreadsheetId: String): Sheets? {
+        val credential: Credential = GoogleAuthorizeUtil.authorize(spreadsheetId)
         return Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), credential)
             .setApplicationName("RaceAssist")
             .build()

@@ -30,11 +30,12 @@ import java.io.*
 import java.security.GeneralSecurityException
 
 object GoogleAuthorizeUtil {
-    private val tokensDirectoryPath = File(plugin!!.dataFolder, "tokens")
+
     private val credentialsFilePath = File(plugin!!.dataFolder, "credentials.json")
 
     @Throws(IOException::class, GeneralSecurityException::class)
-    fun authorize(): Credential {
+    fun authorize(spreadsheetId: String): Credential {
+        val tokensDirectoryPath = File(File(plugin!!.dataFolder, "tokens"), "${spreadsheetId}_tokens")
         if (!tokensDirectoryPath.exists()) {
             tokensDirectoryPath.mkdirs()
         }

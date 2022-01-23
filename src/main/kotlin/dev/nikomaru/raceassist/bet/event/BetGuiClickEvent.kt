@@ -347,11 +347,8 @@ class BetGuiClickEvent : Listener {
     }
 
     private suspend fun putSheetsData(raceID: String) = withContext(Dispatchers.Default) {
-
-        if (getSheetID(raceID) == null) {
-            return@withContext
-        }
-        val sheetsService = getSheetsService()
+        val spreadsheetId = getSheetID(raceID) ?: return@withContext
+        val sheetsService = getSheetsService(spreadsheetId)
 
         var i = 1
         val data: ArrayList<ValueRange> = ArrayList()
@@ -386,7 +383,7 @@ class BetGuiClickEvent : Listener {
                 .setValueInputOption("USER_ENTERED")
                 .setData(data)
 
-            sheetsService?.spreadsheets()?.values()?.batchUpdate(getSheetID(raceID), batchBody)?.execute()
+            sheetsService?.spreadsheets()?.values()?.batchUpdate(spreadsheetId, batchBody)?.execute()
         }
 
     }

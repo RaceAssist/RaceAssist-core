@@ -141,7 +141,7 @@ class SetBetCommand : BaseCommand() {
                     player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
                     return@withContext
                 }
-                if (eco.getBalance(player) < BetList.select { BetList.raceID eq raceID }.sumOf { it[BetList.betting] }) {
+                if (eco.getBalance(player) < getBetSum(raceID)) {
                     player.sendMessage("お金が足りません")
                     return@withContext
                 }
@@ -149,7 +149,7 @@ class SetBetCommand : BaseCommand() {
 
             if (canRevert[player.uniqueId] == true) {
 
-                newSuspendedTransaction(Dispatchers.Main) {
+                transaction {
 
                     BetList.select { BetList.raceID eq raceID }.forEach {
 
@@ -176,8 +176,16 @@ class SetBetCommand : BaseCommand() {
         }
     }
 
+    private suspend fun getBetSum(raceID: String) =
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { BetList.raceID eq raceID }.sumOf {
+                it[BetList
+                    .betting]
+            }
+        }
+
     @Subcommand("sheet")
-    @CommandAlias("@RaceID")
+    @CommandCompletion("@RaceID")
     fun sheet(player: Player, @Single raceID: String, @Single sheetId: String) {
         plugin!!.launch {
             withContext(Dispatchers.IO) {

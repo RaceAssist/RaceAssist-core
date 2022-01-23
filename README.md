@@ -12,7 +12,7 @@
 
 ### Bet
 
-/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します 
+/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します <br>
 /raceassist bet delete [RaceID]        賭けを削除します <br>
 /raceassist bet list [RaceID]          賭けの一覧を表示します<br>
 /raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます <br>
@@ -50,15 +50,6 @@ https://docs.google.com/spreadsheets/d/***********/edit#gid=0  *****の部分を
 
 pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入れます 最初の賭けが行われるとコンソールにOAuthの認証画面が開かれるのでスプレッドシートの所有者が認証してください
 
-### Config.ymlの設定
-
-```yaml
-Sheets:
-  applicationName: 'RaceAssist'
-  #applicationNameは好きな名前にしてください
-  spreadsheetId: '******'
-#spreadsheetIdはhttps://docs.google.com/spreadsheets/d/******/edit#gid=0の******の部分
-```
 
 ### credentials.jsonの設定
 

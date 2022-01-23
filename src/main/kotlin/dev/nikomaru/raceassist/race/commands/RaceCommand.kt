@@ -520,9 +520,9 @@ class RaceCommand : BaseCommand() {
                 BetList.deleteWhere { BetList.raceID eq raceID }
                 BetSetting.deleteWhere { BetSetting.raceID eq raceID }
                 TempBetData.deleteWhere { TempBetData.raceID eq raceID }
-
-                if (getSheetID(raceID) != null) {
-                    val sheetsService = SheetsServiceUtil.getSheetsService()
+                val spreadsheetId = getSheetID(raceID)
+                if (spreadsheetId != null) {
+                    val sheetsService = SheetsServiceUtil.getSheetsService(spreadsheetId)
 
                     val range = "${raceID}_RaceAssist!A1:E"
                     val requestBody = ClearValuesRequest()
