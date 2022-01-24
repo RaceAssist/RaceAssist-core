@@ -23,6 +23,7 @@ import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getCentralPoi
 import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getReverse
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
@@ -38,15 +39,15 @@ import kotlin.math.atan2
 
 @CommandAlias("ra|RaceAssist")
 @Subcommand("place")
+@CommandPermission("RaceAssist.commands.place")
 class PlaceCommands : BaseCommand() {
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("reverse")
     @CommandCompletion("@RaceID")
     fun reverse(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
             return
         }
         val nowDirection = getDirection(raceID)
@@ -56,35 +57,43 @@ class PlaceCommands : BaseCommand() {
                 it[reverse] = !nowDirection
             }
         }
-        sender.sendMessage(text("レースの向きを変更しました", TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("to-change-race-orientation"), TextColor.color(GREEN)))
     }
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("central")
     @CommandCompletion("@RaceID")
     fun central(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
             return
         }
         canSetCentral[player.uniqueId] = true
         centralRaceID[player.uniqueId] = raceID
-        player.sendMessage(text("中心点を設定してください", TextColor.color(GREEN)))
+        player.sendMessage(text(Lang.getText("to-set-central-point"), TextColor.color(GREEN)))
     }
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("degree")
     @CommandCompletion("@RaceID")
     fun degree(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
             return
         }
-        val centralXPoint = getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
-        val centralYPoint = getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が設定されていません", TextColor.color(RED)))
-        val reverse = getReverse(raceID) ?: return sender.sendMessage(text("reverseが設定されていません", TextColor.color(RED)))
+        val centralXPoint = getCentralPoint(raceID, true) ?: return sender.sendMessage(
+            text(
+                Lang.getText("no-exist-central-point"), TextColor.color
+                    (RED)
+            )
+        )
+        val centralYPoint = getCentralPoint(raceID, false) ?: return sender.sendMessage(
+            text(
+                Lang.getText("no-exist-central-point"), TextColor.color
+                    (RED)
+            )
+        )
+        val reverse = getReverse(raceID) ?: return sender.sendMessage(text(Lang.getText("orientation-is-not-set"), TextColor.color(RED)))
         var nowX = player.location.blockX - centralXPoint
         val nowY = player.location.blockZ - centralYPoint
         if (reverse) {
@@ -98,23 +107,23 @@ class PlaceCommands : BaseCommand() {
         var degree = 0
         when (currentDegree) {
             in 0..45 -> {
-                player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-0-degree"), TextColor.color(GREEN)))
                 degree = 0
             }
             in 46..135 -> {
-                player.sendMessage(text("90度にしました", TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-90-degree"), TextColor.color(GREEN)))
                 degree = 90
             }
             in 136..225 -> {
-                player.sendMessage(text("180度にしました", TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-180-degree"), TextColor.color(GREEN)))
                 degree = 180
             }
             in 226..315 -> {
-                player.sendMessage(text("270度にしました", TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-270-degree"), TextColor.color(GREEN)))
                 degree = 270
             }
             in 316..360 -> {
-                player.sendMessage(text("0度にしました", TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-0-degree"), TextColor.color(GREEN)))
                 degree = 0
             }
         }
@@ -125,18 +134,17 @@ class PlaceCommands : BaseCommand() {
         }
     }
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("lap")
     @CommandCompletion("@RaceID @lap")
     @Syntax("[RaceID] <lap>")
     fun setLap(sender: CommandSender, @Single raceID: String, @Single lap: Int) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
             return
         }
         if (lap < 1) {
-            player.sendMessage(text("1以上の数字を入力してください", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("to-need-enter-over-1"), TextColor.color(RED)))
             return
         }
         transaction {
@@ -144,60 +152,58 @@ class PlaceCommands : BaseCommand() {
                 it[this.lap] = lap
             }
         }
-        player.sendMessage(text("ラップ数を設定しました", TextColor.color(GREEN)))
+        player.sendMessage(text(Lang.getText("to-set-lap"), TextColor.color(GREEN)))
     }
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
     fun set(sender: CommandSender, @Single raceID: String, @Single type: String) {
         val player = sender as Player
 
         if (RaceCommand.getRaceCreator(raceID) == null) {
-            player.sendMessage(text("レースが存在しません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(RED)))
             return
         } else if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("他人のレースは設定できません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
             return
         }
         if (canSetOutsideCircuit[player.uniqueId] != null || canSetInsideCircuit[player.uniqueId] != null) {
-            player.sendMessage("すでに設定モードになっています")
+            player.sendMessage(Lang.getText("already-setting-mode"))
             return
         }
         if (type == "in") {
             canSetInsideCircuit[player.uniqueId] = true
-            player.sendMessage(text("内側のコース設定モードになりました", TextColor.color(GREEN)))
+            player.sendMessage(text(Lang.getText("to-be-inside-set-mode"), TextColor.color(GREEN)))
         } else if (type == "out") {
             val insideCircuitExist: Boolean = getInsideRaceExist(raceID)
             if (!insideCircuitExist) {
-                player.sendMessage("内側のコースが設定されていません")
+                player.sendMessage(Lang.getText("no-inside-course-set"))
                 return
             }
             canSetOutsideCircuit[player.uniqueId] = true
-            player.sendMessage(text("外側のコース設定モードになりました", TextColor.color(GREEN)))
+            player.sendMessage(text(Lang.getText("to-be-outside-set-mode"), TextColor.color(GREEN)))
         }
         circuitRaceID[player.uniqueId] = raceID
-        player.sendMessage(text("左クリックで設定を開始し,右クリックで中断します", TextColor.color(GREEN)))
-        player.sendMessage("設定を終了する場合は/KeibaAssist race circuit finish と入力してください")
+        player.sendMessage(text(Lang.getText("to-click-left-start-right-finish"), TextColor.color(GREEN)))
+        player.sendMessage(Lang.getText("to-enter-finish-message"))
     }
 
-    @CommandPermission("RaceAssist.commands.place")
     @Subcommand("finish")
     fun finish(sender: CommandSender) {
         val player = sender as Player
         if (Objects.isNull(canSetOutsideCircuit[player.uniqueId]) && Objects.isNull(canSetInsideCircuit[player.uniqueId])) {
-            player.sendMessage("設定にあなたは現在なっていません")
+            player.sendMessage(Lang.getText("now-you-not-setting-mode"))
             return
         }
         if (Objects.nonNull(canSetInsideCircuit[player.uniqueId])) {
             canSetInsideCircuit.remove(player.uniqueId)
             InsideCircuit.finish(player)
-            player.sendMessage("内側のコース設定を終了しました")
+            player.sendMessage(Lang.getText("to-finish-inside-course-setting"))
         }
         if (Objects.nonNull(canSetOutsideCircuit[player.uniqueId])) {
             canSetOutsideCircuit.remove(player.uniqueId)
             OutsideCircuit.finish(player)
-            player.sendMessage("外側のコース設定を終了しました")
+            player.sendMessage(Lang.getText("to-finish-outside-course-setting"))
         }
     }
 

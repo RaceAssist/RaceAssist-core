@@ -22,6 +22,7 @@ import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
@@ -33,6 +34,7 @@ import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.text.MessageFormat
 import java.util.*
 import kotlin.math.floor
 
@@ -85,10 +87,15 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(text("${betUnit}円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
+            prevMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money"), betUnit), TextColor.fromHexString("#00ff7f")))
             val lore: ArrayList<Component> = ArrayList<Component>()
-            lore.add(text("騎手 : ${Bukkit.getOfflinePlayer(players[i]).name} ", TextColor.fromHexString("#00a497")))
-            lore.add(text("オッズ : ${odds[players[i]]} ", TextColor.fromHexString("#e6b422")))
+            lore.add(
+                text(
+                    MessageFormat.format(Lang.getText("gui-jockey-name"), Bukkit.getOfflinePlayer(players[i]).name), TextColor.fromHexString
+                        ("#00a497")
+                )
+            )
+            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-odds"), odds[players[i]]), TextColor.fromHexString("#e6b422")))
             prevMeta.lore(lore)
             item.itemMeta = prevMeta
 

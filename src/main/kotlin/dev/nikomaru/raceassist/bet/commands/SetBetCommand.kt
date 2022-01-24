@@ -26,6 +26,7 @@ import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -37,6 +38,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import java.text.MessageFormat
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
@@ -48,11 +50,11 @@ class SetBetCommand : BaseCommand() {
     fun setCanBet(player: Player, @Single raceID: String, @Single type: String) {
         plugin!!.launch {
             if (!raceExist(raceID)) {
-                player.sendMessage("${raceID}のレースは存在しません")
+                player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race"), raceID))
                 return@launch
             }
             if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                 return@launch
             }
             if (type == "on") {
@@ -61,14 +63,14 @@ class SetBetCommand : BaseCommand() {
                         it[canBet] = true
                     }
                 }
-                player.sendMessage("${raceID}のレースにはベットが可能になりました")
+                player.sendMessage(MessageFormat.format(Lang.getText("can-bet-this-raceid"), raceID))
             } else if (type == "off") {
                 newSuspendedTransaction(Dispatchers.IO) {
                     BetSetting.update({ BetSetting.raceID eq raceID }) {
                         it[canBet] = false
                     }
                 }
-                player.sendMessage("${raceID}のレースにはベットが不可能になりました")
+                player.sendMessage(MessageFormat.format(Lang.getText("cannot-bet-this-raceid"), raceID))
             }
         }
     }
@@ -78,15 +80,15 @@ class SetBetCommand : BaseCommand() {
     fun setRate(player: Player, @Single raceID: String, @Single rate: Int) {
         plugin!!.launch {
             if (!raceExist(raceID)) {
-                player.sendMessage("${raceID}のレースは存在しません")
+                player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
                 return@launch
             }
             if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                 return@launch
             }
             if (rate !in 1..100) {
-                player.sendMessage("1から100までの数字を入力してください")
+                player.sendMessage(Lang.getText("set-rate-message-in1-100"))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
@@ -95,7 +97,7 @@ class SetBetCommand : BaseCommand() {
                 }
             }
         }
-        player.sendMessage("${raceID}のレースのベットレートを${rate}に設定しました")
+        player.sendMessage(MessageFormat.format(Lang.getText("change-bet-rate-message"), raceID, rate))
     }
 
     @Subcommand("delete")
@@ -104,11 +106,11 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage("${raceID}のレースは存在しません")
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                     return@withContext
                 }
             }
@@ -117,10 +119,10 @@ class SetBetCommand : BaseCommand() {
                 newSuspendedTransaction(Dispatchers.IO) {
                     BetList.deleteWhere { BetList.raceID eq raceID }
                 }
-                player.sendMessage("${raceID}のレースを削除しました")
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race"), raceID))
             } else {
                 canDelete[player.uniqueId] = true
-                player.sendMessage("${raceID}のレースを削除するには、5秒以内にもう一度同じコマンドを実行してください")
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race-confirm-message"), raceID))
                 delay(5000)
                 canDelete.remove(player.uniqueId)
             }
@@ -134,15 +136,15 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage("${raceID}のレースは存在しません")
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                     return@withContext
                 }
                 if (eco.getBalance(player) < getBetSum(raceID)) {
-                    player.sendMessage("お金が足りません")
+                    player.sendMessage(Lang.getText("no-have-money"))
                     return@withContext
                 }
             }
@@ -157,19 +159,25 @@ class SetBetCommand : BaseCommand() {
                         eco.withdrawPlayer(player, it[BetList.betting].toDouble())
 
                         eco.depositPlayer(receiver, it[BetList.betting].toDouble())
-                        player.sendMessage("${receiver.name}に${it[BetList.betting]}円を返しました")
+                        player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-owner"), receiver.name, it[BetList.betting]))
 
                         if (receiver.isOnline) {
                             (receiver as Player).sendMessage(
-                                "${player.name}から${it[BetList.raceID]}で${it[BetList.jockey]}にかけていた${it[BetList.betting]}円が返金されました"
+                                MessageFormat.format(
+                                    Lang.getText("bet-revert-return-message-player"),
+                                    player.name,
+                                    it[BetList.raceID],
+                                    it[BetList.jockey],
+                                    it[BetList.betting]
+                                )
                             )
                         }
                     }
                 }
-                player.sendMessage("${raceID}の賭け金の返還を完了しました")
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-complete-message"), raceID))
             } else {
                 canRevert[player.uniqueId] = true
-                player.sendMessage("${raceID}のレースですべて返金する場合は、5秒以内にもう一度同じコマンドを実行してください")
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-race-confirm-message"), raceID))
                 delay(5000)
                 canRevert.remove(player.uniqueId)
             }
@@ -190,11 +198,11 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage("${raceID}のレースは存在しません")
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage("ほかのプレイヤーのレースを設定することはできません")
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                     return@withContext
                 }
             }
@@ -212,22 +220,25 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage("${raceID}のレースは存在しません")
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage("ほかのプレイヤーのレースのリストを見ることはできません")
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
                     return@withContext
                 }
             }
             newSuspendedTransaction(Dispatchers.IO) {
                 BetList.select { BetList.raceID eq raceID }.forEach {
                     player.sendMessage(
-                        "${it[BetList.rowNum]} ${it[BetList.timeStamp]}   プレイヤー:${it[BetList.playerName]} ->  騎手:${
-                            it[BetList.jockey]
-                        } " + "${
+                        MessageFormat.format(
+                            Lang.getText("bet-list-detail-message"),
+                            it[BetList.rowNum],
+                            it[BetList.timeStamp],
+                            it[BetList.playerName],
+                            it[BetList.jockey],
                             it[BetList.betting]
-                        }円"
+                        )
                     )
                 }
             }

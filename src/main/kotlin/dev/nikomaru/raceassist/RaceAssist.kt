@@ -16,6 +16,7 @@
 package dev.nikomaru.raceassist
 
 import co.aikar.commands.PaperCommandManager
+import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.commands.OpenBetGuiCommand
@@ -30,19 +31,20 @@ import dev.nikomaru.raceassist.race.commands.RaceCommand
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-class RaceAssist : JavaPlugin() {
+class RaceAssist : SuspendingJavaPlugin() {
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
+        Lang.load()
         saveDefaultConfig()
         Config.config = YamlConfiguration.loadConfiguration(File(dataFolder, "config.yml"))
         Config.load()
@@ -52,7 +54,7 @@ class RaceAssist : JavaPlugin() {
         registerEvents()
 
         if (!VaultAPI.setupEconomy()) {
-            plugin!!.logger.info("No economy plugin found. Disabling Vault")
+            plugin!!.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault"))
             server.pluginManager.disablePlugin(this)
             return
         }
@@ -60,7 +62,7 @@ class RaceAssist : JavaPlugin() {
 
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(
-            "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
+            url = "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
             driver = "org.sqlite.JDBC"
         )
         transaction {
@@ -68,7 +70,7 @@ class RaceAssist : JavaPlugin() {
         }
     }
 
-    override fun onDisable() {
+    override suspend fun onDisableAsync() {
         // Plugin shutdown logic
     }
 

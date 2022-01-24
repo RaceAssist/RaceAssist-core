@@ -17,12 +17,14 @@
 package dev.nikomaru.raceassist.bet
 
 import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import java.text.MessageFormat
 
 object GuiComponent {
 
@@ -33,7 +35,7 @@ object GuiComponent {
     fun onceUp(): ItemStack {
         val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
         val onceUpMeta: ItemMeta = onceUp.itemMeta
-        onceUpMeta.displayName(text("1単位 ${betUnit}円 賭ける").color(TextColor.fromHexString("#f08080")))
+        onceUpMeta.displayName(text(MessageFormat.format(Lang.getText("to-bet-one-unit"), betUnit)).color(TextColor.fromHexString("#f08080")))
         onceUp.itemMeta = onceUpMeta
         return onceUp
     }
@@ -41,7 +43,14 @@ object GuiComponent {
     fun onceDown(): ItemStack {
         val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
         val onceDownMeta: ItemMeta = onceDown.itemMeta
-        onceDownMeta.displayName(text("1単位 ${betUnit}円 下げる").color(TextColor.fromHexString("#add8e6")))
+        onceDownMeta.displayName(
+            text(
+                MessageFormat.format(
+                    Lang.getText("to-cancel-bet-one-unit"),
+                    betUnit
+                )
+            ).color(TextColor.fromHexString("#add8e6"))
+        )
         onceDown.itemMeta = onceDownMeta
         return onceDown
     }
@@ -49,7 +58,14 @@ object GuiComponent {
     fun tenTimesUp(): ItemStack {
         val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
         val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-        tenTimesUpMeta.displayName(text("10単位 ${betUnit * 10}円 賭ける").color(TextColor.fromHexString("#ff0000")))
+        tenTimesUpMeta.displayName(
+            text(
+                MessageFormat.format(
+                    Lang.getText("to-bet-ten-unit"),
+                    betUnit * 10
+                )
+            ).color(TextColor.fromHexString("#ff0000"))
+        )
         tenTimesUp.itemMeta = tenTimesUpMeta
         return tenTimesUp
     }
@@ -57,7 +73,14 @@ object GuiComponent {
     fun tenTimesDown(): ItemStack {
         val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
         val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-        tenTimesDownMeta.displayName(text("10単位 ${betUnit * 10}円 下げる").color(TextColor.fromHexString("#0000cd")))
+        tenTimesDownMeta.displayName(
+            text(
+                MessageFormat.format(
+                    Lang.getText("to-cancel-bet-ten-unit"),
+                    betUnit * 10
+                )
+            ).color(TextColor.fromHexString("#0000cd"))
+        )
         tenTimesDown.itemMeta = tenTimesDownMeta
         return tenTimesDown
     }
@@ -65,7 +88,7 @@ object GuiComponent {
     fun accept(): ItemStack {
         val accept = ItemStack(Material.GREEN_WOOL)
         val acceptMeta: ItemMeta = accept.itemMeta
-        acceptMeta.displayName(text("決定する").color(TextColor.fromHexString("#228b22")))
+        acceptMeta.displayName(text(Lang.getText("gui-decide")).color(TextColor.fromHexString("#228b22")))
         accept.itemMeta = acceptMeta
         return accept
     }
@@ -73,7 +96,7 @@ object GuiComponent {
     fun deny(): ItemStack {
         val deny = ItemStack(Material.RED_WOOL)
         val denyMeta: ItemMeta = deny.itemMeta
-        denyMeta.displayName(text("キャンセルする").color(TextColor.fromHexString("#ff0000")))
+        denyMeta.displayName(text(Lang.getText("gui-cancel")).color(TextColor.fromHexString("#ff0000")))
         deny.itemMeta = denyMeta
         return deny
     }
@@ -81,7 +104,7 @@ object GuiComponent {
     fun reset(): ItemStack {
         val reset = ItemStack(Material.WHITE_WOOL)
         val resetMeta: ItemMeta = reset.itemMeta
-        resetMeta.displayName(text("リセットする").color(TextColor.fromHexString("#ffffff")))
+        resetMeta.displayName(text(Lang.getText("gui-reset")).color(TextColor.fromHexString("#ffffff")))
         reset.itemMeta = resetMeta
         return reset
     }
@@ -89,7 +112,7 @@ object GuiComponent {
     fun noBet(): ItemStack {
         val noBet = ItemStack(Material.BARRIER)
         val noBetMeta: ItemMeta = noBet.itemMeta
-        noBetMeta.displayName(text("誰にも賭けられていません").color(TextColor.fromHexString("#ff0000")))
+        noBetMeta.displayName(text(Lang.getText("gui-no-one-betting")).color(TextColor.fromHexString("#ff0000")))
         noBet.itemMeta = noBetMeta
         return noBet
     }
@@ -97,7 +120,7 @@ object GuiComponent {
     fun noUnderNotice(): ItemStack {
         val noUnderNotice = ItemStack(Material.BARRIER)
         val noUnderNoticeMeta: ItemMeta = noUnderNotice.itemMeta
-        noUnderNoticeMeta.displayName(text("これ以上金額を減らすことはできません", TextColor.fromHexString("#ff0000")))
+        noUnderNoticeMeta.displayName(text(Lang.getText("cannot-decrease-more-money"), TextColor.fromHexString("#ff0000")))
         noUnderNotice.itemMeta = noUnderNoticeMeta
         return noUnderNotice
     }
@@ -105,7 +128,7 @@ object GuiComponent {
     fun noHaveMoney(): ItemStack {
         val noHaveMoney = ItemStack(Material.BARRIER)
         val noHaveMoneyMeta: ItemMeta = noHaveMoney.itemMeta
-        noHaveMoneyMeta.displayName(text("あなたにはお金がありません", TextColor.fromHexString("#ff0000")))
+        noHaveMoneyMeta.displayName(text(Lang.getText("no-have-money"), TextColor.fromHexString("#ff0000")))
         noHaveMoney.itemMeta = noHaveMoneyMeta
         return noHaveMoney
     }

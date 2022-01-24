@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -40,7 +41,7 @@ class SetCentralPointEvent : Listener {
                 it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0
             }
         }
-        event.player.sendMessage("§a中心を設定しました")
+        event.player.sendMessage(Lang.getText("to-set-this-point-central"))
         PlaceCommands.removeCanSetCentral(event.player.uniqueId)
     }
 }

@@ -19,6 +19,7 @@ import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
@@ -30,6 +31,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.Polygon
+import java.text.MessageFormat
 
 object InsideCircuit {
     private var insidePolygonMap = HashMap<String, Polygon>()
@@ -37,7 +39,7 @@ object InsideCircuit {
     fun insideCircuit(player: Player, RaceID: String, x: Int, z: Int) {
         insidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
         insidePolygonMap[RaceID]!!.addPoint(x, z)
-        player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
+        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point"), x, z)))
         PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
             PlaceCommands.putCanSetInsideCircuit(player.uniqueId, true)

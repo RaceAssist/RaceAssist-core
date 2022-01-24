@@ -24,6 +24,7 @@ import co.aikar.commands.annotation.Subcommand
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.PlayerList.playerUUID
 import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
@@ -43,29 +44,29 @@ class AudiencesCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     private fun join(sender: CommandSender, @Single raceID: String) {
         if (!getRaceExist(raceID)) {
-            sender.sendMessage(text("そのレースは見つかりません", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("not-found-this-race"), TextColor.color(RED)))
             return
         }
         if (audience[raceID]?.contains((sender as Player).uniqueId) == true) {
-            sender.sendMessage(text("すでに参加しています", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("already-joined"), TextColor.color(RED)))
             return
         }
         if (!audience.containsKey(raceID)) {
             audience[raceID] = ArrayList()
         }
         audience[raceID]?.add((sender as Player).uniqueId)
-        sender.sendMessage(text("参加しました", TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("joined-group"), TextColor.color(GREEN)))
     }
 
     @Subcommand("leave")
     @CommandCompletion("@RaceID")
     private fun leave(sender: CommandSender, @Single raceID: String) {
         if (audience[raceID]?.contains((sender as Player).uniqueId) == false) {
-            sender.sendMessage(text("参加していません", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("now-not-belong"), TextColor.color(RED)))
             return
         }
         audience[raceID]?.remove((sender as Player).uniqueId)
-        sender.sendMessage(text("退出しました", TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("to-exit-the-group"), TextColor.color(GREEN)))
     }
 
     @Subcommand("list")
@@ -73,10 +74,10 @@ class AudiencesCommand : BaseCommand() {
     private fun list(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text("レース作成者しかみることはできません", TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-display"), TextColor.color(RED)))
             return
         }
-        sender.sendMessage(text("参加者一覧", TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("participants-list"), TextColor.color(GREEN)))
         transaction {
             PlayerList.select { PlayerList.raceID eq raceID }.forEach {
                 sender.sendMessage(text(Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID])).name!!, TextColor.color(GREEN)))

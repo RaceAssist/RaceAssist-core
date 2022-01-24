@@ -19,6 +19,7 @@ import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
@@ -32,6 +33,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Polygon
+import java.text.MessageFormat
 
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
@@ -48,11 +50,11 @@ object OutsideCircuit {
         }
 
         if (insidePolygonMap[RaceID]!!.contains(x, z)) {
-            player.sendActionBar(text("設定する点は内側に設定した物より外にしてください"))
+            player.sendActionBar(text(Lang.getText("to-click-inside-point")))
             return
         }
         outsidePolygonMap[RaceID]!!.addPoint(x, z)
-        player.sendActionBar(text("現在の設定位置:  X = $x, Z =$z   次の点をクリックしてください"))
+        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point"), x, z)))
         PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
             PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)

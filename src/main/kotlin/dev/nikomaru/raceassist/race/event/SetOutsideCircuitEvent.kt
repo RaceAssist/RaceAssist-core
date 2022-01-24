@@ -17,6 +17,7 @@ package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.YELLOW
 import net.kyori.adventure.text.format.TextColor
@@ -34,12 +35,12 @@ class SetOutsideCircuitEvent : Listener {
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(text("処理を中断しました", TextColor.color(YELLOW)))
+            player.sendMessage(text(Lang.getText("to-suspend-process"), TextColor.color(YELLOW)))
             PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
-            event.player.sendMessage(text("ブロックをクリックしてください", TextColor.color(YELLOW)))
+            event.player.sendMessage(text(Lang.getText("to-click-block"), TextColor.color(YELLOW)))
             return
         }
 

@@ -25,6 +25,7 @@ import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -39,13 +40,13 @@ class OpenBetGuiCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun openVending(player: Player, @Single raceID: String) {
         if (!raceExist(raceID)) {
-            player.sendMessage("${raceID}のレースは存在しません")
+            player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
             return
         }
         val vending = BetChestGui()
         val canBet = transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
         if (!canBet) {
-            player.sendMessage("このレースは現在ベットできません。")
+            player.sendMessage(Lang.getText("now-cannot-bet-race"))
             return
         }
 

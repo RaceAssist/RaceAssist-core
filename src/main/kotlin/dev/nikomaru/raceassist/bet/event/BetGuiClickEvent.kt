@@ -26,6 +26,7 @@ import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
 import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -46,6 +47,7 @@ import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.text.MessageFormat
 import java.time.LocalDateTime
 import java.util.*
 
@@ -103,7 +105,12 @@ class BetGuiClickEvent : Listener {
                 val selectedAfterBet: Int = getNowBet(raceID, player, (slot))
                 val item = event.inventory.getItem(slot + 18)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(
+                    text(
+                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit), TextColor
+                            .fromHexString("#00ff7f")
+                    )
+                )
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -132,7 +139,12 @@ class BetGuiClickEvent : Listener {
                 val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 9))
                 val item = event.inventory.getItem(slot + 9)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(
+                    text(
+                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit),
+                        TextColor.fromHexString("#00ff7f")
+                    )
+                )
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -170,7 +182,12 @@ class BetGuiClickEvent : Listener {
                 val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 27))
                 val item = event.inventory.getItem(slot - 9)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(
+                    text(
+                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit), TextColor
+                            .fromHexString("#00ff7f")
+                    )
+                )
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -209,7 +226,12 @@ class BetGuiClickEvent : Listener {
                 val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 36))
                 val item = event.inventory.getItem(slot - 18)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(
+                    text(
+                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit),
+                        TextColor.fromHexString("#00ff7f")
+                    )
+                )
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -236,7 +258,7 @@ class BetGuiClickEvent : Listener {
                 for (i in 0 until limit + 1) {
                     val item = event.inventory.getItem(i + 18)!!
                     val itemMeta = item.itemMeta
-                    itemMeta.displayName(text("${betUnit}円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
+                    itemMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money"), betUnit), TextColor.fromHexString("#00ff7f")))
                     item.itemMeta = itemMeta
                 }
             }
@@ -301,7 +323,7 @@ class BetGuiClickEvent : Listener {
         val accept = event.inventory.getItem(44)!!
         val acceptMeta = accept.itemMeta
         val acceptLore: ArrayList<Component> = ArrayList<Component>()
-        acceptLore.add(text("${getAllBet(raceID, player) * betUnit}円必要です"))
+        acceptLore.add(text(MessageFormat.format(Lang.getText("gui-need-money"), getAllBet(raceID, player) * betUnit)))
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
         event.inventory.setItem(44, accept)
@@ -309,16 +331,29 @@ class BetGuiClickEvent : Listener {
 
     private fun betProcess(player: Player, row: Int, temp: ResultRow, eco: Economy, owner: OfflinePlayer) {
         player.sendMessage(
-            "番号${row + 1} : ${Bukkit.getOfflinePlayer(UUID.fromString(temp[TempBetData.jockey])).name.toString()} に" +
-                    " ${temp[TempBetData.bet] * betUnit}円"
+            MessageFormat.format(
+                Lang.getText("bet-complete-message-player"), row + 1, Bukkit.getOfflinePlayer(
+                    UUID.fromString(
+                        temp[TempBetData
+                            .jockey]
+                    )
+                ).name.toString(), temp[TempBetData.bet] * betUnit
+            )
         )
         eco.withdrawPlayer(player, temp[TempBetData.bet] * betUnit.toDouble())
 
         if (owner.isOnline) {
-            (owner as Player).sendMessage("${player.name} が ${temp[TempBetData.bet] * betUnit}円 を賭けました")
+            (owner as Player).sendMessage(
+                MessageFormat.format(
+                    Lang.getText("bet-complete-message-owner"),
+                    player.name,
+                    temp[TempBetData.bet] * betUnit
+                )
+            )
         }
         eco.depositPlayer(owner, temp[TempBetData.bet] * betUnit.toDouble())
     }
+
 
     private suspend fun noticeNoBet(event: InventoryClickEvent, slot: Int, player: Player) {
         event.inventory.setItem(slot, GuiComponent.noBet())
@@ -355,7 +390,10 @@ class BetGuiClickEvent : Listener {
         data.add(
             ValueRange().setRange("${raceID}_RaceAssist!A${i}").setValues(
                 listOf(
-                    listOf("タイムスタンプ", "マイクラネーム", "対象プレイヤー", "賭け金", "ベッド倍率 (%)->", getBetPercent(raceID))
+                    listOf(
+                        Lang.getText("sheet-timestamp"), Lang.getText("sheet-minecraft-name"),
+                        Lang.getText("sheet-jockey"), Lang.getText("sheet-bet-price"), Lang.getText("sheet-bet-multiplier"), getBetPercent(raceID)
+                    )
                 )
             )
         )

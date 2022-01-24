@@ -25,6 +25,7 @@ import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import java.awt.Polygon
+import java.text.MessageFormat
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -70,37 +72,45 @@ class RaceCommand : BaseCommand() {
     fun start(sender: CommandSender, @Single raceID: String) {
         plugin!!.launch {
             if (starting) {
-                sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
+                sender.sendMessage(text(Lang.getText("now-starting-other-race"), TextColor.color(RED)))
                 return@launch
             }
             if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-                sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
+                sender.sendMessage(text(Lang.getText("only-race-creator-can-start"), TextColor.color(RED)))
                 return@launch
             }
             if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-                sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
                 return@launch
             }
             val jockeys: ArrayList<Player> = ArrayList()
             getAllJockeys(raceID).forEach { jockey ->
                 if (jockey.isOnline) {
                     jockeys.add(jockey as Player)
-                    sender.sendMessage(text("${jockey.name}が参加しました", TextColor.color(GREEN)))
+                    sender.sendMessage(text(MessageFormat.format(Lang.getText("player-join"), jockey.name), TextColor.color(GREEN)))
                 } else {
-                    sender.sendMessage(text("${jockey.name}はオフラインです", TextColor.color(YELLOW)))
+                    sender.sendMessage(text(MessageFormat.format(Lang.getText("player-is-offline"), jockey.name), TextColor.color(YELLOW)))
                 }
             }
             if (jockeys.size < 2) {
-                sender.sendMessage(text("開催には2人以上のユーザーが必要です", TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("over-two-users-need"), TextColor.color(YELLOW)))
                 return@launch
             }
 
-            val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-            val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-            val goalDegree: Int = getGoalDegree(raceID) ?: return@launch sender.sendMessage(text("ゴール角度が存在しません", TextColor.color(YELLOW)))
+            val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
+                text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW))
+            )
+            val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
+                text(
+                    Lang.getText("no-exist-central-point"),
+                    TextColor.color(YELLOW)
+                )
+            )
+            val goalDegree: Int =
+                getGoalDegree(raceID) ?: return@launch sender.sendMessage(text(Lang.getText("no-exist-goal-degree"), TextColor.color(YELLOW)))
 
             if (goalDegree % 90 != 0) {
-                sender.sendMessage(text("ゴール角度は90の倍数である必要があります", TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("goal-degree-must-multiple-90"), TextColor.color(YELLOW)))
                 return@launch
             }
 
@@ -191,7 +201,7 @@ class RaceCommand : BaseCommand() {
             }
 
             val beforeTime = System.currentTimeMillis()
-            audience.showTitle(title(text("レースが開始しました", TextColor.color(GREEN)), text(" ")))
+            audience.showTitle(title(text(Lang.getText("race-start"), TextColor.color(GREEN)), text(" ")))
 
             val randomJockey = jockeys.random()
             val startDegree = getRaceDegree(
@@ -230,7 +240,7 @@ class RaceCommand : BaseCommand() {
                     }
 
                     if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                        player.sendActionBar(text("レース場外に出てる可能性があります", TextColor.color(RED)))
+                        player.sendActionBar(text(Lang.getText("outside-the-racetrack"), TextColor.color(RED)))
                     }
 
                     calculateLap.await()
@@ -240,7 +250,14 @@ class RaceCommand : BaseCommand() {
                         finishJockey.add(uuid)
                         totalDegree.remove(uuid)
                         currentLap.remove(uuid)
-                        player.showTitle(title(text("${jockeyCount - jockeys.size}/$jockeyCount 位です", TextColor.color(GREEN)), text("")))
+                        player.showTitle(
+                            title(
+                                text(
+                                    MessageFormat.format(Lang.getText("player-ranking"), jockeyCount - jockeys.size, jockeyCount),
+                                    TextColor.color(GREEN)
+                                ), text("")
+                            )
+                        )
                         time[uuid] = ((System.currentTimeMillis() - beforeTime) / 1000).toInt()
                         continue
                     }
@@ -260,11 +277,18 @@ class RaceCommand : BaseCommand() {
                 delay(100)
                 displayRanking.await()
             }
-            audience.showTitle(title(text("レースが終了しました", TextColor.color(GREEN)), text("")))
+            audience.showTitle(title(text(Lang.getText("finish-race"), TextColor.color(GREEN)), text("")))
             delay(2000)
 
             for (i in 0 until finishJockey.size) {
-                audience.sendMessage(text("${i + 1}位  ${Bukkit.getPlayer(finishJockey[i])?.name}"))
+                audience.sendMessage(
+                    text(
+                        MessageFormat.format(
+                            Lang.getText("to-notice-ranking-message"), i + 1, Bukkit.getPlayer
+                                (finishJockey[i])?.name
+                        )
+                    )
+                )
             }
 
             withContext(Dispatchers.IO) {
@@ -288,13 +312,13 @@ class RaceCommand : BaseCommand() {
         val embeds = JSONArray()
         val author = JSONObject()
         val embedsObject = JSONObject()
-        embedsObject["title"] = "レース結果"
-        author["name"] = "開始した人:${Bukkit.getOfflinePlayer(starter).name}   レースID:$raceID"
+        embedsObject["title"] = Lang.getText("discord-webhook-race-result")
+        author["name"] = MessageFormat.format(Lang.getText("discord-webhook-name"), Bukkit.getOfflinePlayer(starter).name, raceID)
         author["icon_url"] = "https://crafthead.net/avatar/$starter"
         embedsObject["author"] = author
         for (i in 0 until finishJockey.size) {
             val playerResult = JSONObject()
-            playerResult["name"] = "${i + 1}位"
+            playerResult["name"] = MessageFormat.format(Lang.getText("discord-webhook-ranking"), i + 1)
             playerResult["value"] = String.format(
                 "%s %2d:%02d",
                 Bukkit.getPlayer(finishJockey[i])?.name,
@@ -326,30 +350,33 @@ class RaceCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun debug(sender: CommandSender, @Single raceID: String) {
         if (starting) {
-            sender.sendMessage(text("他のレース開始中です", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("now-starting-other-race"), TextColor.color(RED)))
             return
         }
         starting = true
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text("レース作成者しか開始することはできません", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("only-race-creator-can-start"), TextColor.color(RED)))
         }
         if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-            sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
+            sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
             return
         }
 
         val insidePolygon = getPolygon(raceID, true)
         val outsidePolygon = getPolygon(raceID, false)
         if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
-            sender.sendMessage(text("レースが存在しません", TextColor.color(YELLOW)))
+            sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
             return
         }
         val reverse = getReverse(raceID) ?: false
         val lap: Int = getLapCount(raceID)
         val threshold = 40
-        val centralXPoint: Int = getCentralPoint(raceID, true) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-        val centralYPoint: Int = getCentralPoint(raceID, false) ?: return sender.sendMessage(text("中心点が存在しません", TextColor.color(YELLOW)))
-        val goalDegree: Int = getGoalDegree(raceID) ?: return sender.sendMessage(text("ゴール角度が存在しません", TextColor.color(YELLOW)))
+        val centralXPoint: Int =
+            getCentralPoint(raceID, true) ?: return sender.sendMessage(text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW)))
+        val centralYPoint: Int =
+            getCentralPoint(raceID, false) ?: return sender.sendMessage(text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW)))
+        val goalDegree: Int =
+            getGoalDegree(raceID) ?: return sender.sendMessage(text(Lang.getText("no-exist-goal-degree"), TextColor.color(YELLOW)))
         var beforeDegree = 0
         var currentLap = 0
         var counter = 0
@@ -363,7 +390,7 @@ class RaceCommand : BaseCommand() {
                 }
             }
 
-            sender.showTitle(title(text("スタートです", TextColor.color(GREEN)), text(" ")))
+            sender.showTitle(title(text(Lang.getText("to-notice-start-message"), TextColor.color(GREEN)), text(" ")))
             val it: Player = sender
 
 
@@ -384,22 +411,26 @@ class RaceCommand : BaseCommand() {
                 displayLap(currentLap, beforeLap, it, lap)
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    it.sendActionBar(text("レース場外に出てる可能性があります", TextColor.color(RED)))
+                    it.sendActionBar(text(Lang.getText("outside-the-racetrack"), TextColor.color(RED)))
                 }
                 beforeDegree = currentDegree
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
-                val objective: Objective = scoreboard.registerNewObjective("ranking", "dummy", text("デバッグモード", TextColor.color(YELLOW)))
+                val objective: Objective = scoreboard.registerNewObjective(
+                    Lang.getText("scoreboard-ranking"),
+                    "dummy",
+                    text(Lang.getText("scoreboard-context"), TextColor.color(YELLOW))
+                )
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
-                val score = objective.getScore("§61位" + "   " + "§b${sender.name}")
+                val score = objective.getScore(Lang.getText("first-ranking") + "   " + "§b${sender.name}")
                 score.score = 4
-                val degree = "現在のラップ$currentLap Lap 現在の角度$currentDegree°"
+                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree"), currentLap, currentDegree)
 
                 val displayDegree = objective.getScore(degree)
                 displayDegree.score = 2
-                val residue = objective.getScore("残り時間     ${180 - counter} 秒")
+                val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining"), 180 - counter))
                 residue.score = 1
                 sender.scoreboard = scoreboard
                 counter++
@@ -458,7 +489,7 @@ class RaceCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun stop(sender: CommandSender, @Single raceID: String) {
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text("レース作成者しか停止することはできません", TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("only-race-creator-can-stop"), TextColor.color(RED)))
         }
         stop[raceID] = true
 
@@ -472,7 +503,7 @@ class RaceCommand : BaseCommand() {
     @Subcommand("create")
     fun create(sender: CommandSender, @Single raceID: String) {
         if (getRaceCreator(raceID) != null) {
-            sender.sendMessage("その名前のレース場は既に設定されています")
+            sender.sendMessage(Lang.getText("already-used-the-name-race"))
             return
         }
         transaction {
@@ -494,7 +525,7 @@ class RaceCommand : BaseCommand() {
             }
         }
         setRaceID()
-        sender.sendMessage("レース場を作成しました")
+        sender.sendMessage(Lang.getText("to-create-race"))
     }
 
     @CommandPermission("RaceAssist.commands.race")
@@ -503,11 +534,11 @@ class RaceCommand : BaseCommand() {
     fun delete(sender: CommandSender, @Single raceID: String) {
 
         if (getRaceCreator(raceID) == null) {
-            sender.sendMessage("レース場が設定されていません")
+            sender.sendMessage(Lang.getText("no-racetrack-is-set"))
             return
         }
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage("レース場作成者が設定してください")
+            sender.sendMessage(Lang.getText("only-race-creator-can-setting"))
             return
         }
 
@@ -531,7 +562,7 @@ class RaceCommand : BaseCommand() {
 
                 }
                 setRaceID()
-                sender.sendMessage("レース場、及びプレイヤーなどのデータを削除しました")
+                sender.sendMessage(Lang.getText("to-delete-race-and-so-on"))
             }
         }
     }
@@ -546,15 +577,32 @@ class RaceCommand : BaseCommand() {
         }
         if (currentLap > beforeLap) {
             if (currentLap == lap - 1) {
-                player.showTitle(title((text("最終ラップです ", TextColor.color(GREEN))), text("ラップが一つ進みました", TextColor.color(BLUE))))
+                player.showTitle(
+                    title(
+                        (text(Lang.getText("last-lap"), TextColor.color(GREEN))), text(
+                            Lang.getText("one-step-forward-lap"),
+                            TextColor.color(BLUE)
+                        )
+                    )
+                )
             } else {
-                player.showTitle(title((text("現在${currentLap} / ${lap}ラップです ", TextColor.color(GREEN))), text("ラップが一つ進みました", TextColor.color(BLUE))))
+                player.showTitle(
+                    title(
+                        (text(MessageFormat.format(Lang.getText("now-lap"), currentLap, lap), TextColor.color(GREEN))), text
+                            (Lang.getText("one-step-forward-lap"), TextColor.color(BLUE))
+                    )
+                )
             }
             Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
                 player.clearTitle()
             }, 40)
         } else if (currentLap < beforeLap) {
-            player.showTitle(title(text("現在${currentLap} / ${lap}ラップです ", TextColor.color(GREEN)), text("ラップが一つ戻りました", TextColor.color(RED))))
+            player.showTitle(
+                title(
+                    text(MessageFormat.format(Lang.getText("now-lap"), currentLap, lap), TextColor.color(GREEN)),
+                    text(Lang.getText("one-step-backwards-lap"), TextColor.color(RED))
+                )
+            )
             Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
                 player.clearTitle()
             }, 40)
@@ -572,21 +620,27 @@ class RaceCommand : BaseCommand() {
     ) {
         val manager: ScoreboardManager = Bukkit.getScoreboardManager()
         val scoreboard = manager.newScoreboard
-        val objective: Objective = scoreboard.registerNewObjective("ranking", "dummy", text("現在のランキング", TextColor.color(YELLOW)))
+        val objective: Objective = scoreboard.registerNewObjective(
+            Lang.getText("scoreboard-ranking"), "dummy", text(
+                Lang.getText("scoreboard-now-ranking"), TextColor.color
+                    (YELLOW)
+            )
+        )
         objective.displaySlot = DisplaySlot.SIDEBAR
 
         for (i in nowRankings.indices) {
             val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-            val score = objective.getScore("§6${i + 1}位" + "   " + "§b$playerName")
+            val score = objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name"), i + 1, playerName))
             score.score = nowRankings.size * 2 - 2 * i - 1
             val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
-                "完走しました"
+                Lang.getText("finished-the-race.")
             } else {
-                "現在のラップ${
-                    currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt()
-                }/ $lap Lap 現在の距離${
+                MessageFormat.format(
+                    Lang.getText("now-lap-and-now-length"),
+                    currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
+                    lap,
                     (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360)
-                }m"
+                )
             }
             val displayDegree = objective.getScore(degree)
             displayDegree.score = nowRankings.size * 2 - 2 * i - 2

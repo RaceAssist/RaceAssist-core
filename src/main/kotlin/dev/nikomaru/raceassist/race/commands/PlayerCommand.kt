@@ -20,6 +20,7 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import co.aikar.commands.bukkit.contexts.OnlinePlayer
 import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
@@ -31,6 +32,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.text.MessageFormat
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
@@ -44,15 +46,15 @@ class PlayerCommand : BaseCommand() {
 
         val player: Player = onlinePlayer.player
         if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
-            sender.sendMessage(Component.text("レース作成者しか追加することはできません", TextColor.color(NamedTextColor.RED)))
+            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting"), TextColor.color(NamedTextColor.RED)))
             return
         }
         if (getRacePlayerExist(raceID, player.uniqueId)) {
-            sender.sendMessage(Component.text("すでにそのプレイヤーは既に存在します", TextColor.color(NamedTextColor.YELLOW)))
+            sender.sendMessage(Component.text(Lang.getText("already-exist-this-user"), TextColor.color(NamedTextColor.YELLOW)))
             return
         }
         if (getRacePlayerAmount() >= 8) {
-            sender.sendMessage(Component.text("プレイヤーは最大で8人しか設定することはできません", TextColor.color(NamedTextColor.RED)))
+            sender.sendMessage(Component.text(Lang.getText("max-player-is-eight"), TextColor.color(NamedTextColor.RED)))
             return
         }
         transaction {
@@ -61,7 +63,7 @@ class PlayerCommand : BaseCommand() {
                 it[playerUUID] = player.uniqueId.toString()
             }
         }
-        sender.sendMessage("${player.name} を $raceID に追加しました ")
+        sender.sendMessage(MessageFormat.format(Lang.getText("player-add-to-race-group"), player.name, raceID))
     }
 
     private fun getRacePlayerAmount(): Long = transaction {
@@ -76,14 +78,14 @@ class PlayerCommand : BaseCommand() {
 @CommandCompletion("@RaceID")
 private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
     if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
+        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete"), TextColor.color(NamedTextColor.RED)))
         return
     }
 
     transaction {
         PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
     }
-    sender.sendMessage("$raceID から対象のプレイヤーを削除しました")
+    sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-player-from-race-group"), raceID))
 }
 
 @CommandPermission("RaceAssist.commands.player")
@@ -91,14 +93,14 @@ private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single 
 @CommandCompletion("@RaceID")
 private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
     if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text("レース作成者しか削除することはできません", TextColor.color(NamedTextColor.RED)))
+        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete"), TextColor.color(NamedTextColor.RED)))
         return
     }
 
     transaction {
         PlayerList.deleteWhere { PlayerList.raceID eq raceID }
     }
-    sender.sendMessage("$raceID から全てのプレイヤーを削除しました")
+    sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-all-player-from-race-group"), raceID))
 }
 
 @CommandPermission("RaceAssist.commands.player")
@@ -106,7 +108,7 @@ private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
 @CommandCompletion("@RaceID")
 private fun displayPlayerList(sender: CommandSender, @Single raceID: String) {
     if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text("レース作成者しか表示することはできません", TextColor.color(NamedTextColor.RED)))
+        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display"), TextColor.color(NamedTextColor.RED)))
         return
     }
 
