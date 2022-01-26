@@ -42,31 +42,31 @@ class AudiencesCommand : BaseCommand() {
 
     @Subcommand("join")
     @CommandCompletion("@RaceID")
-    private fun join(sender: CommandSender, @Single raceID: String) {
+    private fun join(sender: Player, @Single raceID: String) {
         if (!getRaceExist(raceID)) {
-            sender.sendMessage(text(Lang.getText("not-found-this-race"), TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("not-found-this-race", sender.locale()), TextColor.color(RED)))
             return
         }
-        if (audience[raceID]?.contains((sender as Player).uniqueId) == true) {
-            sender.sendMessage(text(Lang.getText("already-joined"), TextColor.color(RED)))
+        if (audience[raceID]?.contains(sender.uniqueId) == true) {
+            sender.sendMessage(text(Lang.getText("already-joined", sender.locale()), TextColor.color(RED)))
             return
         }
         if (!audience.containsKey(raceID)) {
             audience[raceID] = ArrayList()
         }
-        audience[raceID]?.add((sender as Player).uniqueId)
-        sender.sendMessage(text(Lang.getText("joined-group"), TextColor.color(GREEN)))
+        audience[raceID]?.add(sender.uniqueId)
+        sender.sendMessage(text(Lang.getText("joined-group", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("leave")
     @CommandCompletion("@RaceID")
-    private fun leave(sender: CommandSender, @Single raceID: String) {
-        if (audience[raceID]?.contains((sender as Player).uniqueId) == false) {
-            sender.sendMessage(text(Lang.getText("now-not-belong"), TextColor.color(RED)))
+    private fun leave(sender: Player, @Single raceID: String) {
+        if (audience[raceID]?.contains(sender.uniqueId) == false) {
+            sender.sendMessage(text(Lang.getText("now-not-belong", sender.locale()), TextColor.color(RED)))
             return
         }
-        audience[raceID]?.remove((sender as Player).uniqueId)
-        sender.sendMessage(text(Lang.getText("to-exit-the-group"), TextColor.color(GREEN)))
+        audience[raceID]?.remove(sender.uniqueId)
+        sender.sendMessage(text(Lang.getText("to-exit-the-group", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("list")
@@ -74,10 +74,10 @@ class AudiencesCommand : BaseCommand() {
     private fun list(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-display"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-display", sender.locale()), TextColor.color(RED)))
             return
         }
-        sender.sendMessage(text(Lang.getText("participants-list"), TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("participants-list", sender.locale()), TextColor.color(GREEN)))
         transaction {
             PlayerList.select { PlayerList.raceID eq raceID }.forEach {
                 sender.sendMessage(text(Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID])).name!!, TextColor.color(GREEN)))

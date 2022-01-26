@@ -107,7 +107,7 @@ class BetGuiClickEvent : Listener {
                 val itemMeta = item.itemMeta
                 itemMeta.displayName(
                     text(
-                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit), TextColor
+                        MessageFormat.format(Lang.getText("now-betting-price", player.locale()), betUnit, selectedAfterBet * betUnit), TextColor
                             .fromHexString("#00ff7f")
                     )
                 )
@@ -141,7 +141,7 @@ class BetGuiClickEvent : Listener {
                 val itemMeta = item.itemMeta
                 itemMeta.displayName(
                     text(
-                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit),
+                        MessageFormat.format(Lang.getText("now-betting-price", player.locale()), betUnit, selectedAfterBet * betUnit),
                         TextColor.fromHexString("#00ff7f")
                     )
                 )
@@ -160,10 +160,10 @@ class BetGuiClickEvent : Listener {
                 val selectedNowBet: Int = getNowBet(raceID, player, (slot - 27))
 
                 if (selectedNowBet <= 0) {
-                    event.inventory.setItem(slot, GuiComponent.noUnderNotice())
+                    event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.onceDown())
+                    event.inventory.setItem(slot, GuiComponent.onceDown(player.locale()))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 0.7f)
@@ -184,7 +184,7 @@ class BetGuiClickEvent : Listener {
                 val itemMeta = item.itemMeta
                 itemMeta.displayName(
                     text(
-                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit), TextColor
+                        MessageFormat.format(Lang.getText("now-betting-price", player.locale()), betUnit, selectedAfterBet * betUnit), TextColor
                             .fromHexString("#00ff7f")
                     )
                 )
@@ -203,10 +203,10 @@ class BetGuiClickEvent : Listener {
 
 
                 if (selectedNowBet <= 9) {
-                    event.inventory.setItem(slot, GuiComponent.noUnderNotice())
+                    event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.tenTimesDown())
+                    event.inventory.setItem(slot, GuiComponent.tenTimesDown(player.locale()))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 0.7f)
@@ -228,7 +228,7 @@ class BetGuiClickEvent : Listener {
                 val itemMeta = item.itemMeta
                 itemMeta.displayName(
                     text(
-                        MessageFormat.format(Lang.getText("now-betting-price"), betUnit, selectedAfterBet * betUnit),
+                        MessageFormat.format(Lang.getText("now-betting-price", player.locale()), betUnit, selectedAfterBet * betUnit),
                         TextColor.fromHexString("#00ff7f")
                     )
                 )
@@ -258,7 +258,12 @@ class BetGuiClickEvent : Listener {
                 for (i in 0 until limit + 1) {
                     val item = event.inventory.getItem(i + 18)!!
                     val itemMeta = item.itemMeta
-                    itemMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money"), betUnit), TextColor.fromHexString("#00ff7f")))
+                    itemMeta.displayName(
+                        text(
+                            MessageFormat.format(Lang.getText("betting-zero-money", player.locale()), betUnit), TextColor
+                                .fromHexString("#00ff7f")
+                        )
+                    )
                     item.itemMeta = itemMeta
                 }
             }
@@ -323,7 +328,7 @@ class BetGuiClickEvent : Listener {
         val accept = event.inventory.getItem(44)!!
         val acceptMeta = accept.itemMeta
         val acceptLore: ArrayList<Component> = ArrayList<Component>()
-        acceptLore.add(text(MessageFormat.format(Lang.getText("gui-need-money"), getAllBet(raceID, player) * betUnit)))
+        acceptLore.add(text(MessageFormat.format(Lang.getText("gui-need-money", player.locale()), getAllBet(raceID, player) * betUnit)))
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
         event.inventory.setItem(44, accept)
@@ -332,7 +337,7 @@ class BetGuiClickEvent : Listener {
     private fun betProcess(player: Player, row: Int, temp: ResultRow, eco: Economy, owner: OfflinePlayer) {
         player.sendMessage(
             MessageFormat.format(
-                Lang.getText("bet-complete-message-player"), row + 1, Bukkit.getOfflinePlayer(
+                Lang.getText("bet-complete-message-player", player.locale()), row + 1, Bukkit.getOfflinePlayer(
                     UUID.fromString(
                         temp[TempBetData
                             .jockey]
@@ -345,7 +350,7 @@ class BetGuiClickEvent : Listener {
         if (owner.isOnline) {
             (owner as Player).sendMessage(
                 MessageFormat.format(
-                    Lang.getText("bet-complete-message-owner"),
+                    Lang.getText("bet-complete-message-owner", player.locale()),
                     player.name,
                     temp[TempBetData.bet] * betUnit
                 )
@@ -354,19 +359,18 @@ class BetGuiClickEvent : Listener {
         eco.depositPlayer(owner, temp[TempBetData.bet] * betUnit.toDouble())
     }
 
-
     private suspend fun noticeNoBet(event: InventoryClickEvent, slot: Int, player: Player) {
-        event.inventory.setItem(slot, GuiComponent.noBet())
+        event.inventory.setItem(slot, GuiComponent.noBet(player.locale()))
         player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
         delay(1000)
-        event.inventory.setItem(slot, GuiComponent.accept())
+        event.inventory.setItem(slot, GuiComponent.accept(player.locale()))
     }
 
     private suspend fun noticeNoMoney(event: InventoryClickEvent, slot: Int, player: Player) {
-        event.inventory.setItem(slot, GuiComponent.noHaveMoney())
+        event.inventory.setItem(slot, GuiComponent.noHaveMoney(player.locale()))
         player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
         delay(1000)
-        event.inventory.setItem(slot, GuiComponent.accept())
+        event.inventory.setItem(slot, GuiComponent.accept(player.locale()))
     }
 
     private suspend fun getNowBet(raceID: String, player: Player, slot: Int) = newSuspendedTransaction {
@@ -391,8 +395,12 @@ class BetGuiClickEvent : Listener {
             ValueRange().setRange("${raceID}_RaceAssist!A${i}").setValues(
                 listOf(
                     listOf(
-                        Lang.getText("sheet-timestamp"), Lang.getText("sheet-minecraft-name"),
-                        Lang.getText("sheet-jockey"), Lang.getText("sheet-bet-price"), Lang.getText("sheet-bet-multiplier"), getBetPercent(raceID)
+                        Lang.getText("sheet-timestamp", Locale.getDefault()),
+                        Lang.getText("sheet-minecraft-name", Locale.getDefault()),
+                        Lang.getText("sheet-jockey", Locale.getDefault()),
+                        Lang.getText("sheet-bet-price", Locale.getDefault()),
+                        Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
+                        getBetPercent(raceID)
                     )
                 )
             )

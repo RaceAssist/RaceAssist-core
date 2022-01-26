@@ -26,15 +26,13 @@ import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.RaceAudience
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.identity.Identity
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextColor
@@ -71,46 +69,57 @@ class RaceCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun start(sender: CommandSender, @Single raceID: String) {
         plugin!!.launch {
+
             if (starting) {
-                sender.sendMessage(text(Lang.getText("now-starting-other-race"), TextColor.color(RED)))
+                sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
                 return@launch
             }
             if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-                sender.sendMessage(text(Lang.getText("only-race-creator-can-start"), TextColor.color(RED)))
+                sender.sendMessage(text(Lang.getText("only-race-creator-can-start", sender.locale()), TextColor.color(RED)))
                 return@launch
             }
             if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-                sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
                 return@launch
             }
             val jockeys: ArrayList<Player> = ArrayList()
             getAllJockeys(raceID).forEach { jockey ->
                 if (jockey.isOnline) {
                     jockeys.add(jockey as Player)
-                    sender.sendMessage(text(MessageFormat.format(Lang.getText("player-join"), jockey.name), TextColor.color(GREEN)))
+                    sender.sendMessage(text(MessageFormat.format(Lang.getText("player-join", sender.locale()), jockey.name), TextColor.color(GREEN)))
                 } else {
-                    sender.sendMessage(text(MessageFormat.format(Lang.getText("player-is-offline"), jockey.name), TextColor.color(YELLOW)))
+                    sender.sendMessage(
+                        text(
+                            MessageFormat.format(Lang.getText("player-is-offline", sender.locale()), jockey.name), TextColor.color
+                                (YELLOW)
+                        )
+                    )
                 }
             }
             if (jockeys.size < 2) {
-                sender.sendMessage(text(Lang.getText("over-two-users-need"), TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("over-two-users-need", sender.locale()), TextColor.color(YELLOW)))
                 return@launch
             }
 
             val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
-                text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW))
+                text(Lang.getText("no-exist-central-point", sender.locale()), TextColor.color(YELLOW))
             )
             val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
                 text(
-                    Lang.getText("no-exist-central-point"),
+                    Lang.getText("no-exist-central-point", sender.locale()),
                     TextColor.color(YELLOW)
                 )
             )
             val goalDegree: Int =
-                getGoalDegree(raceID) ?: return@launch sender.sendMessage(text(Lang.getText("no-exist-goal-degree"), TextColor.color(YELLOW)))
+                getGoalDegree(raceID) ?: return@launch sender.sendMessage(
+                    text(
+                        Lang.getText("no-exist-goal-degree", sender.locale()),
+                        TextColor.color(YELLOW)
+                    )
+                )
 
             if (goalDegree % 90 != 0) {
-                sender.sendMessage(text(Lang.getText("goal-degree-must-multiple-90"), TextColor.color(YELLOW)))
+                sender.sendMessage(text(Lang.getText("goal-degree-must-multiple-90", sender.locale()), TextColor.color(YELLOW)))
                 return@launch
             }
 
@@ -159,27 +168,32 @@ class RaceCommand : BaseCommand() {
 
             //観客(スコアボードを表示する人)の設定
 
-            val audiences: HashSet<Audience> = HashSet()
-            val audience: Audience = Audience.audience(audiences)
+            val audiences = RaceAudience()
+
 
             AudiencesCommand.audience[raceID]?.forEach {
-                audiences.add(BukkitAudiences.create(plugin!!).player(it))
+                audiences.add(Bukkit.getOfflinePlayer(it))
             }
 
             jockeys.forEach {
-                audiences.add(BukkitAudiences.create(plugin!!).player(it))
+                audiences.add(it)
             }
-            audiences.add(BukkitAudiences.create(plugin!!).player(sender.uniqueId))
+            audiences.add(sender)
 
-            audience.forEachAudience {
-                raceAudience.add(it.get(Identity.UUID).get())
+            audiences.getUUID().forEach {
+                raceAudience.add(it)
             }
 
             //5.4.3...1 のカウント
             var timer1 = 0
             while (timer1 <= 4) {
                 val sendTimer = async(Dispatchers.minecraft) {
-                    audience.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
+                    audiences.getUUID().forEach {
+                        if (Bukkit.getOfflinePlayer(it).isOnline) {
+                            Bukkit.getPlayer(it)?.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
+                        }
+                    }
+
                 }
                 delay(1000)
                 sendTimer.await()
@@ -201,7 +215,7 @@ class RaceCommand : BaseCommand() {
             }
 
             val beforeTime = System.currentTimeMillis()
-            audience.showTitle(title(text(Lang.getText("race-start"), TextColor.color(GREEN)), text(" ")))
+            audiences.showTitleI18n("race-start")
 
             val randomJockey = jockeys.random()
             val startDegree = getRaceDegree(
@@ -240,7 +254,7 @@ class RaceCommand : BaseCommand() {
                     }
 
                     if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                        player.sendActionBar(text(Lang.getText("outside-the-racetrack"), TextColor.color(RED)))
+                        player.sendActionBar(text(Lang.getText("outside-the-racetrack", player.locale()), TextColor.color(RED)))
                     }
 
                     calculateLap.await()
@@ -253,7 +267,7 @@ class RaceCommand : BaseCommand() {
                         player.showTitle(
                             title(
                                 text(
-                                    MessageFormat.format(Lang.getText("player-ranking"), jockeyCount - jockeys.size, jockeyCount),
+                                    MessageFormat.format(Lang.getText("player-ranking", player.locale()), jockeyCount - jockeys.size, jockeyCount),
                                     TextColor.color(GREEN)
                                 ), text("")
                             )
@@ -277,18 +291,20 @@ class RaceCommand : BaseCommand() {
                 delay(100)
                 displayRanking.await()
             }
-            audience.showTitle(title(text(Lang.getText("finish-race"), TextColor.color(GREEN)), text("")))
+            audiences.showTitleI18n("finish-race")
             delay(2000)
 
             for (i in 0 until finishJockey.size) {
-                audience.sendMessage(
-                    text(
-                        MessageFormat.format(
-                            Lang.getText("to-notice-ranking-message"), i + 1, Bukkit.getPlayer
-                                (finishJockey[i])?.name
+                audiences.getUUID().forEach {
+                    if (Bukkit.getOfflinePlayer(it).isOnline) {
+                        Bukkit.getPlayer(it)?.sendMessage(
+                            MessageFormat.format(
+                                Lang.getText("to-notice-ranking-message", Bukkit.getPlayer(it)!!.locale()),
+                                i + 1, Bukkit.getPlayer(finishJockey[i])?.name!!
+                            )
                         )
-                    )
-                )
+                    }
+                }
             }
 
             withContext(Dispatchers.IO) {
@@ -312,13 +328,14 @@ class RaceCommand : BaseCommand() {
         val embeds = JSONArray()
         val author = JSONObject()
         val embedsObject = JSONObject()
-        embedsObject["title"] = Lang.getText("discord-webhook-race-result")
-        author["name"] = MessageFormat.format(Lang.getText("discord-webhook-name"), Bukkit.getOfflinePlayer(starter).name, raceID)
+        embedsObject["title"] = Lang.getText("discord-webhook-race-result", Locale.getDefault())
+        author["name"] =
+            MessageFormat.format(Lang.getText("discord-webhook-name", Locale.getDefault()), Bukkit.getOfflinePlayer(starter).name, raceID)
         author["icon_url"] = "https://crafthead.net/avatar/$starter"
         embedsObject["author"] = author
         for (i in 0 until finishJockey.size) {
             val playerResult = JSONObject()
-            playerResult["name"] = MessageFormat.format(Lang.getText("discord-webhook-ranking"), i + 1)
+            playerResult["name"] = MessageFormat.format(Lang.getText("discord-webhook-ranking", Locale.getDefault()), i + 1)
             playerResult["value"] = String.format(
                 "%s %2d:%02d",
                 Bukkit.getPlayer(finishJockey[i])?.name,
@@ -350,33 +367,43 @@ class RaceCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun debug(sender: CommandSender, @Single raceID: String) {
         if (starting) {
-            sender.sendMessage(text(Lang.getText("now-starting-other-race"), TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
             return
         }
         starting = true
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text(Lang.getText("only-race-creator-can-start"), TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("only-race-creator-can-start", sender.locale()), TextColor.color(RED)))
         }
         if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-            sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
+            sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
             return
         }
 
         val insidePolygon = getPolygon(raceID, true)
         val outsidePolygon = getPolygon(raceID, false)
         if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
-            sender.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(YELLOW)))
+            sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
             return
         }
         val reverse = getReverse(raceID) ?: false
         val lap: Int = getLapCount(raceID)
         val threshold = 40
         val centralXPoint: Int =
-            getCentralPoint(raceID, true) ?: return sender.sendMessage(text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW)))
+            getCentralPoint(raceID, true) ?: return sender.sendMessage(
+                text(
+                    Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
+                        (YELLOW)
+                )
+            )
         val centralYPoint: Int =
-            getCentralPoint(raceID, false) ?: return sender.sendMessage(text(Lang.getText("no-exist-central-point"), TextColor.color(YELLOW)))
+            getCentralPoint(raceID, false) ?: return sender.sendMessage(
+                text(
+                    Lang.getText("no-exist-central-point", sender.locale()),
+                    TextColor.color(YELLOW)
+                )
+            )
         val goalDegree: Int =
-            getGoalDegree(raceID) ?: return sender.sendMessage(text(Lang.getText("no-exist-goal-degree"), TextColor.color(YELLOW)))
+            getGoalDegree(raceID) ?: return sender.sendMessage(text(Lang.getText("no-exist-goal-degree", sender.locale()), TextColor.color(YELLOW)))
         var beforeDegree = 0
         var currentLap = 0
         var counter = 0
@@ -390,7 +417,7 @@ class RaceCommand : BaseCommand() {
                 }
             }
 
-            sender.showTitle(title(text(Lang.getText("to-notice-start-message"), TextColor.color(GREEN)), text(" ")))
+            sender.showTitle(title(text(Lang.getText("to-notice-start-message", sender.locale()), TextColor.color(GREEN)), text(" ")))
             val it: Player = sender
 
 
@@ -411,26 +438,26 @@ class RaceCommand : BaseCommand() {
                 displayLap(currentLap, beforeLap, it, lap)
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    it.sendActionBar(text(Lang.getText("outside-the-racetrack"), TextColor.color(RED)))
+                    it.sendActionBar(text(Lang.getText("outside-the-racetrack", sender.locale()), TextColor.color(RED)))
                 }
                 beforeDegree = currentDegree
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
                 val objective: Objective = scoreboard.registerNewObjective(
-                    Lang.getText("scoreboard-ranking"),
+                    Lang.getText("scoreboard-ranking", sender.locale()),
                     "dummy",
-                    text(Lang.getText("scoreboard-context"), TextColor.color(YELLOW))
+                    text(Lang.getText("scoreboard-context", sender.locale()), TextColor.color(YELLOW))
                 )
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
-                val score = objective.getScore(Lang.getText("first-ranking") + "   " + "§b${sender.name}")
+                val score = objective.getScore(Lang.getText("first-ranking", sender.locale()) + "   " + "§b${sender.name}")
                 score.score = 4
-                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree"), currentLap, currentDegree)
+                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", sender.locale()), currentLap, currentDegree)
 
                 val displayDegree = objective.getScore(degree)
                 displayDegree.score = 2
-                val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining"), 180 - counter))
+                val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining", sender.locale()), 180 - counter))
                 residue.score = 1
                 sender.scoreboard = scoreboard
                 counter++
@@ -489,7 +516,7 @@ class RaceCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun stop(sender: CommandSender, @Single raceID: String) {
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text(Lang.getText("only-race-creator-can-stop"), TextColor.color(RED)))
+            sender.sendMessage(text(Lang.getText("only-race-creator-can-stop", sender.locale()), TextColor.color(RED)))
         }
         stop[raceID] = true
 
@@ -503,7 +530,7 @@ class RaceCommand : BaseCommand() {
     @Subcommand("create")
     fun create(sender: CommandSender, @Single raceID: String) {
         if (getRaceCreator(raceID) != null) {
-            sender.sendMessage(Lang.getText("already-used-the-name-race"))
+            sender.sendMessage(Lang.getText("already-used-the-name-race", (sender as Player).locale()))
             return
         }
         transaction {
@@ -525,7 +552,7 @@ class RaceCommand : BaseCommand() {
             }
         }
         setRaceID()
-        sender.sendMessage(Lang.getText("to-create-race"))
+        sender.sendMessage(Lang.getText("to-create-race", (sender as Player).locale()))
     }
 
     @CommandPermission("RaceAssist.commands.race")
@@ -534,11 +561,11 @@ class RaceCommand : BaseCommand() {
     fun delete(sender: CommandSender, @Single raceID: String) {
 
         if (getRaceCreator(raceID) == null) {
-            sender.sendMessage(Lang.getText("no-racetrack-is-set"))
+            sender.sendMessage(Lang.getText("no-racetrack-is-set", (sender as Player).locale()))
             return
         }
         if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(Lang.getText("only-race-creator-can-setting"))
+            sender.sendMessage(Lang.getText("only-race-creator-can-setting", sender.locale()))
             return
         }
 
@@ -562,7 +589,7 @@ class RaceCommand : BaseCommand() {
 
                 }
                 setRaceID()
-                sender.sendMessage(Lang.getText("to-delete-race-and-so-on"))
+                sender.sendMessage(Lang.getText("to-delete-race-and-so-on", sender.locale()))
             }
         }
     }
@@ -579,8 +606,8 @@ class RaceCommand : BaseCommand() {
             if (currentLap == lap - 1) {
                 player.showTitle(
                     title(
-                        (text(Lang.getText("last-lap"), TextColor.color(GREEN))), text(
-                            Lang.getText("one-step-forward-lap"),
+                        (text(Lang.getText("last-lap", player.locale()), TextColor.color(GREEN))), text(
+                            Lang.getText("one-step-forward-lap", player.locale()),
                             TextColor.color(BLUE)
                         )
                     )
@@ -588,8 +615,8 @@ class RaceCommand : BaseCommand() {
             } else {
                 player.showTitle(
                     title(
-                        (text(MessageFormat.format(Lang.getText("now-lap"), currentLap, lap), TextColor.color(GREEN))), text
-                            (Lang.getText("one-step-forward-lap"), TextColor.color(BLUE))
+                        (text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap), TextColor.color(GREEN))), text
+                            (Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))
                     )
                 )
             }
@@ -599,8 +626,8 @@ class RaceCommand : BaseCommand() {
         } else if (currentLap < beforeLap) {
             player.showTitle(
                 title(
-                    text(MessageFormat.format(Lang.getText("now-lap"), currentLap, lap), TextColor.color(GREEN)),
-                    text(Lang.getText("one-step-backwards-lap"), TextColor.color(RED))
+                    text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap), TextColor.color(GREEN)),
+                    text(Lang.getText("one-step-backwards-lap", player.locale()), TextColor.color(RED))
                 )
             )
             Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
@@ -621,8 +648,8 @@ class RaceCommand : BaseCommand() {
         val manager: ScoreboardManager = Bukkit.getScoreboardManager()
         val scoreboard = manager.newScoreboard
         val objective: Objective = scoreboard.registerNewObjective(
-            Lang.getText("scoreboard-ranking"), "dummy", text(
-                Lang.getText("scoreboard-now-ranking"), TextColor.color
+            Lang.getText("scoreboard-ranking", Locale.getDefault()), "dummy", text(
+                Lang.getText("scoreboard-now-ranking", Locale.getDefault()), TextColor.color
                     (YELLOW)
             )
         )
@@ -630,13 +657,14 @@ class RaceCommand : BaseCommand() {
 
         for (i in nowRankings.indices) {
             val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-            val score = objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name"), i + 1, playerName))
+            val score =
+                objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name", Locale.getDefault()), i + 1, playerName))
             score.score = nowRankings.size * 2 - 2 * i - 1
             val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
-                Lang.getText("finished-the-race.")
+                Lang.getText("finished-the-race", Locale.getDefault())
             } else {
                 MessageFormat.format(
-                    Lang.getText("now-lap-and-now-length"),
+                    Lang.getText("now-lap-and-now-length", Locale.getDefault()),
                     currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
                     lap,
                     (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360)

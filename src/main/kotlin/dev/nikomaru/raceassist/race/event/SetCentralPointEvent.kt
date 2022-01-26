@@ -41,7 +41,7 @@ class SetCentralPointEvent : Listener {
                 it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0
             }
         }
-        event.player.sendMessage(Lang.getText("to-set-this-point-central"))
+        event.player.sendMessage(Lang.getText("to-set-this-point-central", event.player.locale()))
         PlaceCommands.removeCanSetCentral(event.player.uniqueId)
     }
 }

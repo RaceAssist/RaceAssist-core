@@ -50,11 +50,11 @@ class SetBetCommand : BaseCommand() {
     fun setCanBet(player: Player, @Single raceID: String, @Single type: String) {
         plugin!!.launch {
             if (!raceExist(raceID)) {
-                player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race", player.locale()), raceID))
                 return@launch
             }
             if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                 return@launch
             }
             if (type == "on") {
@@ -63,14 +63,14 @@ class SetBetCommand : BaseCommand() {
                         it[canBet] = true
                     }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("can-bet-this-raceid"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("can-bet-this-raceid", player.locale()), raceID))
             } else if (type == "off") {
                 newSuspendedTransaction(Dispatchers.IO) {
                     BetSetting.update({ BetSetting.raceID eq raceID }) {
                         it[canBet] = false
                     }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("cannot-bet-this-raceid"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("cannot-bet-this-raceid", player.locale()), raceID))
             }
         }
     }
@@ -80,15 +80,15 @@ class SetBetCommand : BaseCommand() {
     fun setRate(player: Player, @Single raceID: String, @Single rate: Int) {
         plugin!!.launch {
             if (!raceExist(raceID)) {
-                player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+                player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                 return@launch
             }
             if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                 return@launch
             }
             if (rate !in 1..100) {
-                player.sendMessage(Lang.getText("set-rate-message-in1-100"))
+                player.sendMessage(Lang.getText("set-rate-message-in1-100", player.locale()))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
@@ -97,7 +97,7 @@ class SetBetCommand : BaseCommand() {
                 }
             }
         }
-        player.sendMessage(MessageFormat.format(Lang.getText("change-bet-rate-message"), raceID, rate))
+        player.sendMessage(MessageFormat.format(Lang.getText("change-bet-rate-message", player.locale()), raceID, rate))
     }
 
     @Subcommand("delete")
@@ -106,11 +106,11 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                     return@withContext
                 }
             }
@@ -119,10 +119,10 @@ class SetBetCommand : BaseCommand() {
                 newSuspendedTransaction(Dispatchers.IO) {
                     BetList.deleteWhere { BetList.raceID eq raceID }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race", player.locale()), raceID))
             } else {
                 canDelete[player.uniqueId] = true
-                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race-confirm-message"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-remove-race-confirm-message", player.locale()), raceID))
                 delay(5000)
                 canDelete.remove(player.uniqueId)
             }
@@ -136,15 +136,15 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                     return@withContext
                 }
                 if (eco.getBalance(player) < getBetSum(raceID)) {
-                    player.sendMessage(Lang.getText("no-have-money"))
+                    player.sendMessage(Lang.getText("no-have-money", player.locale()))
                     return@withContext
                 }
             }
@@ -159,12 +159,17 @@ class SetBetCommand : BaseCommand() {
                         eco.withdrawPlayer(player, it[BetList.betting].toDouble())
 
                         eco.depositPlayer(receiver, it[BetList.betting].toDouble())
-                        player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-owner"), receiver.name, it[BetList.betting]))
+                        player.sendMessage(
+                            MessageFormat.format(
+                                Lang.getText("bet-revert-return-message-owner", player.locale()), receiver.name,
+                                it[BetList.betting]
+                            )
+                        )
 
                         if (receiver.isOnline) {
                             (receiver as Player).sendMessage(
                                 MessageFormat.format(
-                                    Lang.getText("bet-revert-return-message-player"),
+                                    Lang.getText("bet-revert-return-message-player", receiver.locale()),
                                     player.name,
                                     it[BetList.raceID],
                                     it[BetList.jockey],
@@ -174,10 +179,10 @@ class SetBetCommand : BaseCommand() {
                         }
                     }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-complete-message"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-complete-message", player.locale()), raceID))
             } else {
                 canRevert[player.uniqueId] = true
-                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-race-confirm-message"), raceID))
+                player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-race-confirm-message", player.locale()), raceID))
                 delay(5000)
                 canRevert.remove(player.uniqueId)
             }
@@ -198,11 +203,11 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                     return@withContext
                 }
             }
@@ -220,11 +225,11 @@ class SetBetCommand : BaseCommand() {
         plugin!!.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                     return@withContext
                 }
                 if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting"))
+                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
                     return@withContext
                 }
             }
@@ -232,7 +237,7 @@ class SetBetCommand : BaseCommand() {
                 BetList.select { BetList.raceID eq raceID }.forEach {
                     player.sendMessage(
                         MessageFormat.format(
-                            Lang.getText("bet-list-detail-message"),
+                            Lang.getText("bet-list-detail-message", player.locale()),
                             it[BetList.rowNum],
                             it[BetList.timeStamp],
                             it[BetList.playerName],

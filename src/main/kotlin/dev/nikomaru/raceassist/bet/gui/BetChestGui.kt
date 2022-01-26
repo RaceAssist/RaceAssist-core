@@ -87,23 +87,34 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money"), betUnit), TextColor.fromHexString("#00ff7f")))
+            prevMeta.displayName(
+                text(
+                    MessageFormat.format(Lang.getText("betting-zero-money", player.locale()), betUnit), TextColor.fromHexString
+                        ("#00ff7f")
+                )
+            )
             val lore: ArrayList<Component> = ArrayList<Component>()
             lore.add(
                 text(
-                    MessageFormat.format(Lang.getText("gui-jockey-name"), Bukkit.getOfflinePlayer(players[i]).name), TextColor.fromHexString
+                    MessageFormat.format(Lang.getText("gui-jockey-name", player.locale()), Bukkit.getOfflinePlayer(players[i]).name),
+                    TextColor.fromHexString
                         ("#00a497")
                 )
             )
-            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-odds"), odds[players[i]]), TextColor.fromHexString("#e6b422")))
+            lore.add(
+                text(
+                    MessageFormat.format(Lang.getText("gui-jockey-odds", player.locale()), odds[players[i]]),
+                    TextColor.fromHexString("#e6b422")
+                )
+            )
             prevMeta.lore(lore)
             item.itemMeta = prevMeta
 
-            gui.setItem(i, GuiComponent.tenTimesUp())
-            gui.setItem(i + 9, GuiComponent.onceUp())
+            gui.setItem(i, GuiComponent.tenTimesUp(player.locale()))
+            gui.setItem(i + 9, GuiComponent.onceUp(player.locale()))
             gui.setItem(i + 18, item)
-            gui.setItem(i + 27, GuiComponent.onceDown())
-            gui.setItem(i + 36, GuiComponent.tenTimesDown())
+            gui.setItem(i + 27, GuiComponent.onceDown(player.locale()))
+            gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
         }
         val raceIDItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
         val raceIDMeta = raceIDItem.itemMeta
@@ -111,9 +122,9 @@ class BetChestGui {
         raceIDItem.itemMeta = raceIDMeta
 
         gui.setItem(8, raceIDItem)
-        gui.setItem(17, GuiComponent.reset())
-        gui.setItem(35, GuiComponent.deny())
-        gui.setItem(44, GuiComponent.accept())
+        gui.setItem(17, GuiComponent.reset(player.locale()))
+        gui.setItem(35, GuiComponent.deny(player.locale()))
+        gui.setItem(44, GuiComponent.accept(player.locale()))
 
         return gui
     }

@@ -25,7 +25,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -46,15 +45,15 @@ class PlayerCommand : BaseCommand() {
 
         val player: Player = onlinePlayer.player
         if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
-            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting"), TextColor.color(NamedTextColor.RED)))
+            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", player.locale()), TextColor.color(NamedTextColor.RED)))
             return
         }
         if (getRacePlayerExist(raceID, player.uniqueId)) {
-            sender.sendMessage(Component.text(Lang.getText("already-exist-this-user"), TextColor.color(NamedTextColor.YELLOW)))
+            sender.sendMessage(Component.text(Lang.getText("already-exist-this-user", player.locale()), TextColor.color(NamedTextColor.YELLOW)))
             return
         }
         if (getRacePlayerAmount() >= 8) {
-            sender.sendMessage(Component.text(Lang.getText("max-player-is-eight"), TextColor.color(NamedTextColor.RED)))
+            sender.sendMessage(Component.text(Lang.getText("max-player-is-eight", player.locale()), TextColor.color(NamedTextColor.RED)))
             return
         }
         transaction {
@@ -63,7 +62,7 @@ class PlayerCommand : BaseCommand() {
                 it[playerUUID] = player.uniqueId.toString()
             }
         }
-        sender.sendMessage(MessageFormat.format(Lang.getText("player-add-to-race-group"), player.name, raceID))
+        sender.sendMessage(MessageFormat.format(Lang.getText("player-add-to-race-group", player.locale()), player.name, raceID))
     }
 
     private fun getRacePlayerAmount(): Long = transaction {
@@ -71,67 +70,67 @@ class PlayerCommand : BaseCommand() {
             PlayerList.raceID eq "raceID"
         }.count()
     }
-}
 
-@CommandPermission("RaceAssist.commands.player")
-@Subcommand("remove")
-@CommandCompletion("@RaceID")
-private fun removePlayer(sender: CommandSender, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
-    if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete"), TextColor.color(NamedTextColor.RED)))
-        return
+    @CommandPermission("RaceAssist.commands.player")
+    @Subcommand("remove")
+    @CommandCompletion("@RaceID")
+    private fun removePlayer(sender: Player, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
+        if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
+            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
+            return
+        }
+
+        transaction {
+            PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
+        }
+        sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-player-from-race-group", sender.locale()), raceID))
     }
 
-    transaction {
-        PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq onlinePlayer.player.uniqueId.toString()) }
-    }
-    sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-player-from-race-group"), raceID))
-}
+    @CommandPermission("RaceAssist.commands.player")
+    @Subcommand("delete")
+    @CommandCompletion("@RaceID")
+    private fun deletePlayer(sender: Player, @Single raceID: String) {
+        if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
+            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
+            return
+        }
 
-@CommandPermission("RaceAssist.commands.player")
-@Subcommand("delete")
-@CommandCompletion("@RaceID")
-private fun deletePlayer(sender: CommandSender, @Single raceID: String) {
-    if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete"), TextColor.color(NamedTextColor.RED)))
-        return
-    }
-
-    transaction {
-        PlayerList.deleteWhere { PlayerList.raceID eq raceID }
-    }
-    sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-all-player-from-race-group"), raceID))
-}
-
-@CommandPermission("RaceAssist.commands.player")
-@Subcommand("list")
-@CommandCompletion("@RaceID")
-private fun displayPlayerList(sender: CommandSender, @Single raceID: String) {
-    if (RaceCommand.getRaceCreator(raceID) != (sender as Player).uniqueId) {
-        sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display"), TextColor.color(NamedTextColor.RED)))
-        return
+        transaction {
+            PlayerList.deleteWhere { PlayerList.raceID eq raceID }
+        }
+        sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-all-player-from-race-group", sender.locale()), raceID))
     }
 
-    transaction {
-        PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-            sender.sendMessage(
-                Component.text(
-                    Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString(), TextColor.color
-                        (
-                        NamedTextColor
-                            .YELLOW
+    @CommandPermission("RaceAssist.commands.player")
+    @Subcommand("list")
+    @CommandCompletion("@RaceID")
+    private fun displayPlayerList(sender: Player, @Single raceID: String) {
+        if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
+            sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display", sender.locale()), TextColor.color(NamedTextColor.RED)))
+            return
+        }
+
+        transaction {
+            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                sender.sendMessage(
+                    Component.text(
+                        Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString(), TextColor.color
+                            (
+                            NamedTextColor
+                                .YELLOW
+                        )
                     )
                 )
-            )
+            }
         }
     }
-}
 
-private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
-    var playerExist = false
+    private fun getRacePlayerExist(RaceID: String, playerUUID: UUID): Boolean {
+        var playerExist = false
 
-    transaction {
-        playerExist = PlayerList.select { (PlayerList.raceID eq RaceID) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
+        transaction {
+            playerExist = PlayerList.select { (PlayerList.raceID eq RaceID) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
+        }
+        return playerExist
     }
-    return playerExist
 }

@@ -16,27 +16,48 @@
 
 package dev.nikomaru.raceassist.utils
 
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.nio.file.Files
 import java.util.*
 
 object Lang {
-    private val properties = Properties()
+    private val langList: HashMap<String, Properties> = HashMap()
 
     suspend fun load() {
         withContext(Dispatchers.IO) {
-            val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/${Locale.getDefault()}.properties")
-                ?: this.javaClass.classLoader.getResourceAsStream("lang/ja_JP.properties")!!
-            val isr = InputStreamReader(input, "UTF-8")
+            val lang = listOf("en_US", "ja_JP", "zh_CN")
+            val pluginDir = File(plugin?.dataFolder ?: return@withContext, "lang")
+            if (!pluginDir.exists()) {
+                pluginDir.mkdir()
+            }
+            lang.forEach { locale ->
 
-            properties.load(isr)
+                val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
+                plugin!!.logger.info("Loading lang file for $locale")
+                val file = File(pluginDir, "$locale.properties")
+                if (!file.exists()) {
+                    Files.copy(input, file.toPath())
+                }
+            }
+            withContext(Dispatchers.IO) {
+                pluginDir.listFiles()?.forEach {
+                    langList[it.nameWithoutExtension] = Properties().apply {
+                        load(InputStreamReader(it.inputStream(), "UTF-8"))
+                    }
+                }
+            }
+
         }
     }
 
-    fun getText(key: String): String {
-        return properties.getProperty(key) ?: "サーバー管理者にこのメッセージが出たことを伝えてください"
+    fun getText(key: String, locale: Locale): String {
+        val lang = langList[locale.toString()] ?: langList["ja_JP"]!!
+        return lang.getProperty(key) ?: "Please tell your server administrator that you got this message.(RaceAssist is broken)"
     }
 
 }

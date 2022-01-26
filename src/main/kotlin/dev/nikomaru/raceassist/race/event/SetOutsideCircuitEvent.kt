@@ -35,12 +35,12 @@ class SetOutsideCircuitEvent : Listener {
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(text(Lang.getText("to-suspend-process"), TextColor.color(YELLOW)))
+            player.sendMessage(text(Lang.getText("to-suspend-process", player.locale()), TextColor.color(YELLOW)))
             PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
-            event.player.sendMessage(text(Lang.getText("to-click-block"), TextColor.color(YELLOW)))
+            event.player.sendMessage(text(Lang.getText("to-click-block", player.locale()), TextColor.color(YELLOW)))
             return
         }
 

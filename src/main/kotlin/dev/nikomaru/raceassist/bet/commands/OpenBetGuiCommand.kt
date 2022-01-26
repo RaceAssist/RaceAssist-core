@@ -40,13 +40,13 @@ class OpenBetGuiCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun openVending(player: Player, @Single raceID: String) {
         if (!raceExist(raceID)) {
-            player.sendMessage(Lang.getText("no-exist-this-raceid-race"))
+            player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
             return
         }
         val vending = BetChestGui()
         val canBet = transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
         if (!canBet) {
-            player.sendMessage(Lang.getText("now-cannot-bet-race"))
+            player.sendMessage(Lang.getText("now-cannot-bet-race", player.locale()))
             return
         }
 

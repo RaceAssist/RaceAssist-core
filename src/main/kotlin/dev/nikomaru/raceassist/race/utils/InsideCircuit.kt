@@ -15,7 +15,6 @@
  */
 package dev.nikomaru.raceassist.race.utils
 
-import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
@@ -34,39 +33,41 @@ import java.awt.Polygon
 import java.text.MessageFormat
 
 object InsideCircuit {
-    private var insidePolygonMap = HashMap<String, Polygon>()
+    private val insidePolygonMap = HashMap<String, Polygon>()
 
-    fun insideCircuit(player: Player, RaceID: String, x: Int, z: Int) {
-        insidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
-        insidePolygonMap[RaceID]!!.addPoint(x, z)
-        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point"), x, z)))
+    fun insideCircuit(player: Player, raceID: String, x: Int, z: Int) {
+        insidePolygonMap.putIfAbsent(raceID, Polygon())
+        insidePolygonMap[raceID]!!.addPoint(x, z)
+        plugin?.logger?.info("${insidePolygonMap[raceID]?.npoints}")
+        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
         PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
             PlaceCommands.putCanSetInsideCircuit(player.uniqueId, true)
         }, 5)
     }
 
-    fun finish(player: Player) {
-        plugin!!.launch {
+    suspend fun finish(player: Player) {
+
+        newSuspendedTransaction(Dispatchers.IO) {
+            CircuitPoint.deleteWhere { (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq true) }
+        }
+
+        plugin?.logger?.info("${insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]?.npoints}")
+        val x = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
+        val y = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
+        val n = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
+
+        for (i in 0 until n) {
             newSuspendedTransaction(Dispatchers.IO) {
-                CircuitPoint.deleteWhere { (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq true) }
-            }
-
-            val x = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
-            val y = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
-            val n = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
-
-            for (i in 0 until n) {
-                newSuspendedTransaction(Dispatchers.IO) {
-                    CircuitPoint.insert {
-                        it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
-                        it[inside] = true
-                        it[XPoint] = x[i]
-                        it[YPoint] = y[i]
-                    }
+                CircuitPoint.insert {
+                    it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
+                    it[inside] = true
+                    it[XPoint] = x[i]
+                    it[YPoint] = y[i]
                 }
             }
         }
+
         insidePolygonMap.remove(PlaceCommands.getCircuitRaceID()[player.uniqueId])
         player.sendMessage(text("設定完了しました", TextColor.color(GREEN)))
     }

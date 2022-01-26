@@ -38,6 +38,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
+import java.util.*
 
 class RaceAssist : SuspendingJavaPlugin() {
 
@@ -54,7 +55,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         registerEvents()
 
         if (!VaultAPI.setupEconomy()) {
-            plugin!!.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault"))
+            plugin!!.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault", Locale.getDefault()))
             server.pluginManager.disablePlugin(this)
             return
         }

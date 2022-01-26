@@ -15,7 +15,6 @@
  */
 package dev.nikomaru.raceassist.race.utils
 
-import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
@@ -38,49 +37,47 @@ import java.text.MessageFormat
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
     private var insidePolygonMap = HashMap<String, Polygon>()
-    fun outsideCircuit(player: Player, RaceID: String, x: Int, z: Int) {
-        outsidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
-        insidePolygonMap.computeIfAbsent(RaceID) { Polygon() }
-        if (insidePolygonMap[RaceID]!!.npoints == 0) {
+    fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
+        outsidePolygonMap.putIfAbsent(raceId, Polygon())
+        insidePolygonMap.putIfAbsent(raceId, Polygon())
+        if (insidePolygonMap[raceId]!!.npoints == 0) {
             transaction {
-                CircuitPoint.select { (CircuitPoint.raceID eq RaceID) and (CircuitPoint.inside eq true) }.forEach {
-                    insidePolygonMap[RaceID]!!.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
+                CircuitPoint.select { (CircuitPoint.raceID eq raceId) and (CircuitPoint.inside eq true) }.forEach {
+                    insidePolygonMap[raceId]!!.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
                 }
             }
         }
 
-        if (insidePolygonMap[RaceID]!!.contains(x, z)) {
-            player.sendActionBar(text(Lang.getText("to-click-inside-point")))
+        if (insidePolygonMap[raceId]!!.contains(x, z)) {
+            player.sendActionBar(text(Lang.getText("to-click-inside-point", player.locale())))
             return
         }
-        outsidePolygonMap[RaceID]!!.addPoint(x, z)
-        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point"), x, z)))
+        outsidePolygonMap[raceId]!!.addPoint(x, z)
+        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
         PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
             PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
         }, 5)
     }
 
-    fun finish(player: Player) {
+    suspend fun finish(player: Player) {
 
-        plugin!!.launch {
-            newSuspendedTransaction(Dispatchers.IO) {
-                CircuitPoint.deleteWhere {
-                    (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq
-                            false)
-                }
+        newSuspendedTransaction(Dispatchers.IO) {
+            CircuitPoint.deleteWhere {
+                (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq
+                        false)
             }
-            val x = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
-            val y = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
-            val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
-            for (i in 0 until n) {
-                newSuspendedTransaction(Dispatchers.IO) {
-                    CircuitPoint.insert {
-                        it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
-                        it[inside] = false
-                        it[XPoint] = x[i]
-                        it[YPoint] = y[i]
-                    }
+        }
+        val x = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
+        val y = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
+        val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
+        for (i in 0 until n) {
+            newSuspendedTransaction(Dispatchers.IO) {
+                CircuitPoint.insert {
+                    it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
+                    it[inside] = false
+                    it[XPoint] = x[i]
+                    it[YPoint] = y[i]
                 }
             }
         }

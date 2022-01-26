@@ -17,6 +17,8 @@ package dev.nikomaru.raceassist.race.commands
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import com.github.shynixn.mccoroutine.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.race.commands.RaceCommand.Companion.getCentralPoint
@@ -44,10 +46,10 @@ class PlaceCommands : BaseCommand() {
 
     @Subcommand("reverse")
     @CommandCompletion("@RaceID")
-    fun reverse(sender: CommandSender, @Single raceID: String) {
-        val player = sender as Player
+    fun reverse(sender: Player, @Single raceID: String) {
+        val player = sender
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
             return
         }
         val nowDirection = getDirection(raceID)
@@ -57,7 +59,7 @@ class PlaceCommands : BaseCommand() {
                 it[reverse] = !nowDirection
             }
         }
-        sender.sendMessage(text(Lang.getText("to-change-race-orientation"), TextColor.color(GREEN)))
+        sender.sendMessage(text(Lang.getText("to-change-race-orientation", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("central")
@@ -65,12 +67,12 @@ class PlaceCommands : BaseCommand() {
     fun central(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
             return
         }
         canSetCentral[player.uniqueId] = true
         centralRaceID[player.uniqueId] = raceID
-        player.sendMessage(text(Lang.getText("to-set-central-point"), TextColor.color(GREEN)))
+        player.sendMessage(text(Lang.getText("to-set-central-point", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("degree")
@@ -78,22 +80,23 @@ class PlaceCommands : BaseCommand() {
     fun degree(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
             return
         }
         val centralXPoint = getCentralPoint(raceID, true) ?: return sender.sendMessage(
             text(
-                Lang.getText("no-exist-central-point"), TextColor.color
+                Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
                     (RED)
             )
         )
         val centralYPoint = getCentralPoint(raceID, false) ?: return sender.sendMessage(
             text(
-                Lang.getText("no-exist-central-point"), TextColor.color
+                Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
                     (RED)
             )
         )
-        val reverse = getReverse(raceID) ?: return sender.sendMessage(text(Lang.getText("orientation-is-not-set"), TextColor.color(RED)))
+        val reverse =
+            getReverse(raceID) ?: return sender.sendMessage(text(Lang.getText("orientation-is-not-set", sender.locale()), TextColor.color(RED)))
         var nowX = player.location.blockX - centralXPoint
         val nowY = player.location.blockZ - centralYPoint
         if (reverse) {
@@ -107,23 +110,23 @@ class PlaceCommands : BaseCommand() {
         var degree = 0
         when (currentDegree) {
             in 0..45 -> {
-                player.sendMessage(text(Lang.getText("to-set-0-degree"), TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-0-degree", sender.locale()), TextColor.color(GREEN)))
                 degree = 0
             }
             in 46..135 -> {
-                player.sendMessage(text(Lang.getText("to-set-90-degree"), TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-90-degree", sender.locale()), TextColor.color(GREEN)))
                 degree = 90
             }
             in 136..225 -> {
-                player.sendMessage(text(Lang.getText("to-set-180-degree"), TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-180-degree", sender.locale()), TextColor.color(GREEN)))
                 degree = 180
             }
             in 226..315 -> {
-                player.sendMessage(text(Lang.getText("to-set-270-degree"), TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-270-degree", sender.locale()), TextColor.color(GREEN)))
                 degree = 270
             }
             in 316..360 -> {
-                player.sendMessage(text(Lang.getText("to-set-0-degree"), TextColor.color(GREEN)))
+                player.sendMessage(text(Lang.getText("to-set-0-degree", sender.locale()), TextColor.color(GREEN)))
                 degree = 0
             }
         }
@@ -140,11 +143,11 @@ class PlaceCommands : BaseCommand() {
     fun setLap(sender: CommandSender, @Single raceID: String, @Single lap: Int) {
         val player = sender as Player
         if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
             return
         }
         if (lap < 1) {
-            player.sendMessage(text(Lang.getText("to-need-enter-over-1"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("to-need-enter-over-1", sender.locale()), TextColor.color(RED)))
             return
         }
         transaction {
@@ -152,7 +155,7 @@ class PlaceCommands : BaseCommand() {
                 it[this.lap] = lap
             }
         }
-        player.sendMessage(text(Lang.getText("to-set-lap"), TextColor.color(GREEN)))
+        player.sendMessage(text(Lang.getText("to-set-lap", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("set")
@@ -161,49 +164,51 @@ class PlaceCommands : BaseCommand() {
         val player = sender as Player
 
         if (RaceCommand.getRaceCreator(raceID) == null) {
-            player.sendMessage(text(Lang.getText("no-exist-race"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(RED)))
             return
         } else if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-setting"), TextColor.color(RED)))
+            player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
             return
         }
         if (canSetOutsideCircuit[player.uniqueId] != null || canSetInsideCircuit[player.uniqueId] != null) {
-            player.sendMessage(Lang.getText("already-setting-mode"))
+            player.sendMessage(Lang.getText("already-setting-mode", sender.locale()))
             return
         }
         if (type == "in") {
             canSetInsideCircuit[player.uniqueId] = true
-            player.sendMessage(text(Lang.getText("to-be-inside-set-mode"), TextColor.color(GREEN)))
+            player.sendMessage(text(Lang.getText("to-be-inside-set-mode", sender.locale()), TextColor.color(GREEN)))
         } else if (type == "out") {
-            val insideCircuitExist: Boolean = getInsideRaceExist(raceID)
-            if (!insideCircuitExist) {
-                player.sendMessage(Lang.getText("no-inside-course-set"))
+
+            if (!getInsideRaceExist(raceID)) {
+                player.sendMessage(Lang.getText("no-inside-course-set", sender.locale()))
                 return
             }
             canSetOutsideCircuit[player.uniqueId] = true
-            player.sendMessage(text(Lang.getText("to-be-outside-set-mode"), TextColor.color(GREEN)))
+            player.sendMessage(text(Lang.getText("to-be-outside-set-mode", sender.locale()), TextColor.color(GREEN)))
         }
         circuitRaceID[player.uniqueId] = raceID
-        player.sendMessage(text(Lang.getText("to-click-left-start-right-finish"), TextColor.color(GREEN)))
-        player.sendMessage(Lang.getText("to-enter-finish-message"))
+        player.sendMessage(text(Lang.getText("to-click-left-start-right-finish", sender.locale()), TextColor.color(GREEN)))
+        player.sendMessage(Lang.getText("to-enter-finish-message", sender.locale()))
     }
 
     @Subcommand("finish")
     fun finish(sender: CommandSender) {
-        val player = sender as Player
-        if (Objects.isNull(canSetOutsideCircuit[player.uniqueId]) && Objects.isNull(canSetInsideCircuit[player.uniqueId])) {
-            player.sendMessage(Lang.getText("now-you-not-setting-mode"))
-            return
-        }
-        if (Objects.nonNull(canSetInsideCircuit[player.uniqueId])) {
-            canSetInsideCircuit.remove(player.uniqueId)
-            InsideCircuit.finish(player)
-            player.sendMessage(Lang.getText("to-finish-inside-course-setting"))
-        }
-        if (Objects.nonNull(canSetOutsideCircuit[player.uniqueId])) {
-            canSetOutsideCircuit.remove(player.uniqueId)
-            OutsideCircuit.finish(player)
-            player.sendMessage(Lang.getText("to-finish-outside-course-setting"))
+        plugin!!.launch {
+            val player = sender as Player
+            if (Objects.isNull(canSetOutsideCircuit[player.uniqueId]) && Objects.isNull(canSetInsideCircuit[player.uniqueId])) {
+                player.sendMessage(Lang.getText("now-you-not-setting-mode", sender.locale()))
+                return@launch
+            }
+            if (Objects.nonNull(canSetInsideCircuit[player.uniqueId])) {
+                canSetInsideCircuit.remove(player.uniqueId)
+                InsideCircuit.finish(player)
+                player.sendMessage(Lang.getText("to-finish-inside-course-setting", sender.locale()))
+            }
+            if (Objects.nonNull(canSetOutsideCircuit[player.uniqueId])) {
+                canSetOutsideCircuit.remove(player.uniqueId)
+                OutsideCircuit.finish(player)
+                player.sendMessage(Lang.getText("to-finish-outside-course-setting", sender.locale()))
+            }
         }
     }
 
