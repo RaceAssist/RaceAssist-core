@@ -19,23 +19,24 @@ package dev.nikomaru.raceassist.race.event
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import dev.nikomaru.raceassist.utils.Lang
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
 
 class SetCentralPointEvent : Listener {
     @EventHandler
-    fun setCentralPoint(event: PlayerInteractEvent) {
+    suspend fun setCentralPoint(event: PlayerInteractEvent) {
         if (PlaceCommands.getCanSetCentral()[event.player.uniqueId] == null || PlaceCommands.getCanSetCentral()[event.player.uniqueId] != true) {
             return
         }
         if (event.action != Action.LEFT_CLICK_BLOCK) {
             return
         }
-        transaction {
+        newSuspendedTransaction(Dispatchers.IO) {
             RaceList.update({ RaceList.raceID eq (PlaceCommands.getCentralRaceID()[event.player.uniqueId]!!) }) {
                 it[centralXPoint] = event.clickedBlock?.location?.blockX ?: 0
                 it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0

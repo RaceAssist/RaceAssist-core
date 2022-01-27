@@ -21,10 +21,13 @@ import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
 import co.aikar.commands.annotation.Single
 import co.aikar.commands.annotation.Subcommand
+import com.github.shynixn.mccoroutine.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.PlayerList.playerUUID
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.utils.Lang
+import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
@@ -33,7 +36,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
 @CommandAlias("ra|RaceAssist")
@@ -43,19 +46,21 @@ class AudiencesCommand : BaseCommand() {
     @Subcommand("join")
     @CommandCompletion("@RaceID")
     private fun join(sender: Player, @Single raceID: String) {
-        if (!getRaceExist(raceID)) {
-            sender.sendMessage(text(Lang.getText("not-found-this-race", sender.locale()), TextColor.color(RED)))
-            return
+        plugin!!.launch {
+            if (!getRaceExist(raceID)) {
+                sender.sendMessage(text(Lang.getText("not-found-this-race", sender.locale()), TextColor.color(RED)))
+                return@launch
+            }
+            if (audience[raceID]?.contains(sender.uniqueId) == true) {
+                sender.sendMessage(text(Lang.getText("already-joined", sender.locale()), TextColor.color(RED)))
+                return@launch
+            }
+            if (!audience.containsKey(raceID)) {
+                audience[raceID] = ArrayList()
+            }
+            audience[raceID]?.add(sender.uniqueId)
+            sender.sendMessage(text(Lang.getText("joined-group", sender.locale()), TextColor.color(GREEN)))
         }
-        if (audience[raceID]?.contains(sender.uniqueId) == true) {
-            sender.sendMessage(text(Lang.getText("already-joined", sender.locale()), TextColor.color(RED)))
-            return
-        }
-        if (!audience.containsKey(raceID)) {
-            audience[raceID] = ArrayList()
-        }
-        audience[raceID]?.add(sender.uniqueId)
-        sender.sendMessage(text(Lang.getText("joined-group", sender.locale()), TextColor.color(GREEN)))
     }
 
     @Subcommand("leave")
@@ -72,25 +77,23 @@ class AudiencesCommand : BaseCommand() {
     @Subcommand("list")
     @CommandCompletion("@RaceID")
     private fun list(sender: CommandSender, @Single raceID: String) {
-        val player = sender as Player
-        if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
-            player.sendMessage(text(Lang.getText("only-race-creator-can-display", sender.locale()), TextColor.color(RED)))
-            return
-        }
-        sender.sendMessage(text(Lang.getText("participants-list", sender.locale()), TextColor.color(GREEN)))
-        transaction {
-            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                sender.sendMessage(text(Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID])).name!!, TextColor.color(GREEN)))
+        plugin!!.launch {
+            val player = sender as Player
+            if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
+                player.sendMessage(text(Lang.getText("only-race-creator-can-display", sender.locale()), TextColor.color(RED)))
+                return@launch
+            }
+            sender.sendMessage(text(Lang.getText("participants-list", sender.locale()), TextColor.color(GREEN)))
+            newSuspendedTransaction(Dispatchers.IO) {
+                PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                    sender.sendMessage(text(Bukkit.getOfflinePlayer(UUID.fromString(it[playerUUID])).name!!, TextColor.color(GREEN)))
+                }
             }
         }
     }
 
-    private fun getRaceExist(raceID: String): Boolean {
-        var raceExist = false
-        transaction {
-            raceExist = RaceList.select { RaceList.raceID eq raceID }.count() > 0
-        }
-        return raceExist
+    private suspend fun getRaceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceID eq raceID }.count() > 0
     }
 
     companion object {

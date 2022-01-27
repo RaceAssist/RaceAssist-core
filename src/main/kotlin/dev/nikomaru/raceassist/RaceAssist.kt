@@ -32,7 +32,6 @@ import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import dev.nikomaru.raceassist.utils.Lang
-import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
@@ -91,9 +90,9 @@ class RaceAssist : SuspendingJavaPlugin() {
     }
 
     private fun registerEvents() {
-        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetInsideCircuitEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), this)
         server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
     }
 

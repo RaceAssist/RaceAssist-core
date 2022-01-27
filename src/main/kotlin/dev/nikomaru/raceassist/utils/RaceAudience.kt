@@ -32,7 +32,7 @@ class RaceAudience {
             val offlinePlayer = Bukkit.getOfflinePlayer(it)
             if (offlinePlayer.isOnline) {
                 val player = offlinePlayer.player!!
-                player.showTitle(title(text(MessageFormat.format(Lang.getText(key, player.locale()), args)), text(" ")))
+                player.showTitle(title(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)), text(" ")))
             }
         }
     }
@@ -42,7 +42,7 @@ class RaceAudience {
             val offlinePlayer = Bukkit.getOfflinePlayer(it)
             if (offlinePlayer.isOnline) {
                 val player = offlinePlayer.player!!
-                player.sendMessage(text(MessageFormat.format(Lang.getText(key, player.locale()), args)))
+                player.sendMessage(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)))
             }
         }
     }

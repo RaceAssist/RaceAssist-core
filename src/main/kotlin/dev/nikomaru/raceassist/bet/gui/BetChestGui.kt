@@ -16,13 +16,16 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
+import com.github.shynixn.mccoroutine.launch
 import com.google.common.collect.ImmutableList
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.files.Config.betUnit
 import dev.nikomaru.raceassist.utils.Lang
+import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
@@ -33,7 +36,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.text.MessageFormat
 import java.util.*
 import kotlin.math.floor
@@ -41,7 +44,6 @@ import kotlin.math.floor
 class BetChestGui {
 
     fun getGUI(player: Player, raceID: String): Inventory {
-
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
         val playerWools = ImmutableList.of(
             Material.RED_WOOL,
@@ -52,31 +54,35 @@ class BetChestGui {
             Material.PINK_WOOL,
             Material.WHITE_WOOL
         )
-        val rate: Int = transaction {
-            BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
-        }
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
-        AllPlayers[raceID] = ArrayList<UUID>()
-        transaction {
-            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                players.add(UUID.fromString(it[PlayerList.playerUUID]))
-                AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
-            }
-        }
         var sum = 0
-        transaction {
-            BetList.select { BetList.raceID eq raceID }.forEach {
-                sum += it[BetList.betting]
+        plugin!!.launch {
+            val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
+                BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
             }
-        }
-        players.forEach { jockey ->
-            transaction {
-                var jockeySum = 0
-                BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
-                    jockeySum += it[BetList.betting]
+
+            AllPlayers[raceID] = ArrayList<UUID>()
+            newSuspendedTransaction(Dispatchers.IO) {
+                PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                    players.add(UUID.fromString(it[PlayerList.playerUUID]))
+                    AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
                 }
-                odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
+            }
+
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetList.select { BetList.raceID eq raceID }.forEach {
+                    sum += it[BetList.betting]
+                }
+            }
+            players.forEach { jockey ->
+                newSuspendedTransaction(Dispatchers.IO) {
+                    var jockeySum = 0
+                    BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
+                        jockeySum += it[BetList.betting]
+                    }
+                    odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
+                }
             }
         }
 
@@ -116,6 +122,7 @@ class BetChestGui {
             gui.setItem(i + 27, GuiComponent.onceDown(player.locale()))
             gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
         }
+
         val raceIDItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
         val raceIDMeta = raceIDItem.itemMeta
         raceIDMeta.displayName(text(raceID, TextColor.fromHexString("#00ff7f")))
@@ -126,7 +133,10 @@ class BetChestGui {
         gui.setItem(35, GuiComponent.deny(player.locale()))
         gui.setItem(44, GuiComponent.accept(player.locale()))
 
+
+
         return gui
+
     }
 
     companion object {

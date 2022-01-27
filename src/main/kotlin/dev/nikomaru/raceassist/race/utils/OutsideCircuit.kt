@@ -30,18 +30,17 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Polygon
 import java.text.MessageFormat
 
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
     private var insidePolygonMap = HashMap<String, Polygon>()
-    fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
+    suspend fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(raceId, Polygon())
         insidePolygonMap.putIfAbsent(raceId, Polygon())
         if (insidePolygonMap[raceId]!!.npoints == 0) {
-            transaction {
+            newSuspendedTransaction(Dispatchers.IO) {
                 CircuitPoint.select { (CircuitPoint.raceID eq raceId) and (CircuitPoint.inside eq true) }.forEach {
                     insidePolygonMap[raceId]!!.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
                 }

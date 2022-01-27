@@ -49,7 +49,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import java.awt.Polygon
@@ -366,49 +365,55 @@ class RaceCommand : BaseCommand() {
     @Subcommand("debug")
     @CommandCompletion("@RaceID")
     fun debug(sender: CommandSender, @Single raceID: String) {
-        if (starting) {
-            sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
-            return
-        }
-        starting = true
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text(Lang.getText("only-race-creator-can-start", sender.locale()), TextColor.color(RED)))
-        }
-        if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-            sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
-            return
-        }
-
-        val insidePolygon = getPolygon(raceID, true)
-        val outsidePolygon = getPolygon(raceID, false)
-        if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
-            sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
-            return
-        }
-        val reverse = getReverse(raceID) ?: false
-        val lap: Int = getLapCount(raceID)
-        val threshold = 40
-        val centralXPoint: Int =
-            getCentralPoint(raceID, true) ?: return sender.sendMessage(
-                text(
-                    Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
-                        (YELLOW)
-                )
-            )
-        val centralYPoint: Int =
-            getCentralPoint(raceID, false) ?: return sender.sendMessage(
-                text(
-                    Lang.getText("no-exist-central-point", sender.locale()),
-                    TextColor.color(YELLOW)
-                )
-            )
-        val goalDegree: Int =
-            getGoalDegree(raceID) ?: return sender.sendMessage(text(Lang.getText("no-exist-goal-degree", sender.locale()), TextColor.color(YELLOW)))
-        var beforeDegree = 0
-        var currentLap = 0
-        var counter = 0
-
         plugin?.launch {
+            if (starting) {
+                sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
+                return@launch
+            }
+            starting = true
+            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
+                sender.sendMessage(text(Lang.getText("only-race-creator-can-start", sender.locale()), TextColor.color(RED)))
+            }
+            if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
+                sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
+                return@launch
+            }
+
+            val insidePolygon = getPolygon(raceID, true)
+            val outsidePolygon = getPolygon(raceID, false)
+            if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
+                sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
+                return@launch
+            }
+            val reverse = getReverse(raceID) ?: false
+            val lap: Int = getLapCount(raceID)
+            val threshold = 40
+            val centralXPoint: Int =
+                getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
+                    text(
+                        Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
+                            (YELLOW)
+                    )
+                )
+            val centralYPoint: Int =
+                getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
+                    text(
+                        Lang.getText("no-exist-central-point", sender.locale()),
+                        TextColor.color(YELLOW)
+                    )
+                )
+            val goalDegree: Int =
+                getGoalDegree(raceID) ?: return@launch sender.sendMessage(
+                    text(
+                        Lang.getText("no-exist-goal-degree", sender.locale()),
+                        TextColor.color(YELLOW)
+                    )
+                )
+            var beforeDegree = 0
+            var currentLap = 0
+            var counter = 0
+
+
 
             withContext(Dispatchers.minecraft) {
                 for (timer in 0..4) {
@@ -515,12 +520,13 @@ class RaceCommand : BaseCommand() {
     @Subcommand("stop")
     @CommandCompletion("@RaceID")
     fun stop(sender: CommandSender, @Single raceID: String) {
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(text(Lang.getText("only-race-creator-can-stop", sender.locale()), TextColor.color(RED)))
-        }
-        stop[raceID] = true
-
         plugin?.launch {
+            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
+                sender.sendMessage(text(Lang.getText("only-race-creator-can-stop", sender.locale()), TextColor.color(RED)))
+            }
+            stop[raceID] = true
+
+
             delay(1000)
             stop[raceID] = false
         }
@@ -529,48 +535,47 @@ class RaceCommand : BaseCommand() {
     @CommandPermission("RaceAssist.commands.race")
     @Subcommand("create")
     fun create(sender: CommandSender, @Single raceID: String) {
-        if (getRaceCreator(raceID) != null) {
-            sender.sendMessage(Lang.getText("already-used-the-name-race", (sender as Player).locale()))
-            return
-        }
-        transaction {
-            RaceList.insert {
-                it[this.raceID] = raceID
-                it[this.creator] = (sender as Player).uniqueId.toString()
-                it[this.reverse] = false
-                it[this.lap] = 1
-                it[this.centralXPoint] = null
-                it[this.centralYPoint] = null
-                it[this.goalDegree] = null
+        plugin!!.launch {
+            if (getRaceCreator(raceID) != null) {
+                sender.sendMessage(Lang.getText("already-used-the-name-race", (sender as Player).locale()))
+                return@launch
             }
-            BetSetting.insert {
-                it[this.raceID] = raceID
-                it[this.canBet] = false
-                it[this.returnPercent] = 75
-                it[this.creator] = (sender as Player).uniqueId.toString()
-                it[this.spreadsheetId] = null
+            newSuspendedTransaction(Dispatchers.IO) {
+                RaceList.insert {
+                    it[this.raceID] = raceID
+                    it[this.creator] = (sender as Player).uniqueId.toString()
+                    it[this.reverse] = false
+                    it[this.lap] = 1
+                    it[this.centralXPoint] = null
+                    it[this.centralYPoint] = null
+                    it[this.goalDegree] = null
+                }
+                BetSetting.insert {
+                    it[this.raceID] = raceID
+                    it[this.canBet] = false
+                    it[this.returnPercent] = 75
+                    it[this.creator] = (sender as Player).uniqueId.toString()
+                    it[this.spreadsheetId] = null
+                }
             }
+            setRaceID()
+            sender.sendMessage(Lang.getText("to-create-race", (sender as Player).locale()))
         }
-        setRaceID()
-        sender.sendMessage(Lang.getText("to-create-race", (sender as Player).locale()))
     }
 
     @CommandPermission("RaceAssist.commands.race")
     @Subcommand("delete")
     @CommandCompletion("@RaceID")
     fun delete(sender: CommandSender, @Single raceID: String) {
-
-        if (getRaceCreator(raceID) == null) {
-            sender.sendMessage(Lang.getText("no-racetrack-is-set", (sender as Player).locale()))
-            return
-        }
-        if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-            sender.sendMessage(Lang.getText("only-race-creator-can-setting", sender.locale()))
-            return
-        }
-
         plugin!!.launch {
-
+            if (getRaceCreator(raceID) == null) {
+                sender.sendMessage(Lang.getText("no-racetrack-is-set", (sender as Player).locale()))
+                return@launch
+            }
+            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
+                sender.sendMessage(Lang.getText("only-race-creator-can-setting", sender.locale()))
+                return@launch
+            }
             newSuspendedTransaction(Dispatchers.IO) {
                 RaceList.deleteWhere { RaceList.raceID eq raceID }
                 CircuitPoint.deleteWhere { CircuitPoint.raceID eq raceID }
@@ -645,37 +650,45 @@ class RaceCommand : BaseCommand() {
         startDegree: Int,
         lap: Int
     ) {
-        val manager: ScoreboardManager = Bukkit.getScoreboardManager()
-        val scoreboard = manager.newScoreboard
-        val objective: Objective = scoreboard.registerNewObjective(
-            Lang.getText("scoreboard-ranking", Locale.getDefault()), "dummy", text(
-                Lang.getText("scoreboard-now-ranking", Locale.getDefault()), TextColor.color
-                    (YELLOW)
-            )
-        )
-        objective.displaySlot = DisplaySlot.SIDEBAR
 
-        for (i in nowRankings.indices) {
-            val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-            val score =
-                objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name", Locale.getDefault()), i + 1, playerName))
-            score.score = nowRankings.size * 2 - 2 * i - 1
-            val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
-                Lang.getText("finished-the-race", Locale.getDefault())
-            } else {
-                MessageFormat.format(
-                    Lang.getText("now-lap-and-now-length", Locale.getDefault()),
-                    currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
-                    lap,
-                    (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360)
-                )
-            }
-            val displayDegree = objective.getScore(degree)
-            displayDegree.score = nowRankings.size * 2 - 2 * i - 2
-        }
         raceAudience.forEach {
+
             if (Bukkit.getOfflinePlayer(it).isOnline) {
-                Bukkit.getPlayer(it)?.scoreboard = scoreboard
+                val player = Bukkit.getPlayer(it)!!
+                val manager: ScoreboardManager = Bukkit.getScoreboardManager()
+                val scoreboard = manager.newScoreboard
+                val objective: Objective = scoreboard.registerNewObjective(
+                    Lang.getText("scoreboard-ranking", player.locale()), "dummy", text(
+                        Lang.getText("scoreboard-now-ranking", player.locale()), TextColor.color
+                            (YELLOW)
+                    )
+                )
+                objective.displaySlot = DisplaySlot.SIDEBAR
+
+                for (i in nowRankings.indices) {
+                    val playerName = Bukkit.getPlayer(nowRankings[i])?.name
+                    val score = objective.getScore(
+                        MessageFormat.format(
+                            Lang.getText(
+                                "scoreboard-now-ranking-and-name", player.locale()
+                            ), i + 1, playerName
+                        )
+                    )
+                    score.score = nowRankings.size * 2 - 2 * i - 1
+                    val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
+                        Lang.getText("finished-the-race", player.locale())
+                    } else {
+                        MessageFormat.format(
+                            Lang.getText("now-lap-and-now-length", player.locale()),
+                            currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
+                            lap,
+                            (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360)
+                        )
+                    }
+                    val displayDegree = objective.getScore(degree)
+                    displayDegree.score = nowRankings.size * 2 - 2 * i - 2
+                }
+                player.scoreboard = scoreboard
             }
         }
     }
@@ -690,62 +703,32 @@ class RaceCommand : BaseCommand() {
         return ranking
     }
 
-    private fun getRaceCreator(raceID: String): UUID? {
-        var creatorUUID: UUID? = null
-        transaction {
-
-            RaceList.select { RaceList.raceID eq raceID }.forEach {
-                creatorUUID = UUID.fromString(it[RaceList.creator])
-            }
-        }
-        return creatorUUID
+    private suspend fun getLapCount(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.lap]
     }
 
-    private fun getLapCount(raceID: String): Int {
-
-        var lapCount = 1
-        transaction {
-            lapCount = RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.lap]
-        }
-        return lapCount
-    }
-
-    private fun getAllJockeys(raceID: String): ArrayList<OfflinePlayer> {
+    private suspend fun getAllJockeys(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
         val jockeys: ArrayList<OfflinePlayer> = ArrayList()
-        transaction {
-            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])))
-            }
+        PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+            jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])))
         }
-        return jockeys
+        jockeys
     }
 
-    private fun getGoalDegree(raceID: String): Int? {
-        var goalDegree: Int? = null
-        transaction {
-            goalDegree = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.goalDegree)
-        }
-        return goalDegree
+    private suspend fun getGoalDegree(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.goalDegree)
     }
 
-    private fun getCircuitExist(raceID: String, inside: Boolean): Boolean {
-        var raceExist = false
-
-        transaction {
-            raceExist = CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.count() > 0
-
-        }
-        return raceExist
+    private suspend fun getCircuitExist(raceID: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
+        CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.count() > 0
     }
 
-    private fun getPolygon(raceID: String, inside: Boolean): Polygon {
+    private suspend fun getPolygon(raceID: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
         val polygon = Polygon()
-        transaction {
-            CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.forEach {
-                polygon.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
-            }
+        CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.forEach {
+            polygon.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
         }
-        return polygon
+        polygon
     }
 
     companion object {
@@ -753,39 +736,26 @@ class RaceCommand : BaseCommand() {
         var starting = false
         var stop = HashMap<String, Boolean>()
 
-        fun getRaceCreator(raceID: String): UUID? {
-            var uuid: UUID? = null
-            transaction {
-                RaceList.select { RaceList.raceID eq raceID }.forEach {
-                    uuid = UUID.fromString(it[RaceList.creator])
+        suspend fun getRaceCreator(raceID: String): UUID? = newSuspendedTransaction(Dispatchers.IO) {
+            UUID.fromString(RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.creator))
+        }
+
+        suspend fun getCentralPoint(raceID: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
+            var point: Int? = null
+            RaceList.select { RaceList.raceID eq raceID }.forEach {
+                point = if (xPoint) {
+                    it.getOrNull(RaceList.centralXPoint)
+                } else {
+                    it.getOrNull(RaceList.centralYPoint)
                 }
             }
-            return uuid
+            point
         }
 
-        fun getCentralPoint(raceID: String, xPoint: Boolean): Int? {
-            var centralPoint: Int? = null
-            transaction {
-                RaceList.select { RaceList.raceID eq raceID }.forEach {
-                    centralPoint = if (xPoint) {
-                        it.getOrNull(RaceList.centralXPoint)
-                    } else {
-                        it.getOrNull(RaceList.centralYPoint)
-                    }
-                }
-            }
-            return centralPoint
+        suspend fun getReverse(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+            RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse)
         }
 
-        fun getReverse(raceID: String): Boolean? {
-            var reverse: Boolean? = null
-
-            transaction {
-                reverse = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse)
-
-            }
-            return reverse
-        }
     }
 }
 

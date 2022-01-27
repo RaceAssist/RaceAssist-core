@@ -36,7 +36,6 @@ import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.text.MessageFormat
 import java.util.*
@@ -151,7 +150,7 @@ class SetBetCommand : BaseCommand() {
 
             if (canRevert[player.uniqueId] == true) {
 
-                transaction {
+                newSuspendedTransaction(Dispatchers.Main) {
 
                     BetList.select { BetList.raceID eq raceID }.forEach {
 
@@ -250,7 +249,8 @@ class SetBetCommand : BaseCommand() {
         }
     }
 
-    private fun getRaceCreator(raceID: String) = transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
+    private suspend fun getRaceCreator(raceID: String) =
+        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
 
     private suspend fun raceExist(raceID: String): Boolean {
         var exist = false

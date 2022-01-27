@@ -29,7 +29,7 @@ import java.util.*
 
 class SetOutsideCircuitEvent : Listener {
     @EventHandler
-    fun onSetOutsideCircuitEvent(event: PlayerInteractEvent) {
+    suspend fun onSetOutsideCircuitEvent(event: PlayerInteractEvent) {
         if (PlaceCommands.getCanSetOutsideCircuit()[event.player.uniqueId] == null) {
             return
         }

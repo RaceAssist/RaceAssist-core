@@ -21,17 +21,20 @@ import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandCompletion
 import co.aikar.commands.annotation.Single
 import co.aikar.commands.annotation.Subcommand
+import com.github.shynixn.mccoroutine.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
 import dev.nikomaru.raceassist.utils.Lang
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 @CommandAlias("ra|RaceAssist")
 class OpenBetGuiCommand : BaseCommand() {
@@ -39,41 +42,39 @@ class OpenBetGuiCommand : BaseCommand() {
     @Subcommand("bet open")
     @CommandCompletion("@RaceID")
     fun openVending(player: Player, @Single raceID: String) {
-        if (!raceExist(raceID)) {
-            player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
-            return
-        }
-        val vending = BetChestGui()
-        val canBet = transaction { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
-        if (!canBet) {
-            player.sendMessage(Lang.getText("now-cannot-bet-race", player.locale()))
-            return
-        }
+        plugin!!.launch {
+            if (!raceExist(raceID)) {
+                player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
+                return@launch
+            }
+            val vending = BetChestGui()
+            val canBet = newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
+            if (!canBet) {
+                player.sendMessage(Lang.getText("now-cannot-bet-race", player.locale()))
+                return@launch
+            }
 
-        transaction {
-            TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
-            player.openInventory(vending.getGUI(player, raceID))
+            newSuspendedTransaction(Dispatchers.IO) {
+                TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
+                player.openInventory(vending.getGUI(player, raceID))
+            }
 
-        }
-
-        transaction {
-            AllPlayers[raceID]?.forEach { jockey ->
-                TempBetData.insert {
-                    it[TempBetData.raceID] = raceID
-                    it[playerUUID] = player.uniqueId.toString()
-                    it[TempBetData.jockey] = jockey.toString()
-                    it[bet] = 0
+            newSuspendedTransaction(Dispatchers.IO) {
+                AllPlayers[raceID]?.forEach { jockey ->
+                    TempBetData.insert {
+                        it[TempBetData.raceID] = raceID
+                        it[playerUUID] = player.uniqueId.toString()
+                        it[TempBetData.jockey] = jockey.toString()
+                        it[bet] = 0
+                    }
                 }
             }
-        }
 
+        }
     }
 
-    private fun raceExist(raceID: String): Boolean {
-        var exist = false
-        transaction {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
-        }
-        return exist
+    private suspend fun raceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
     }
+
 }
