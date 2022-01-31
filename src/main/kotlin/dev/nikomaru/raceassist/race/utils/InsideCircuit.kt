@@ -38,10 +38,10 @@ object InsideCircuit {
     fun insideCircuit(player: Player, raceID: String, x: Int, z: Int) {
         insidePolygonMap.putIfAbsent(raceID, Polygon())
         insidePolygonMap[raceID]!!.addPoint(x, z)
-        plugin?.logger?.info("${insidePolygonMap[raceID]?.npoints}")
+        plugin.logger.info("${insidePolygonMap[raceID]?.npoints}")
         player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
         PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
-        Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
             PlaceCommands.putCanSetInsideCircuit(player.uniqueId, true)
         }, 5)
     }
@@ -52,7 +52,7 @@ object InsideCircuit {
             CircuitPoint.deleteWhere { (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq true) }
         }
 
-        plugin?.logger?.info("${insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]?.npoints}")
+        plugin.logger.info("${insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]?.npoints}")
         val x = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
         val y = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
         val n = insidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints

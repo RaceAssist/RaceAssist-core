@@ -42,7 +42,7 @@ class OpenBetGuiCommand : BaseCommand() {
     @Subcommand("bet open")
     @CommandCompletion("@RaceID")
     fun openVending(player: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                 return@launch

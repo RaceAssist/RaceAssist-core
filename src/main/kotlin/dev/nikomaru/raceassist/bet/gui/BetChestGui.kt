@@ -57,7 +57,7 @@ class BetChestGui {
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
-        plugin!!.launch {
+        plugin.launch {
             val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
                 BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
             }

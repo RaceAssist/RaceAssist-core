@@ -48,7 +48,7 @@ class PlaceCommands : BaseCommand() {
     @Subcommand("reverse")
     @CommandCompletion("@RaceID")
     fun reverse(sender: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
                 sender.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
                 return@launch
@@ -68,7 +68,7 @@ class PlaceCommands : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun central(sender: CommandSender, @Single raceID: String) {
         val player = sender as Player
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
                 player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
                 return@launch
@@ -82,7 +82,7 @@ class PlaceCommands : BaseCommand() {
     @Subcommand("degree")
     @CommandCompletion("@RaceID")
     fun degree(player: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
                 player.sendMessage(text(Lang.getText("only-race-creator-can-setting", player.locale()), TextColor.color(RED)))
                 return@launch
@@ -152,7 +152,7 @@ class PlaceCommands : BaseCommand() {
     @Syntax("[RaceID] <lap>")
     fun setLap(sender: CommandSender, @Single raceID: String, @Single lap: Int) {
         val player = sender as Player
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
                 player.sendMessage(text(Lang.getText("only-race-creator-can-setting", sender.locale()), TextColor.color(RED)))
                 return@launch
@@ -174,7 +174,7 @@ class PlaceCommands : BaseCommand() {
     @Subcommand("set")
     @CommandCompletion("@RaceID in|out")
     fun set(player: Player, @Single raceID: String, @Single type: String) {
-        plugin!!.launch {
+        plugin.launch {
 
             if (RaceCommand.getRaceCreator(raceID) == null) {
                 player.sendMessage(text(Lang.getText("no-exist-race", player.locale()), TextColor.color(RED)))
@@ -208,7 +208,7 @@ class PlaceCommands : BaseCommand() {
 
     @Subcommand("finish")
     fun finish(sender: CommandSender) {
-        plugin!!.launch {
+        plugin.launch {
             val player = sender as Player
             if (Objects.isNull(canSetOutsideCircuit[player.uniqueId]) && Objects.isNull(canSetInsideCircuit[player.uniqueId])) {
                 player.sendMessage(Lang.getText("now-you-not-setting-mode", sender.locale()))

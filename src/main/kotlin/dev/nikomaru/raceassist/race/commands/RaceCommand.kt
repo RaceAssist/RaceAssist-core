@@ -67,7 +67,7 @@ class RaceCommand : BaseCommand() {
     @Subcommand("start")
     @CommandCompletion("@RaceID")
     fun start(sender: CommandSender, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
 
             if (starting) {
                 sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
@@ -186,16 +186,8 @@ class RaceCommand : BaseCommand() {
             //5.4.3...1 のカウント
             var timer1 = 0
             while (timer1 <= 4) {
-                val sendTimer = async(Dispatchers.minecraft) {
-                    audiences.getUUID().forEach {
-                        if (Bukkit.getOfflinePlayer(it).isOnline) {
-                            Bukkit.getPlayer(it)?.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
-                        }
-                    }
-
-                }
+                audiences.showTitle(title(text("${5 - timer1}", TextColor.color(GREEN)), text(" ")))
                 delay(1000)
-                sendTimer.await()
                 timer1++
             }
 
@@ -294,17 +286,9 @@ class RaceCommand : BaseCommand() {
             delay(2000)
 
             for (i in 0 until finishJockey.size) {
-                audiences.getUUID().forEach {
-                    if (Bukkit.getOfflinePlayer(it).isOnline) {
-                        Bukkit.getPlayer(it)?.sendMessage(
-                            MessageFormat.format(
-                                Lang.getText("to-notice-ranking-message", Bukkit.getPlayer(it)!!.locale()),
-                                i + 1, Bukkit.getPlayer(finishJockey[i])?.name!!
-                            )
-                        )
-                    }
-                }
+                audiences.sendMessageI18n("to-notice-ranking-message", i + 1, Bukkit.getPlayer(finishJockey[i])?.name!!)
             }
+
 
             withContext(Dispatchers.IO) {
                 if (Config.discordWebHook != null) {
@@ -348,7 +332,7 @@ class RaceCommand : BaseCommand() {
         embeds.add(embedsObject)
         json["embeds"] = embeds
 
-        plugin!!.logger.info(json.toString())
+        plugin.logger.info(json.toString())
         val discordWebHook = DiscordWebhook()
         discordWebHook.sendWebHook(json.toString())
     }
@@ -364,48 +348,48 @@ class RaceCommand : BaseCommand() {
     @CommandPermission("RaceAssist.commands.race")
     @Subcommand("debug")
     @CommandCompletion("@RaceID")
-    fun debug(sender: CommandSender, @Single raceID: String) {
-        plugin?.launch {
+    fun debug(player: Player, @Single raceID: String) {
+        plugin.launch {
             if (starting) {
-                sender.sendMessage(text(Lang.getText("now-starting-other-race", (sender as Player).locale()), TextColor.color(RED)))
+                player.sendMessage(text(Lang.getText("now-starting-other-race", player.locale()), TextColor.color(RED)))
                 return@launch
             }
             starting = true
-            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-                sender.sendMessage(text(Lang.getText("only-race-creator-can-start", sender.locale()), TextColor.color(RED)))
+            if (getRaceCreator(raceID) != player.uniqueId) {
+                player.sendMessage(text(Lang.getText("only-race-creator-can-start", player.locale()), TextColor.color(RED)))
             }
             if (!getCircuitExist(raceID, true) || !getCircuitExist(raceID, false)) {
-                sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
+                player.sendMessage(text(Lang.getText("no-exist-race", player.locale()), TextColor.color(YELLOW)))
                 return@launch
             }
 
             val insidePolygon = getPolygon(raceID, true)
             val outsidePolygon = getPolygon(raceID, false)
             if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
-                sender.sendMessage(text(Lang.getText("no-exist-race", sender.locale()), TextColor.color(YELLOW)))
+                player.sendMessage(text(Lang.getText("no-exist-race", player.locale()), TextColor.color(YELLOW)))
                 return@launch
             }
             val reverse = getReverse(raceID) ?: false
             val lap: Int = getLapCount(raceID)
             val threshold = 40
             val centralXPoint: Int =
-                getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
+                getCentralPoint(raceID, true) ?: return@launch player.sendMessage(
                     text(
-                        Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
+                        Lang.getText("no-exist-central-point", player.locale()), TextColor.color
                             (YELLOW)
                     )
                 )
             val centralYPoint: Int =
-                getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
+                getCentralPoint(raceID, false) ?: return@launch player.sendMessage(
                     text(
-                        Lang.getText("no-exist-central-point", sender.locale()),
+                        Lang.getText("no-exist-central-point", player.locale()),
                         TextColor.color(YELLOW)
                     )
                 )
             val goalDegree: Int =
-                getGoalDegree(raceID) ?: return@launch sender.sendMessage(
+                getGoalDegree(raceID) ?: return@launch player.sendMessage(
                     text(
-                        Lang.getText("no-exist-goal-degree", sender.locale()),
+                        Lang.getText("no-exist-goal-degree", player.locale()),
                         TextColor.color(YELLOW)
                     )
                 )
@@ -415,21 +399,21 @@ class RaceCommand : BaseCommand() {
 
 
 
-            withContext(Dispatchers.minecraft) {
                 for (timer in 0..4) {
-                    sender.showTitle(title(text("${5 - timer}", TextColor.color(GREEN)), text(" ")))
+                    val showTimer = async(Dispatchers.minecraft) {
+                        player.showTitle(title(text("${5 - timer}", TextColor.color(GREEN)), text(" ")))
+                    }
                     delay(1000)
+                    showTimer.await()
                 }
-            }
 
-            sender.showTitle(title(text(Lang.getText("to-notice-start-message", sender.locale()), TextColor.color(GREEN)), text(" ")))
-            val it: Player = sender
+            player.showTitle(title(text(Lang.getText("to-notice-start-message", player.locale()), TextColor.color(GREEN)), text(" ")))
 
 
             while (counter < 180 && stop[raceID] != true) {
 
-                val nowX: Int = it.location.blockX
-                val nowY: Int = it.location.blockZ
+                val nowX: Int = player.location.blockX
+                val nowY: Int = player.location.blockZ
                 var relativeNowX = nowX - centralXPoint
                 val relativeNowY = nowY - centralYPoint
                 if (reverse) {
@@ -440,37 +424,37 @@ class RaceCommand : BaseCommand() {
 
                 currentLap += judgeLap(goalDegree, reverse, currentDegree, beforeDegree, threshold)
 
-                displayLap(currentLap, beforeLap, it, lap)
+                displayLap(currentLap, beforeLap, player, lap)
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    it.sendActionBar(text(Lang.getText("outside-the-racetrack", sender.locale()), TextColor.color(RED)))
+                    player.sendActionBar(text(Lang.getText("outside-the-racetrack", player.locale()), TextColor.color(RED)))
                 }
                 beforeDegree = currentDegree
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
                 val objective: Objective = scoreboard.registerNewObjective(
-                    Lang.getText("scoreboard-ranking", sender.locale()),
+                    Lang.getText("scoreboard-ranking", player.locale()),
                     "dummy",
-                    text(Lang.getText("scoreboard-context", sender.locale()), TextColor.color(YELLOW))
+                    text(Lang.getText("scoreboard-context", player.locale()), TextColor.color(YELLOW))
                 )
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
-                val score = objective.getScore(Lang.getText("first-ranking", sender.locale()) + "   " + "§b${sender.name}")
+                val score = objective.getScore(Lang.getText("first-ranking", player.locale()) + "   " + "§b${player.name}")
                 score.score = 4
-                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", sender.locale()), currentLap, currentDegree)
+                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", player.locale()), currentLap, currentDegree)
 
                 val displayDegree = objective.getScore(degree)
                 displayDegree.score = 2
-                val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining", sender.locale()), 180 - counter))
+                val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining", player.locale()), 180 - counter))
                 residue.score = 1
-                sender.scoreboard = scoreboard
+                player.scoreboard = scoreboard
                 counter++
                 delay(1000)
             }
             delay(2000)
 
-            sender.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
+            player.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
             starting = false
 
         }
@@ -520,7 +504,7 @@ class RaceCommand : BaseCommand() {
     @Subcommand("stop")
     @CommandCompletion("@RaceID")
     fun stop(sender: CommandSender, @Single raceID: String) {
-        plugin?.launch {
+        plugin.launch {
             if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
                 sender.sendMessage(text(Lang.getText("only-race-creator-can-stop", sender.locale()), TextColor.color(RED)))
             }
@@ -535,7 +519,7 @@ class RaceCommand : BaseCommand() {
     @CommandPermission("RaceAssist.commands.race")
     @Subcommand("create")
     fun create(sender: CommandSender, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (getRaceCreator(raceID) != null) {
                 sender.sendMessage(Lang.getText("already-used-the-name-race", (sender as Player).locale()))
                 return@launch
@@ -567,7 +551,7 @@ class RaceCommand : BaseCommand() {
     @Subcommand("delete")
     @CommandCompletion("@RaceID")
     fun delete(sender: CommandSender, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (getRaceCreator(raceID) == null) {
                 sender.sendMessage(Lang.getText("no-racetrack-is-set", (sender as Player).locale()))
                 return@launch
@@ -625,7 +609,7 @@ class RaceCommand : BaseCommand() {
                     )
                 )
             }
-            Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
         } else if (currentLap < beforeLap) {
@@ -635,7 +619,7 @@ class RaceCommand : BaseCommand() {
                     text(Lang.getText("one-step-backwards-lap", player.locale()), TextColor.color(RED))
                 )
             )
-            Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
         }

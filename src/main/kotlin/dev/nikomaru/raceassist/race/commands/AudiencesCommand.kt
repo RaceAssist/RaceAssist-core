@@ -46,7 +46,7 @@ class AudiencesCommand : BaseCommand() {
     @Subcommand("join")
     @CommandCompletion("@RaceID")
     private fun join(sender: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (!getRaceExist(raceID)) {
                 sender.sendMessage(text(Lang.getText("not-found-this-race", sender.locale()), TextColor.color(RED)))
                 return@launch
@@ -77,7 +77,7 @@ class AudiencesCommand : BaseCommand() {
     @Subcommand("list")
     @CommandCompletion("@RaceID")
     private fun list(sender: CommandSender, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             val player = sender as Player
             if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
                 player.sendMessage(text(Lang.getText("only-race-creator-can-display", sender.locale()), TextColor.color(RED)))

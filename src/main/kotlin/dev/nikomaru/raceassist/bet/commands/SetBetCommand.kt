@@ -47,7 +47,7 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("can")
     @CommandCompletion("@RaceID on|off")
     fun setCanBet(player: Player, @Single raceID: String, @Single type: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race", player.locale()), raceID))
                 return@launch
@@ -77,7 +77,7 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("rate")
     @CommandCompletion("@RaceID")
     fun setRate(player: Player, @Single raceID: String, @Single rate: Int) {
-        plugin!!.launch {
+        plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                 return@launch
@@ -97,12 +97,13 @@ class SetBetCommand : BaseCommand() {
             }
         }
         player.sendMessage(MessageFormat.format(Lang.getText("change-bet-rate-message", player.locale()), raceID, rate))
+
     }
 
     @Subcommand("delete")
     @CommandCompletion("@RaceID")
     fun delete(player: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
                     player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
@@ -132,7 +133,7 @@ class SetBetCommand : BaseCommand() {
     @CommandCompletion("@RaceID")
     fun revert(player: Player, @Single raceID: String) {
         val eco: Economy = VaultAPI.getEconomy()!!
-        plugin!!.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
                     player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
@@ -199,7 +200,7 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("sheet")
     @CommandCompletion("@RaceID")
     fun sheet(player: Player, @Single raceID: String, @Single sheetId: String) {
-        plugin!!.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
                     player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
@@ -221,7 +222,7 @@ class SetBetCommand : BaseCommand() {
     @Subcommand("list")
     @CommandCompletion("@RaceID")
     fun list(player: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (!raceExist(raceID)) {
                     player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))

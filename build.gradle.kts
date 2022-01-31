@@ -38,7 +38,7 @@ repositories {
 val exposedVersion: String by project
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
-    implementation("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("co.aikar:acf-paper:0.5.0-SNAPSHOT")
     implementation("net.kyori:adventure-platform-bukkit:4.0.1")
@@ -50,8 +50,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("com.google.api-client:google-api-client:1.33.0")
-    implementation("com.google.oauth-client:google-oauth-client-jetty:1.32.1")
+    implementation("com.google.api-client:google-api-client:1.33.1")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.0")
     implementation("com.google.apis:google-api-services-sheets:v4-rev20210629-1.32.1")
 }
 

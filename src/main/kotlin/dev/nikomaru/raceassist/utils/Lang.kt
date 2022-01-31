@@ -31,14 +31,14 @@ object Lang {
     suspend fun load() {
         withContext(Dispatchers.IO) {
             val lang = listOf("en_US", "ja_JP", "zh_CN")
-            val pluginDir = File(plugin?.dataFolder ?: return@withContext, "lang")
+            val pluginDir = File(plugin.dataFolder, "lang")
             if (!pluginDir.exists()) {
                 pluginDir.mkdir()
             }
             lang.forEach { locale ->
 
                 val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
-                plugin!!.logger.info("Loading lang file for $locale")
+                plugin.logger.info("Loading lang file for $locale")
                 val file = File(pluginDir, "$locale.properties")
                 if (!file.exists()) {
                     Files.copy(input, file.toPath())

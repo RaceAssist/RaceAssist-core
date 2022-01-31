@@ -17,6 +17,7 @@
 package dev.nikomaru.raceassist.utils
 
 import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -37,7 +38,17 @@ class RaceAudience {
         }
     }
 
-    fun sendMessageI18n(key: String, vararg args: String) {
+    fun showTitle(title: Title) {
+        audience.forEach {
+            val offlinePlayer = Bukkit.getOfflinePlayer(it)
+            if (offlinePlayer.isOnline) {
+                val player = offlinePlayer.player!!
+                player.showTitle(title)
+            }
+        }
+    }
+
+    fun sendMessageI18n(key: String, vararg args: Any) {
         audience.forEach {
             val offlinePlayer = Bukkit.getOfflinePlayer(it)
             if (offlinePlayer.isOnline) {
@@ -49,6 +60,13 @@ class RaceAudience {
 
     fun add(player: OfflinePlayer) {
         audience.add(player.uniqueId)
+    }
+
+    fun set(players: Collection<OfflinePlayer>) {
+        audience.clear()
+        players.forEach {
+            audience.add(it.uniqueId)
+        }
     }
 
     fun getUUID(): Set<UUID> {

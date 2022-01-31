@@ -21,25 +21,15 @@ import org.bukkit.configuration.file.FileConfiguration
 object Config {
     var config: FileConfiguration? = null
 
-    var host: String? = null
-    var port = 0
-    var database: String? = null
-    var username: String? = null
-    var password: String? = null
     var threshold: Int? = null
     var discordWebHook: String? = null
     var betUnit: Int = 0
 
     fun load() {
         if (config != null) {
-            plugin!!.reloadConfig()
+            plugin.reloadConfig()
         }
 
-        host = config!!.getString("SQLSettings.host")
-        port = config!!.getInt("SQLSetting.port")
-        database = config!!.getString("SQLSetting.database")
-        username = config!!.getString("SQLSetting.username")
-        password = config!!.getString("SQLSetting.password")
         threshold = config!!.getInt("RaceSetting.threshold")
         betUnit = config!!.getInt("RaceSetting.bet")
         discordWebHook = config!!.getString("NetworkSettings.discord")

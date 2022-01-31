@@ -54,7 +54,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         registerEvents()
 
         if (!VaultAPI.setupEconomy()) {
-            plugin!!.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault", Locale.getDefault()))
+            plugin.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault", Locale.getDefault()))
             server.pluginManager.disablePlugin(this)
             return
         }
@@ -62,7 +62,7 @@ class RaceAssist : SuspendingJavaPlugin() {
 
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(
-            url = "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
+            url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db",
             driver = "org.sqlite.JDBC"
         )
         transaction {
@@ -97,8 +97,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     }
 
     companion object {
-        var plugin: RaceAssist? = null
-
+        lateinit var plugin: RaceAssist
         val raceID = mutableListOf<String>()
 
         fun setRaceID() {

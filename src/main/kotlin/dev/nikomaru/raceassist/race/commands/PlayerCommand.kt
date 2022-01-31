@@ -46,7 +46,7 @@ class PlayerCommand : BaseCommand() {
     @CommandCompletion("@RaceID @players")
     private fun addPlayer(player: Player, raceID: String, @Single onlinePlayer: OnlinePlayer) {
 
-        plugin!!.launch {
+        plugin.launch {
             val jockey = onlinePlayer.player
             if (RaceCommand.getRaceCreator(raceID) != player.uniqueId) {
                 player.sendMessage(
@@ -85,7 +85,7 @@ class PlayerCommand : BaseCommand() {
     @Subcommand("remove")
     @CommandCompletion("@RaceID")
     private fun removePlayer(sender: Player, @Single raceID: String, @Single onlinePlayer: OnlinePlayer) {
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
                 sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
                 return@launch
@@ -102,7 +102,7 @@ class PlayerCommand : BaseCommand() {
     @Subcommand("delete")
     @CommandCompletion("@RaceID")
     private fun deletePlayer(sender: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
                 sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
                 return@launch
@@ -119,7 +119,7 @@ class PlayerCommand : BaseCommand() {
     @Subcommand("list")
     @CommandCompletion("@RaceID")
     private fun displayPlayerList(sender: Player, @Single raceID: String) {
-        plugin!!.launch {
+        plugin.launch {
             if (RaceCommand.getRaceCreator(raceID) != sender.uniqueId) {
                 sender.sendMessage(
                     Component.text(

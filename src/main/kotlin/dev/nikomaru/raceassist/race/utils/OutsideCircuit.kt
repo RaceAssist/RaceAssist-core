@@ -54,7 +54,7 @@ object OutsideCircuit {
         outsidePolygonMap[raceId]!!.addPoint(x, z)
         player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
         PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
-        Bukkit.getScheduler().runTaskLater(plugin!!, Runnable {
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
             PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
         }, 5)
     }
