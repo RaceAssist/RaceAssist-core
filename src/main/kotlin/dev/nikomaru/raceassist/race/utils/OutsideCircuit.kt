@@ -17,7 +17,9 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
+
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component.text
@@ -53,9 +55,9 @@ object OutsideCircuit {
         }
         outsidePolygonMap[raceId]!!.addPoint(x, z)
         player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
-        PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
+        canSetOutsideCircuit.remove(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            PlaceCommands.putCanSetOutsideCircuit(player.uniqueId, true)
+            canSetOutsideCircuit[player.uniqueId] = true
         }, 5)
     }
 
@@ -63,24 +65,24 @@ object OutsideCircuit {
 
         newSuspendedTransaction(Dispatchers.IO) {
             CircuitPoint.deleteWhere {
-                (CircuitPoint.raceID eq PlaceCommands.getCircuitRaceID()[player.uniqueId]!!) and (CircuitPoint.inside eq
+                (CircuitPoint.raceID eq circuitRaceID[player.uniqueId]!!) and (CircuitPoint.inside eq
                         false)
             }
         }
-        val x = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.xpoints
-        val y = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.ypoints
-        val n = outsidePolygonMap[PlaceCommands.getCircuitRaceID()[player.uniqueId]]!!.npoints
+        val x = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.xpoints
+        val y = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.ypoints
+        val n = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
             newSuspendedTransaction(Dispatchers.IO) {
                 CircuitPoint.insert {
-                    it[raceID] = PlaceCommands.getCircuitRaceID()[player.uniqueId]!!
+                    it[raceID] = circuitRaceID[player.uniqueId]!!
                     it[inside] = false
                     it[XPoint] = x[i]
                     it[YPoint] = y[i]
                 }
             }
         }
-        outsidePolygonMap.remove(PlaceCommands.getCircuitRaceID()[player.uniqueId])
+        outsidePolygonMap.remove(circuitRaceID[player.uniqueId])
         player.sendMessage(text("設定完了しました", TextColor.color(GREEN)))
     }
 }

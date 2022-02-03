@@ -16,6 +16,7 @@
 
 package dev.nikomaru.raceassist.dispatch.discord
 
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.files.Config
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -43,7 +44,7 @@ class DiscordWebhook {
 
             val status: Int = con.responseCode
             if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_NO_CONTENT) {
-                println("error:$status")
+                plugin.logger.warning("error:$status")
             }
             con.disconnect()
 

@@ -25,7 +25,6 @@ import java.security.GeneralSecurityException
 
 object SheetsServiceUtil {
 
-
     @Throws(IOException::class, GeneralSecurityException::class)
     fun getSheetsService(spreadsheetId: String): Sheets? {
         val credential: Credential = GoogleAuthorizeUtil.authorize(spreadsheetId)

@@ -99,7 +99,6 @@ class BetGuiClickEvent : Listener {
                     }
                 }
 
-
                 val selectedAfterBet: Int = getNowBet(raceID, player, (slot))
                 val item = event.inventory.getItem(slot + 18)!!
                 val itemMeta = item.itemMeta
@@ -273,7 +272,7 @@ class BetGuiClickEvent : Listener {
             44 -> {
                 //accept
 
-                if (VaultAPI.getEconomy()!!.getBalance(player) < (getAllBet(raceID, player) * betUnit)) {
+                if (VaultAPI.getEconomy().getBalance(player) < (getAllBet(raceID, player) * betUnit)) {
                     noticeNoMoney(event, slot, player)
                     return
                 }
@@ -285,7 +284,7 @@ class BetGuiClickEvent : Listener {
                 player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1f)
                 player.closeInventory()
 
-                val eco: Economy = VaultAPI.getEconomy()!!
+                val eco: Economy = VaultAPI.getEconomy()
                 val owner = Bukkit.getOfflinePlayer(UUID.fromString(newSuspendedTransaction(Dispatchers.IO) {
                     BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator]
                 }))

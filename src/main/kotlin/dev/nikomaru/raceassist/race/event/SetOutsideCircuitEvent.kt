@@ -15,7 +15,8 @@
  */
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
@@ -30,13 +31,13 @@ import java.util.*
 class SetOutsideCircuitEvent : Listener {
     @EventHandler
     suspend fun onSetOutsideCircuitEvent(event: PlayerInteractEvent) {
-        if (PlaceCommands.getCanSetOutsideCircuit()[event.player.uniqueId] == null) {
+        if (canSetOutsideCircuit[event.player.uniqueId] != true) {
             return
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
             player.sendMessage(text(Lang.getText("to-suspend-process", player.locale()), TextColor.color(YELLOW)))
-            PlaceCommands.removeCanSetOutsideCircuit(player.uniqueId)
+            canSetOutsideCircuit.remove(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
@@ -45,7 +46,7 @@ class SetOutsideCircuitEvent : Listener {
         }
 
         OutsideCircuit.outsideCircuit(
-            player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
+            player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
             event.clickedBlock!!.z
         )
     }

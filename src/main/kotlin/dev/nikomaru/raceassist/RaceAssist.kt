@@ -15,29 +15,36 @@
  */
 package dev.nikomaru.raceassist
 
-import co.aikar.commands.PaperCommandManager
+import cloud.commandframework.bukkit.CloudBukkitCapabilities
+import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
+import cloud.commandframework.meta.SimpleCommandMeta
 import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
-import dev.nikomaru.raceassist.bet.commands.OpenBetGuiCommand
-import dev.nikomaru.raceassist.bet.commands.SetBetCommand
+import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.AudiencesCommand
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
-import dev.nikomaru.raceassist.race.commands.PlayerCommand
-import dev.nikomaru.raceassist.race.commands.RaceCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
+import dev.nikomaru.raceassist.race.commands.place.*
+import dev.nikomaru.raceassist.race.commands.player.PlayerAddCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerDeleteCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerListCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerRemoveCommand
+import dev.nikomaru.raceassist.race.commands.race.*
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
+import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
-import java.util.*
 
 class RaceAssist : SuspendingJavaPlugin() {
 
@@ -50,11 +57,10 @@ class RaceAssist : SuspendingJavaPlugin() {
         Config.load()
         settingDatabase()
         setRaceID()
-        registerCommands()
+        setCommand()
         registerEvents()
-
         if (!VaultAPI.setupEconomy()) {
-            plugin.logger.info(Lang.getText("no-economy-plugin-found-disabling-vault", Locale.getDefault()))
+            plugin.logger.warning("Vault not found, disabling plugin")
             server.pluginManager.disablePlugin(this)
             return
         }
@@ -74,19 +80,60 @@ class RaceAssist : SuspendingJavaPlugin() {
         // Plugin shutdown logic
     }
 
-    private fun registerCommands() {
-        val manager = PaperCommandManager(this)
-        manager.registerCommand(PlaceCommands())
-        manager.registerCommand(RaceCommand())
-        manager.registerCommand(AudiencesCommand())
-        manager.registerCommand(PlayerCommand())
-        manager.registerCommand(OpenBetGuiCommand())
-        manager.registerCommand(SetBetCommand())
-
-        manager.commandCompletions.registerCompletion("RaceID") {
-            raceID
+    private fun setCommand() {
+        var commandManager: cloud.commandframework.paper.PaperCommandManager<CommandSender>? = null
+        try {
+            commandManager = cloud.commandframework.paper.PaperCommandManager(
+                this,
+                AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
+                java.util.function.Function.identity(),
+                java.util.function.Function.identity()
+            )
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+        if (commandManager == null) {
+            server.pluginManager.disablePlugin(this)
+            return
         }
 
+        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            commandManager.registerAsynchronousCompletions()
+        }
+        val annotationParser: cloud.commandframework.annotations.AnnotationParser<CommandSender> =
+            cloud.commandframework.annotations.AnnotationParser(
+                commandManager,
+                CommandSender::class.java
+            ) {
+                SimpleCommandMeta.empty()
+            }
+
+        annotationParser.parse(CommandSuggestions())
+        annotationParser.parse(AudienceJoinCommand())
+        annotationParser.parse(AudienceLeaveCommand())
+        annotationParser.parse(AudienceListCommand())
+        annotationParser.parse(PlaceCentralCommand())
+        annotationParser.parse(PlaceDegreeCommand())
+        annotationParser.parse(PlaceFinishCommand())
+        annotationParser.parse(PlaceLapCommand())
+        annotationParser.parse(PlaceReverseCommand())
+        annotationParser.parse(PlaceSetCommand())
+        annotationParser.parse(PlayerAddCommand())
+        annotationParser.parse(PlayerDeleteCommand())
+        annotationParser.parse(PlayerListCommand())
+        annotationParser.parse(PlayerRemoveCommand())
+        annotationParser.parse(RaceCreateCommand())
+        annotationParser.parse(RaceDebugCommand())
+        annotationParser.parse(RaceDeleteCommand())
+        annotationParser.parse(RaceStartCommand())
+        annotationParser.parse(RaceStopCommand())
+        annotationParser.parse(BetCanCommand())
+        annotationParser.parse(BetDeleteCommand())
+        annotationParser.parse(BetListCommand())
+        annotationParser.parse(BetOpenCommand())
+        annotationParser.parse(BetRateCommand())
+        annotationParser.parse(BetRevertCommand())
+        annotationParser.parse(BetSheetCommand())
     }
 
     private fun registerEvents() {

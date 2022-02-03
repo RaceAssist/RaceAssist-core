@@ -15,7 +15,8 @@
  */
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetInsideCircuit
+import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component.text
@@ -30,13 +31,13 @@ import java.util.*
 class SetInsideCircuitEvent : Listener {
     @EventHandler
     fun onSetInsideCircuitEvent(event: PlayerInteractEvent) {
-        if (Objects.isNull(PlaceCommands.getCanSetInsideCircuit()[event.player.uniqueId])) {
+        if (canSetInsideCircuit[event.player.uniqueId] != true) {
             return
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
             player.sendMessage(text(Lang.getText("to-suspend-process", player.locale()), TextColor.color(YELLOW)))
-            PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
+            canSetInsideCircuit.remove(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
@@ -44,7 +45,7 @@ class SetInsideCircuitEvent : Listener {
             return
         }
         InsideCircuit.insideCircuit(
-            player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
+            player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
             event.clickedBlock!!.z
         )
     }

@@ -16,19 +16,17 @@
 
 package dev.nikomaru.raceassist.bet.commands
 
-import co.aikar.commands.BaseCommand
-import co.aikar.commands.annotation.CommandAlias
-import co.aikar.commands.annotation.CommandCompletion
-import co.aikar.commands.annotation.Single
-import co.aikar.commands.annotation.Subcommand
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
 import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
-import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.TempBetData
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -36,13 +34,12 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
-@CommandAlias("ra|RaceAssist")
-class OpenBetGuiCommand : BaseCommand() {
+@CommandMethod("ra|RaceAssist bet")
+class BetOpenCommand {
 
-    @Subcommand("bet open")
-    @CommandCompletion("@RaceID")
-    fun openVending(player: Player, @Single raceID: String) {
-        plugin.launch {
+    @CommandMethod("open <raceId>")
+    fun openVending(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+        RaceAssist.plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
                 return@launch
@@ -56,11 +53,13 @@ class OpenBetGuiCommand : BaseCommand() {
 
             newSuspendedTransaction(Dispatchers.IO) {
                 TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
-                player.openInventory(vending.getGUI(player, raceID))
+                withContext(Dispatchers.minecraft) {
+                    player.openInventory(vending.getGUI(player, raceID))
+                }
             }
 
             newSuspendedTransaction(Dispatchers.IO) {
-                AllPlayers[raceID]?.forEach { jockey ->
+                BetChestGui.AllPlayers[raceID]?.forEach { jockey ->
                     TempBetData.insert {
                         it[TempBetData.raceID] = raceID
                         it[playerUUID] = player.uniqueId.toString()
@@ -76,5 +75,4 @@ class OpenBetGuiCommand : BaseCommand() {
     private suspend fun raceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
         BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
     }
-
 }

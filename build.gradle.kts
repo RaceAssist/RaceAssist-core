@@ -20,6 +20,7 @@ plugins {
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.0.1"
     kotlin("jvm") version "1.6.0"
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
 group = "dev.nikomaru"
@@ -29,10 +30,10 @@ repositories {
     mavenCentral()
     maven("https://papermc.io/repo/repository/maven-public/")
     maven("https://oss.sonatype.org/content/groups/public/")
-    maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://jitpack.io")
     maven("https://plugins.gradle.org/m2/")
+    maven("https://repo.incendo.org/content/repositories/snapshots")
 }
 
 val exposedVersion: String by project
@@ -40,7 +41,10 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("co.aikar:acf-paper:0.5.0-SNAPSHOT")
+    implementation("cloud.commandframework:cloud-core:1.6.1")
+    implementation("cloud.commandframework:cloud-kotlin-extensions:1.6.1")
+    implementation("cloud.commandframework:cloud-paper:1.6.1")
+    implementation("cloud.commandframework:cloud-annotations:1.6.1")
     implementation("net.kyori:adventure-platform-bukkit:4.0.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
@@ -75,5 +79,11 @@ tasks {
     }
     build {
         dependsOn(shadowJar)
+    }
+}
+
+tasks {
+    runServer {
+        minecraftVersion("1.18.1")
     }
 }

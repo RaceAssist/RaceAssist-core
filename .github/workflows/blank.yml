@@ -7,22 +7,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-        cache: 'gradle'
-    - name: Change wrapper permissions
-      run: chmod +x ./gradlew
-    - name: Build with Gradle
-      run: ./gradlew build   
-    - name: Run FOSSA scan and upload build data
-      uses: fossa-contrib/fossa-action@v1
-      with:
-        fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-    - name: Bump version and push tag
-      id: tag_version
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: change plugin.yml version
+        run: |
+          before="${{ steps.tag_version.outputs.new_tag }}"
+          after="${before//v/}"
+          sed -i -e "s/\${version}/$after/i" './src/main/resources/plugin.yml'
+          cat ./src/main/resources/plugin.yml
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Run FOSSA scan and upload build data
+        uses: fossa-contrib/fossa-action@v1
+        with:
+          fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
+      - name: Bump version and push tag
+        id: tag_version
       uses: mathieudutour/github-tag-action@v6.0
       with:
          github_token: ${{ secrets.GITHUB_TOKEN }}

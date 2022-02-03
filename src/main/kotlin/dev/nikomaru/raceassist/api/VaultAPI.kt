@@ -22,7 +22,7 @@ import org.bukkit.plugin.RegisteredServiceProvider
 
 object VaultAPI {
 
-    private var econ: Economy? = null
+    private lateinit var econ: Economy
 
     fun setupEconomy(): Boolean {
         if (getServer().pluginManager.getPlugin("Vault") == null) {
@@ -33,7 +33,7 @@ object VaultAPI {
         return true
     }
 
-    fun getEconomy(): Economy? {
+    fun getEconomy(): Economy {
         return econ
     }
 }

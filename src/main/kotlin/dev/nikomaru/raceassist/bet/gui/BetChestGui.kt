@@ -16,9 +16,7 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
-import com.github.shynixn.mccoroutine.launch
 import com.google.common.collect.ImmutableList
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.database.BetSetting
@@ -43,7 +41,7 @@ import kotlin.math.floor
 
 class BetChestGui {
 
-    fun getGUI(player: Player, raceID: String): Inventory {
+    suspend fun getGUI(player: Player, raceID: String): Inventory {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
         val playerWools = ImmutableList.of(
             Material.RED_WOOL,
@@ -57,32 +55,32 @@ class BetChestGui {
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
-        plugin.launch {
-            val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
-            }
+        println("1")
+        val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
+            BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
+        }
 
-            AllPlayers[raceID] = ArrayList<UUID>()
-            newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                    players.add(UUID.fromString(it[PlayerList.playerUUID]))
-                    AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
-                }
+        AllPlayers[raceID] = ArrayList<UUID>()
+        newSuspendedTransaction(Dispatchers.IO) {
+            println("2")
+            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+                players.add(UUID.fromString(it[PlayerList.playerUUID]))
+                AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
             }
+        }
 
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { BetList.raceID eq raceID }.forEach {
-                    sum += it[BetList.betting]
-                }
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { BetList.raceID eq raceID }.forEach {
+                sum += it[BetList.betting]
             }
-            players.forEach { jockey ->
-                newSuspendedTransaction(Dispatchers.IO) {
-                    var jockeySum = 0
-                    BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
-                        jockeySum += it[BetList.betting]
-                    }
-                    odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
+        }
+        players.forEach { jockey ->
+            newSuspendedTransaction(Dispatchers.IO) {
+                var jockeySum = 0
+                BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
+                    jockeySum += it[BetList.betting]
                 }
+                odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
             }
         }
 
@@ -123,6 +121,7 @@ class BetChestGui {
             gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
         }
 
+        println("3")
         val raceIDItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
         val raceIDMeta = raceIDItem.itemMeta
         raceIDMeta.displayName(text(raceID, TextColor.fromHexString("#00ff7f")))
