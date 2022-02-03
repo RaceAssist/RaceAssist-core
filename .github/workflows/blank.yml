@@ -32,25 +32,20 @@ jobs:
         uses: fossa-contrib/fossa-action@v1
         with:
           fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-      - name: Bump version and push tag
-        id: tag_version
-      uses: mathieudutour/github-tag-action@v6.0
-      with:
-         github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create a GitHub release
-      id: create_release
-      uses: ncipollo/release-action@v1
-      with:
-        tag: ${{ steps.tag_version.outputs.new_tag }}
-        name: Release ${{ steps.tag_version.outputs.new_tag }}
-        body: ${{ steps.tag_version.outputs.changelog }}
-    - name: Upload Release Asset
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT.jar
-        asset_name: RaceAssist_${{ steps.tag_version.outputs.new_tag }}.jar
-        asset_content_type: application/jar
+      - name: Create a GitHub release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT.jar
+          asset_name: RaceAssist_${{ steps.tag_version.outputs.new_tag }}.jar
+          asset_content_type: application/jar
