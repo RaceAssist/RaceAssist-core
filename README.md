@@ -2,6 +2,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_shield)
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![wakatime](https://wakatime.com/badge/user/20699a33-3350-4bf0-8061-c8a996192acf/project/92c8a9a0-f74b-44cc-a1b8-d328f40f803e.svg)](https://wakatime.com/badge/user/20699a33-3350-4bf0-8061-c8a996192acf/project/92c8a9a0-f74b-44cc-a1b8-d328f40f803e)
 ## Commands
 
 ### Audience
