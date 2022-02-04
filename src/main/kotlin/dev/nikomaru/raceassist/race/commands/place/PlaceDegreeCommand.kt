@@ -23,6 +23,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.race.commands.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceDegree
 import dev.nikomaru.raceassist.race.commands.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,6 @@ import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
-import kotlin.math.atan2
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceDegreeCommand {
@@ -73,11 +73,7 @@ class PlaceDegreeCommand {
             if (reverse) {
                 nowX = -nowX
             }
-            val currentDegree = if (Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt() < 0) {
-                360 + Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
-            } else {
-                Math.toDegrees(atan2(nowY.toDouble(), nowX.toDouble())).toInt()
-            }
+            val currentDegree = getRaceDegree(nowX.toDouble(), nowY.toDouble())
             var degree = 0
             when (currentDegree) {
                 in 0..45 -> {

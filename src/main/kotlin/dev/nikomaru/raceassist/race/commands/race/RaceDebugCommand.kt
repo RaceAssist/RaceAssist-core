@@ -102,6 +102,8 @@ class RaceDebugCommand {
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
+            var passBorders = 0
+            var totalDegree = 0
 
 
 
@@ -125,24 +127,31 @@ class RaceDebugCommand {
 
             while (counter < 180 && stop[raceID] != true) {
 
-                val nowX: Int = player.location.blockX
-                val nowY: Int = player.location.blockZ
-                var relativeNowX = nowX - centralXPoint
+                val nowX = player.location.blockX
+                val nowY = player.location.blockZ
+                val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
                 val relativeNowY = nowY - centralYPoint
-                if (reverse) {
-                    relativeNowX = -relativeNowX
-                }
-                val currentDegree = getRaceDegree(relativeNowY, relativeNowX)
+                val currentDegree = getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())
+
                 val beforeLap = currentLap
-
-                currentLap += judgeLap(goalDegree, reverse, currentDegree, beforeDegree, threshold)
-
-                displayLap(currentLap, beforeLap, player, lap)
+                val calculateLap = async(Dispatchers.Default) {
+                    currentLap += judgeLap(goalDegree, beforeDegree, currentDegree, threshold)
+                    passBorders += judgeLap(0, beforeDegree, currentDegree, threshold)
+                    displayLap(currentLap, beforeLap, player, lap)
+                    beforeDegree = currentDegree
+                    totalDegree = currentDegree + (passBorders * 360)
+                }
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    player.sendActionBar(Component.text(Lang.getText("outside-the-racetrack", player.locale()), TextColor.color(NamedTextColor.RED)))
+                    player.sendActionBar(
+                        Component.text(
+                            Lang.getText("outside-the-racetrack", player.locale()),
+                            TextColor.color(NamedTextColor.RED)
+                        )
+                    )
                 }
-                beforeDegree = currentDegree
+
+                calculateLap.await()
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
@@ -154,9 +163,14 @@ class RaceDebugCommand {
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
                 val score = objective.getScore(Lang.getText("first-ranking", player.locale()) + "   " + "§b${player.name}")
-                score.score = 4
-                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", player.locale()), currentLap, currentDegree)
-
+                score.score = 6
+                val data1 = objective.getScore("relativeNowX = $relativeNowX relativeNowY = $relativeNowY")
+                data1.score = 5
+                val data2 = objective.getScore("passBorders = $passBorders currentLap = $currentLap")
+                data2.score = 4
+                val data3 = objective.getScore("totalDegree = $totalDegree° currentDegree = $currentDegree°")
+                data3.score = 3
+                val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", player.locale()), currentLap, totalDegree)
                 val displayDegree = objective.getScore(degree)
                 displayDegree.score = 2
                 val residue = objective.getScore(MessageFormat.format(Lang.getText("time-remaining", player.locale()), 180 - counter))
@@ -172,4 +186,5 @@ class RaceDebugCommand {
 
         }
     }
+
 }

@@ -1,5 +1,5 @@
 name: RaceAssist
-version: 1.0.0
+version: ${version}
 main: dev.nikomaru.raceassist.RaceAssist
 api-version: 1.18
 softdepend:

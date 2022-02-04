@@ -117,44 +117,52 @@ object CommandUtils {
         }
     }
 
-    fun judgeLap(goalDegree: Int, reverse: Boolean, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
+    fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
         if (currentDegree == null) return 0
         when (goalDegree) {
             0 -> {
                 if ((beforeDegree in 360 - threshold until 360) && (currentDegree in 0 until threshold)) {
-                    return if (!reverse) 1 else -1
+                    return 1
                 }
                 if ((beforeDegree in 0 until threshold) && (currentDegree in 360 - threshold until 360)) {
-                    return if (!reverse) -1 else 1
+                    return -1
                 }
             }
             90 -> {
-
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
-                    return if (!reverse) 1 else -1
+                    return 1
                 }
                 if ((beforeDegree in goalDegree until goalDegree + threshold) && (currentDegree in goalDegree - threshold until goalDegree)) {
-                    return if (!reverse) -1 else 1
+                    return -1
                 }
             }
             180 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
-                    return if (!reverse) 1 else -1
+                    return 1
                 }
                 if ((beforeDegree in goalDegree until goalDegree + threshold) && (currentDegree in goalDegree - threshold until goalDegree)) {
-                    return if (!reverse) -1 else 1
+                    return -1
                 }
             }
             270 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
-                    return if (!reverse) 1 else -1
+                    return 1
                 }
                 if ((beforeDegree in goalDegree until goalDegree + threshold) && (currentDegree in goalDegree - threshold until goalDegree)) {
-                    return if (!reverse) -1 else 1
+                    return -1
                 }
             }
         }
         return 0
+    }
+
+    fun getRaceDegree(Y: Double, X: Double): Int {
+        val degree = Math.toDegrees(atan2(Y, X)).toInt()
+        return if (degree < 0) {
+            360 + degree
+        } else {
+            degree
+        }
     }
 
     fun displayScoreboard(
@@ -209,13 +217,7 @@ object CommandUtils {
         }
     }
 
-    fun getRaceDegree(Y: Int, X: Int): Int {
-        return if (Math.toDegrees(atan2((Y).toDouble(), (X).toDouble())).toInt() < 0) {
-            360 + Math.toDegrees(atan2((Y).toDouble(), (X).toDouble())).toInt()
-        } else {
-            Math.toDegrees(atan2((Y).toDouble(), (X).toDouble())).toInt()
-        }
-    }
+
 
     fun decideRanking(totalDegree: HashMap<UUID, Int>): ArrayList<UUID> {
         val ranking = ArrayList<UUID>()
@@ -256,7 +258,7 @@ object CommandUtils {
     }
 
     suspend fun getRaceCreator(raceID: String): UUID? {
-        var raceCreator: String? = null;
+        var raceCreator: String? = null
         newSuspendedTransaction(Dispatchers.IO) {
             raceCreator = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.creator)
         }

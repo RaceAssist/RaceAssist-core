@@ -216,8 +216,8 @@ class RaceStartCommand {
 
             jockeys.forEach {
                 beforeDegree[it.uniqueId] = getRaceDegree(
-                    if (!reverse) it.location.blockX - centralXPoint
-                    else -(it.location.blockX - centralXPoint), it.location.blockZ - centralYPoint
+                    if (!reverse) (it.location.blockX - centralXPoint).toDouble()
+                    else (-1 * (it.location.blockX - centralXPoint)).toDouble(), (it.location.blockZ - centralYPoint).toDouble()
                 )
                 currentLap[it.uniqueId] = 0
                 passBorders[it.uniqueId] = 0
@@ -228,10 +228,10 @@ class RaceStartCommand {
 
             val randomJockey = jockeys.random()
             val startDegree = getRaceDegree(
-                randomJockey.location.blockZ - centralYPoint, if (reverse) {
-                    -(randomJockey.location.blockX - centralXPoint)
+                (randomJockey.location.blockZ - centralYPoint).toDouble(), if (reverse) {
+                    (-1 * (randomJockey.location.blockX - centralXPoint)).toDouble()
                 } else {
-                    randomJockey.location.blockX - centralXPoint
+                    (randomJockey.location.blockX - centralXPoint).toDouble()
                 }
             )
 
@@ -250,13 +250,13 @@ class RaceStartCommand {
                     val nowY = player.location.blockZ
                     val relativeNowX = if (!reverse) nowX - centralXPoint else -(nowX - centralXPoint)
                     val relativeNowY = nowY - centralYPoint
-                    val currentDegree = getRaceDegree(relativeNowY, relativeNowX)
+                    val currentDegree = getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())
                     val uuid = player.uniqueId
 
                     val beforeLap = currentLap[uuid]
                     val calculateLap = async(Dispatchers.Default) {
-                        currentLap[uuid] = currentLap[uuid]!! + judgeLap(goalDegree, reverse, beforeDegree[uuid], currentDegree, threshold)
-                        passBorders[uuid] = passBorders[uuid]!! + judgeLap(0, reverse, beforeDegree[uuid], currentDegree, threshold)
+                        currentLap[uuid] = currentLap[uuid]!! + judgeLap(goalDegree, beforeDegree[uuid], currentDegree, threshold)
+                        passBorders[uuid] = passBorders[uuid]!! + judgeLap(0, beforeDegree[uuid], currentDegree, threshold)
                         displayLap(currentLap[uuid], beforeLap, player, lap)
                         beforeDegree[uuid] = currentDegree
                         totalDegree[uuid] = currentDegree + (passBorders[uuid]!! * 360)
