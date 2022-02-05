@@ -16,6 +16,10 @@
 
 package dev.nikomaru.raceassist.utils
 
+import com.github.shynixn.mccoroutine.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.Title.title
@@ -29,32 +33,44 @@ class RaceAudience {
     private val audience: HashSet<UUID> = HashSet()
 
     fun showTitleI18n(key: String, vararg args: String) {
-        audience.forEach {
-            val offlinePlayer = Bukkit.getOfflinePlayer(it)
-            if (offlinePlayer.isOnline) {
-                val player = offlinePlayer.player!!
-                player.showTitle(title(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)), text(" ")))
-            }
+        plugin.launch {
+            audience.map {
+                async {
+                    val offlinePlayer = Bukkit.getOfflinePlayer(it)
+                    if (offlinePlayer.isOnline) {
+                        val player = offlinePlayer.player!!
+                        player.showTitle(title(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)), text(" ")))
+                    }
+                }
+            }.awaitAll()
         }
     }
 
     fun showTitle(title: Title) {
-        audience.forEach {
-            val offlinePlayer = Bukkit.getOfflinePlayer(it)
-            if (offlinePlayer.isOnline) {
-                val player = offlinePlayer.player!!
-                player.showTitle(title)
-            }
+        plugin.launch {
+            audience.map {
+                async {
+                    val offlinePlayer = Bukkit.getOfflinePlayer(it)
+                    if (offlinePlayer.isOnline) {
+                        val player = offlinePlayer.player!!
+                        player.showTitle(title)
+                    }
+                }
+            }.awaitAll()
         }
     }
 
     fun sendMessageI18n(key: String, vararg args: Any) {
-        audience.forEach {
-            val offlinePlayer = Bukkit.getOfflinePlayer(it)
-            if (offlinePlayer.isOnline) {
-                val player = offlinePlayer.player!!
-                player.sendMessage(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)))
-            }
+        plugin.launch {
+            audience.map {
+                async {
+                    val offlinePlayer = Bukkit.getOfflinePlayer(it)
+                    if (offlinePlayer.isOnline) {
+                        val player = offlinePlayer.player!!
+                        player.sendMessage(text(MessageFormat.format(Lang.getText(key, player.locale()), *args)))
+                    }
+                }
+            }.awaitAll()
         }
     }
 
@@ -69,7 +85,7 @@ class RaceAudience {
         }
     }
 
-    fun getUUID(): Set<UUID> {
+    fun getUUID(): Collection<UUID> {
         return audience
     }
 

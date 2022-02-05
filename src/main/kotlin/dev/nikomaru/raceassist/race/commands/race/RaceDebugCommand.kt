@@ -164,9 +164,9 @@ class RaceDebugCommand {
 
                 val score = objective.getScore(Lang.getText("first-ranking", player.locale()) + "   " + "§b${player.name}")
                 score.score = 6
-                val data1 = objective.getScore("relativeNowX = $relativeNowX relativeNowY = $relativeNowY")
+                val data1 = objective.getScore("relativeNowX = $relativeNowX m relativeNowY = $relativeNowY m")
                 data1.score = 5
-                val data2 = objective.getScore("passBorders = $passBorders currentLap = $currentLap")
+                val data2 = objective.getScore("passBorders = $passBorders times currentLap = $currentLap times")
                 data2.score = 4
                 val data3 = objective.getScore("totalDegree = $totalDegree° currentDegree = $currentDegree°")
                 data3.score = 3

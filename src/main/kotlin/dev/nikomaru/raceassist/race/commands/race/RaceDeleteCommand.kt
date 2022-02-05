@@ -58,7 +58,7 @@ class RaceDeleteCommand {
                 if (spreadsheetId != null) {
                     val sheetsService = SheetsServiceUtil.getSheetsService(spreadsheetId)
 
-                    val range = "${raceID}_RaceAssist!A1:E"
+                    val range = "${raceID}_RaceAssist_Bet!A1:E"
                     val requestBody = ClearValuesRequest()
                     val request = sheetsService!!.spreadsheets().values().clear("RaceAssist", range, requestBody)
                     request.execute()

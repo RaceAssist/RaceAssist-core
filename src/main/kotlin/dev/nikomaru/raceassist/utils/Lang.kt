@@ -30,7 +30,7 @@ object Lang {
 
     suspend fun load() {
         withContext(Dispatchers.IO) {
-            val lang = listOf("en_US", "ja_JP", "zh_CN")
+            val lang = listOf("ja_JP")
             val pluginDir = File(plugin.dataFolder, "lang")
             if (!pluginDir.exists()) {
                 pluginDir.mkdir()
@@ -56,8 +56,8 @@ object Lang {
     }
 
     fun getText(key: String, locale: Locale): String {
-        val lang = langList[locale.toString()] ?: langList["ja_JP"]!!
-        return lang.getProperty(key) ?: "Please tell your server administrator that you got this message.(RaceAssist is broken)"
+        val lang = langList[locale.toString()] ?: langList["ja_JP"]
+        return lang?.getProperty(key) ?: "Please tell your server administrator that you got this message.(RaceAssist is broken)"
     }
 
 }

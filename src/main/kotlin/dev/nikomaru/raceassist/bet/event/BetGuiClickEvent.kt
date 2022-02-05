@@ -381,7 +381,7 @@ class BetGuiClickEvent : Listener {
         var i = 1
         val data: ArrayList<ValueRange> = ArrayList()
         data.add(
-            ValueRange().setRange("${raceID}_RaceAssist!A${i}").setValues(
+            ValueRange().setRange("${raceID}_RaceAssist_Bet!A${i}").setValues(
                 listOf(
                     listOf(
                         Lang.getText("sheet-timestamp", Locale.getDefault()),
@@ -403,7 +403,7 @@ class BetGuiClickEvent : Listener {
                 val betting = it[BetList.betting]
                 val timeStamp = it[BetList.timeStamp]
                 data.add(
-                    ValueRange().setRange("${raceID}_RaceAssist!A${i + 1}").setValues(
+                    ValueRange().setRange("${raceID}_RaceAssist_Bet!A${i + 1}").setValues(
                         listOf(
                             listOf(
                                 timeStamp.toString(), player, jockey,
