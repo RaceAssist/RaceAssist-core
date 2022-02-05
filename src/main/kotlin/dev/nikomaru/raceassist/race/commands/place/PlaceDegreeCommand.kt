@@ -68,12 +68,13 @@ class PlaceDegreeCommand {
                         TextColor.color(NamedTextColor.RED)
                     )
                 )
-            var nowX = sender.location.blockX - centralXPoint
-            val nowY = sender.location.blockZ - centralYPoint
-            if (reverse) {
-                nowX = -nowX
-            }
-            val currentDegree = getRaceDegree(nowX.toDouble(), nowY.toDouble())
+            val nowX = sender.location.blockX
+            val nowY = sender.location.blockZ
+            val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
+            val relativeNowY = nowY - centralYPoint
+            val currentDegree = getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())
+
+            sender.sendMessage("Degree: $currentDegree")
             var degree = 0
             when (currentDegree) {
                 in 0..45 -> {
