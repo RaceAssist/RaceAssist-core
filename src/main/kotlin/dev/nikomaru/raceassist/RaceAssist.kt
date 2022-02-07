@@ -69,7 +69,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
         transaction {
-            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, TempBetData, BetSetting)
+            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, BetSetting)
         }
     }
 

@@ -22,15 +22,12 @@ import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.TempBetData
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.TempBetData
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
@@ -52,7 +49,11 @@ class BetOpenCommand {
             }
 
             newSuspendedTransaction(Dispatchers.IO) {
-                TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
+                TempBetDatas.forEach {
+                    if (it.uuid == player.uniqueId) {
+                        TempBetDatas.remove(it)
+                    }
+                }
                 withContext(Dispatchers.minecraft) {
                     player.openInventory(vending.getGUI(player, raceID))
                 }
@@ -60,19 +61,18 @@ class BetOpenCommand {
 
             newSuspendedTransaction(Dispatchers.IO) {
                 BetChestGui.AllPlayers[raceID]?.forEach { jockey ->
-                    TempBetData.insert {
-                        it[TempBetData.raceID] = raceID
-                        it[playerUUID] = player.uniqueId.toString()
-                        it[TempBetData.jockey] = jockey.toString()
-                        it[bet] = 0
-                    }
+                    TempBetDatas.add(TempBetData(raceID, player.uniqueId, jockey, 0))
                 }
             }
-
         }
+
     }
 
     private suspend fun raceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
         BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
+    }
+
+    companion object {
+        val TempBetDatas = ArrayList<TempBetData>()
     }
 }

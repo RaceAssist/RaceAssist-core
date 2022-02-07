@@ -43,6 +43,7 @@ dependencies {
     implementation("com.google.api-client:google-api-client:1.33.1")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.0")
     implementation("com.google.apis:google-api-services-sheets:v4-rev20210629-1.32.1")
+    implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT")
 }
 
 java {

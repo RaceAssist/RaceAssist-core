@@ -14,13 +14,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.database
+package dev.nikomaru.raceassist.utils
 
-import org.jetbrains.exposed.sql.Table
+import java.util.*
 
-object TempBetData : Table() {
-    val raceID = varchar("raceID", 30)
-    val playerUUID = varchar("playerUUID", 40)
-    val jockey = varchar("jockey", 40)
-    val bet = integer("bet")
-}
+data class TempBetData(val raceID: String, val uuid: UUID, val jockey: UUID, var bet: Int)

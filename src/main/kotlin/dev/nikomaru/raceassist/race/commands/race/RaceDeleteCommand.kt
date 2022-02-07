@@ -53,7 +53,6 @@ class RaceDeleteCommand {
                 PlayerList.deleteWhere { PlayerList.raceID eq raceID }
                 BetList.deleteWhere { BetList.raceID eq raceID }
                 BetSetting.deleteWhere { BetSetting.raceID eq raceID }
-                TempBetData.deleteWhere { TempBetData.raceID eq raceID }
                 val spreadsheetId = getSheetID(raceID)
                 val sheetsService = spreadsheetId?.let { SheetsServiceUtil.getSheetsService(it) } ?: return@newSuspendedTransaction
 
