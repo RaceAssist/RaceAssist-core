@@ -17,6 +17,7 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetInsideCircuit
@@ -29,6 +30,7 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceFinishCommand {
+    @CommandPermission("RaceAssist.commands.place.finish")
     @CommandMethod("finish")
     fun finish(sender: CommandSender) {
         RaceAssist.plugin.launch {

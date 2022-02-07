@@ -44,10 +44,7 @@ class SetInsideCircuitEvent : Listener {
             event.player.sendMessage(text(Lang.getText("to-click-block", player.locale()), TextColor.color(YELLOW)))
             return
         }
-        InsideCircuit.insideCircuit(
-            player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
-            event.clickedBlock!!.z
-        )
+        InsideCircuit.insideCircuit(player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
     }
 }
 

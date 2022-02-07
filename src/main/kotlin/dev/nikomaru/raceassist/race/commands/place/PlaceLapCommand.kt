@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
 
 import com.github.shynixn.mccoroutine.launch
@@ -35,21 +36,15 @@ import org.jetbrains.exposed.sql.update
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceLapCommand {
-
+    @CommandPermission("RaceAssist.commands.place.lap")
     @CommandMethod("lap <raceId> <lap>")
-    fun setLap(
-        sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "lap") @Range(min = "1", max = "100") lap:
-        Int
-    ) {
+    fun setLap(sender: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-setting", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
 

@@ -47,16 +47,12 @@ class BetListCommand {
             }
             newSuspendedTransaction(Dispatchers.IO) {
                 BetList.select { BetList.raceID eq raceID }.forEach {
-                    player.sendMessage(
-                        MessageFormat.format(
-                            Lang.getText("bet-list-detail-message", player.locale()),
-                            it[BetList.rowNum],
-                            it[BetList.timeStamp],
-                            it[BetList.playerName],
-                            it[BetList.jockey],
-                            it[BetList.betting]
-                        )
-                    )
+                    player.sendMessage(MessageFormat.format(Lang.getText("bet-list-detail-message", player.locale()),
+                        it[BetList.rowNum],
+                        it[BetList.timeStamp],
+                        it[BetList.playerName],
+                        it[BetList.jockey],
+                        it[BetList.betting]))
                 }
             }
         }

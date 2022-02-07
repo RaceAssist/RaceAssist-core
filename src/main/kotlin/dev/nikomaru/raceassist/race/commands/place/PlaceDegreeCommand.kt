@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.RaceList
@@ -36,38 +37,24 @@ import org.jetbrains.exposed.sql.update
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceDegreeCommand {
-
+    @CommandPermission("RaceAssist.commands.place.degree")
     @CommandMethod("degree <raceId>")
     fun degree(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-setting", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
-            val centralXPoint = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
-                Component.text(
-                    Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
-                        (NamedTextColor.RED)
-                )
-            )
-            val centralYPoint = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
-                Component.text(
-                    Lang.getText("no-exist-central-point", sender.locale()), TextColor.color
-                        (NamedTextColor.RED)
-                )
-            )
+            val centralXPoint =
+                getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    sender.locale()), TextColor.color(NamedTextColor.RED)))
+            val centralYPoint =
+                getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    sender.locale()), TextColor.color(NamedTextColor.RED)))
             val reverse =
-                getReverse(raceID) ?: return@launch sender.sendMessage(
-                    Component.text(
-                        Lang.getText("orientation-is-not-set", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                getReverse(raceID) ?: return@launch sender.sendMessage(Component.text(Lang.getText("orientation-is-not-set", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
             val nowX = sender.location.blockX
             val nowY = sender.location.blockZ
             val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)

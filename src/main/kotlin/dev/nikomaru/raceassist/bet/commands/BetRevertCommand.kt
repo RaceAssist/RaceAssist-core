@@ -67,23 +67,16 @@ class BetRevertCommand {
                         eco.withdrawPlayer(player, it[BetList.betting].toDouble())
 
                         eco.depositPlayer(receiver, it[BetList.betting].toDouble())
-                        player.sendMessage(
-                            MessageFormat.format(
-                                Lang.getText("bet-revert-return-message-owner", player.locale()), receiver.name,
-                                it[BetList.betting]
-                            )
-                        )
+                        player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-owner", player.locale()),
+                            receiver.name,
+                            it[BetList.betting]))
 
                         if (receiver.isOnline) {
-                            (receiver as Player).sendMessage(
-                                MessageFormat.format(
-                                    Lang.getText("bet-revert-return-message-player", receiver.locale()),
-                                    player.name,
-                                    it[BetList.raceID],
-                                    it[BetList.jockey],
-                                    it[BetList.betting]
-                                )
-                            )
+                            (receiver as Player).sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-player", receiver.locale()),
+                                player.name,
+                                it[BetList.raceID],
+                                it[BetList.jockey],
+                                it[BetList.betting]))
                         }
                     }
                 }
@@ -108,13 +101,11 @@ class BetRevertCommand {
         return exist
     }
 
-    private suspend fun getBetSum(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { BetList.raceID eq raceID }.sumOf {
-                it[BetList
-                    .betting]
-            }
+    private suspend fun getBetSum(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.select { BetList.raceID eq raceID }.sumOf {
+            it[BetList.betting]
         }
+    }
 
     companion object {
         val canRevert: HashMap<UUID, Boolean> = HashMap()

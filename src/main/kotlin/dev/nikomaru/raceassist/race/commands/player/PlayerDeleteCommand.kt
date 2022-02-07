@@ -36,7 +36,7 @@ import java.text.MessageFormat
 @CommandMethod("ra|RaceAssist player")
 class PlayerDeleteCommand {
 
-    @CommandPermission("RaceAssist.commands.player")
+    @CommandPermission("RaceAssist.commands.player.delete")
     @CommandMethod("delete <raceId>")
     private fun deletePlayer(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
 

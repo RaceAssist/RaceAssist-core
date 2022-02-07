@@ -45,9 +45,9 @@ class SetOutsideCircuitEvent : Listener {
             return
         }
 
-        OutsideCircuit.outsideCircuit(
-            player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
-            event.clickedBlock!!.z
-        )
+        OutsideCircuit.outsideCircuit(player,
+            circuitRaceID[player.uniqueId]!!,
+            Objects.requireNonNull(event.clickedBlock)!!.x,
+            event.clickedBlock!!.z)
     }
 }

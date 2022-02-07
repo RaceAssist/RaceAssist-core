@@ -44,14 +44,8 @@ object GuiComponent {
     fun onceDown(locale: Locale): ItemStack {
         val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
         val onceDownMeta: ItemMeta = onceDown.itemMeta
-        onceDownMeta.displayName(
-            text(
-                MessageFormat.format(
-                    Lang.getText("to-cancel-bet-one-unit", locale),
-                    betUnit
-                )
-            ).color(TextColor.fromHexString("#add8e6"))
-        )
+        onceDownMeta.displayName(text(MessageFormat.format(Lang.getText("to-cancel-bet-one-unit", locale),
+            betUnit)).color(TextColor.fromHexString("#add8e6")))
         onceDown.itemMeta = onceDownMeta
         return onceDown
     }
@@ -59,14 +53,8 @@ object GuiComponent {
     fun tenTimesUp(locale: Locale): ItemStack {
         val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
         val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-        tenTimesUpMeta.displayName(
-            text(
-                MessageFormat.format(
-                    Lang.getText("to-bet-ten-unit", locale),
-                    betUnit * 10
-                )
-            ).color(TextColor.fromHexString("#ff0000"))
-        )
+        tenTimesUpMeta.displayName(text(MessageFormat.format(Lang.getText("to-bet-ten-unit", locale),
+            betUnit * 10)).color(TextColor.fromHexString("#ff0000")))
         tenTimesUp.itemMeta = tenTimesUpMeta
         return tenTimesUp
     }
@@ -74,14 +62,8 @@ object GuiComponent {
     fun tenTimesDown(locale: Locale): ItemStack {
         val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
         val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-        tenTimesDownMeta.displayName(
-            text(
-                MessageFormat.format(
-                    Lang.getText("to-cancel-bet-ten-unit", locale),
-                    betUnit * 10
-                )
-            ).color(TextColor.fromHexString("#0000cd"))
-        )
+        tenTimesDownMeta.displayName(text(MessageFormat.format(Lang.getText("to-cancel-bet-ten-unit", locale),
+            betUnit * 10)).color(TextColor.fromHexString("#0000cd")))
         tenTimesDown.itemMeta = tenTimesDownMeta
         return tenTimesDown
     }

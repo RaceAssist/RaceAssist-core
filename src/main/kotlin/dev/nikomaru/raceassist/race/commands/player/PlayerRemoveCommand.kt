@@ -37,12 +37,11 @@ import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerRemoveCommand {
-    @CommandPermission("RaceAssist.commands.player")
+    @CommandPermission("RaceAssist.commands.player.remove")
     @CommandMethod("remove <raceId> <playerName>")
-    private fun removePlayer(
-        sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String
-    ) {
+    private fun removePlayer(sender: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         val player = Bukkit.getOfflinePlayer(playerName)
         if (!player.hasPlayedBefore()) {
             sender.sendMessage(Lang.getText("player-add-not-exist", sender.locale()))

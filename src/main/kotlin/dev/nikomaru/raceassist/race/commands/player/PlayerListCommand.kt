@@ -38,31 +38,20 @@ import java.util.*
 @CommandMethod("ra|RaceAssist player")
 class PlayerListCommand {
 
-    @CommandPermission("RaceAssist.commands.player")
+    @CommandPermission("RaceAssist.commands.player.list")
     @CommandMethod("list <raceId>")
     private fun displayPlayerList(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-display", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
 
             newSuspendedTransaction(Dispatchers.IO) {
                 PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                    sender.sendMessage(
-                        Component.text(
-                            Bukkit.getOfflinePlayer(
-                                UUID.fromString(
-                                    it[PlayerList.playerUUID]
-                                )
-                            ).name.toString(), TextColor.color(NamedTextColor.YELLOW)
-                        )
-                    )
+                    sender.sendMessage(Component.text(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString(),
+                        TextColor.color(NamedTextColor.YELLOW)))
                 }
             }
         }

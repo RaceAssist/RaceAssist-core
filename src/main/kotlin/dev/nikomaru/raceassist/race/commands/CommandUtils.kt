@@ -65,9 +65,7 @@ object CommandUtils {
     }
 
     suspend fun getSheetID(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetSetting.select { BetSetting.raceID eq raceID }.firstOrNull()?.get(
-            BetSetting.spreadsheetId
-        )
+        BetSetting.select { BetSetting.raceID eq raceID }.firstOrNull()?.get(BetSetting.spreadsheetId)
     }
 
     fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
@@ -76,41 +74,18 @@ object CommandUtils {
         }
         if (currentLap > beforeLap) {
             if (currentLap == lap - 1) {
-                player.showTitle(
-                    title(
-                        (text(
-                            Lang.getText("last-lap", player.locale()),
-                            TextColor.color(GREEN)
-                        )), text(
-                            Lang.getText("one-step-forward-lap", player.locale()),
-                            TextColor.color(BLUE)
-                        )
-                    )
-                )
+                player.showTitle(title((text(Lang.getText("last-lap", player.locale()), TextColor.color(GREEN))),
+                    text(Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))))
             } else {
-                player.showTitle(
-                    title(
-                        (text(
-                            MessageFormat.format(
-                                Lang.getText("now-lap", player.locale()),
-                                currentLap,
-                                lap
-                            ), TextColor.color(GREEN)
-                        )), text
-                            (Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))
-                    )
-                )
+                player.showTitle(title((text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap),
+                    TextColor.color(GREEN))), text(Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))))
             }
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
         } else if (currentLap < beforeLap) {
-            player.showTitle(
-                title(
-                    text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap), TextColor.color(GREEN)),
-                    text(Lang.getText("one-step-backwards-lap", player.locale()), TextColor.color(RED))
-                )
-            )
+            player.showTitle(title(text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap), TextColor.color(GREEN)),
+                text(Lang.getText("one-step-backwards-lap", player.locale()), TextColor.color(RED))))
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
@@ -165,15 +140,13 @@ object CommandUtils {
         }
     }
 
-    fun displayScoreboard(
-        nowRankings: List<UUID>,
+    fun displayScoreboard(nowRankings: List<UUID>,
         currentLap: HashMap<UUID, Int>,
         currentDegree: HashMap<UUID, Int>,
         raceAudience: TreeSet<UUID>,
         innerCircumference: Int,
         startDegree: Int,
-        lap: Int
-    ) {
+        lap: Int) {
 
         raceAudience.forEach {
 
@@ -181,33 +154,23 @@ object CommandUtils {
                 val player = Bukkit.getPlayer(it)!!
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
-                val objective: Objective = scoreboard.registerNewObjective(
-                    Lang.getText("scoreboard-ranking", player.locale()), "dummy", text(
-                        Lang.getText("scoreboard-now-ranking", player.locale()), TextColor.color
-                            (YELLOW)
-                    )
-                )
+                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", player.locale()),
+                    "dummy",
+                    text(Lang.getText("scoreboard-now-ranking", player.locale()), TextColor.color(YELLOW)))
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
                 for (i in nowRankings.indices) {
                     val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-                    val score = objective.getScore(
-                        MessageFormat.format(
-                            Lang.getText(
-                                "scoreboard-now-ranking-and-name", player.locale()
-                            ), i + 1, playerName
-                        )
-                    )
+                    val score =
+                        objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name", player.locale()), i + 1, playerName))
                     score.score = nowRankings.size * 2 - 2 * i - 1
                     val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
                         Lang.getText("finished-the-race", player.locale())
                     } else {
-                        MessageFormat.format(
-                            Lang.getText("now-lap-and-now-length", player.locale()),
+                        MessageFormat.format(Lang.getText("now-lap-and-now-length", player.locale()),
                             currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
                             lap,
-                            (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360)
-                        )
+                            (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360))
                     }
                     val displayDegree = objective.getScore(degree)
                     displayDegree.score = nowRankings.size * 2 - 2 * i - 2
@@ -216,8 +179,6 @@ object CommandUtils {
             }
         }
     }
-
-
 
     fun decideRanking(totalDegree: HashMap<UUID, Int>): ArrayList<UUID> {
         val ranking = ArrayList<UUID>()

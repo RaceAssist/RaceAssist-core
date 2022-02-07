@@ -35,7 +35,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 @CommandMethod("ra|RaceAssist race")
 class RaceDeleteCommand {
-    @CommandPermission("RaceAssist.commands.race")
+    @CommandPermission("RaceAssist.commands.race.delete")
     @CommandMethod("delete <raceId>")
     fun delete(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
@@ -55,15 +55,13 @@ class RaceDeleteCommand {
                 BetSetting.deleteWhere { BetSetting.raceID eq raceID }
                 TempBetData.deleteWhere { TempBetData.raceID eq raceID }
                 val spreadsheetId = getSheetID(raceID)
-                if (spreadsheetId != null) {
-                    val sheetsService = SheetsServiceUtil.getSheetsService(spreadsheetId)
+                val sheetsService = spreadsheetId?.let { SheetsServiceUtil.getSheetsService(it) } ?: return@newSuspendedTransaction
 
-                    val range = "${raceID}_RaceAssist_Bet!A1:E"
-                    val requestBody = ClearValuesRequest()
-                    val request = sheetsService!!.spreadsheets().values().clear("RaceAssist", range, requestBody)
-                    request.execute()
+                val range = "${raceID}_RaceAssist_Bet!A1:E"
+                val requestBody = ClearValuesRequest()
+                val request = sheetsService.spreadsheets().values().clear("RaceAssist", range, requestBody)
+                request.execute()
 
-                }
                 RaceAssist.setRaceID()
                 sender.sendMessage(Lang.getText("to-delete-race-and-so-on", sender.locale()))
             }

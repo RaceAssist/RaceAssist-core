@@ -67,10 +67,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     }
 
     private fun settingDatabase() {
-        org.jetbrains.exposed.sql.Database.connect(
-            url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db",
-            driver = "org.sqlite.JDBC"
-        )
+        org.jetbrains.exposed.sql.Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
         transaction {
             SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, TempBetData, BetSetting)
         }
@@ -83,12 +80,10 @@ class RaceAssist : SuspendingJavaPlugin() {
     private fun setCommand() {
         var commandManager: cloud.commandframework.paper.PaperCommandManager<CommandSender>? = null
         try {
-            commandManager = cloud.commandframework.paper.PaperCommandManager(
-                this,
+            commandManager = cloud.commandframework.paper.PaperCommandManager(this,
                 AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
                 java.util.function.Function.identity(),
-                java.util.function.Function.identity()
-            )
+                java.util.function.Function.identity())
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
@@ -101,10 +96,7 @@ class RaceAssist : SuspendingJavaPlugin() {
             commandManager.registerAsynchronousCompletions()
         }
         val annotationParser: cloud.commandframework.annotations.AnnotationParser<CommandSender> =
-            cloud.commandframework.annotations.AnnotationParser(
-                commandManager,
-                CommandSender::class.java
-            ) {
+            cloud.commandframework.annotations.AnnotationParser(commandManager, CommandSender::class.java) {
                 SimpleCommandMeta.empty()
             }
 

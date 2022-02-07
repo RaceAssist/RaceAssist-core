@@ -33,10 +33,9 @@ import java.text.MessageFormat
 @CommandMethod("ra|RaceAssist bet")
 class BetRateCommand {
     @CommandMethod("rate <raceId> <rate>")
-    fun setRate(
-        player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int
-    ) {
+    fun setRate(player: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
         RaceAssist.plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))

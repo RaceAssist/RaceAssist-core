@@ -65,8 +65,7 @@ object OutsideCircuit {
 
         newSuspendedTransaction(Dispatchers.IO) {
             CircuitPoint.deleteWhere {
-                (CircuitPoint.raceID eq circuitRaceID[player.uniqueId]!!) and (CircuitPoint.inside eq
-                        false)
+                (CircuitPoint.raceID eq circuitRaceID[player.uniqueId]!!) and (CircuitPoint.inside eq false)
             }
         }
         val x = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.xpoints

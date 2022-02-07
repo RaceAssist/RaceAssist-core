@@ -43,15 +43,13 @@ class BetChestGui {
 
     suspend fun getGUI(player: Player, raceID: String): Inventory {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
-        val playerWools = ImmutableList.of(
-            Material.RED_WOOL,
+        val playerWools = ImmutableList.of(Material.RED_WOOL,
             Material.BLUE_WOOL,
             Material.YELLOW_WOOL,
             Material.GREEN_WOOL,
             Material.BROWN_WOOL,
             Material.PINK_WOOL,
-            Material.WHITE_WOOL
-        )
+            Material.WHITE_WOOL)
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
@@ -91,26 +89,13 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(
-                text(
-                    MessageFormat.format(Lang.getText("betting-zero-money", player.locale()), betUnit), TextColor.fromHexString
-                        ("#00ff7f")
-                )
-            )
+            prevMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money", player.locale()), betUnit),
+                TextColor.fromHexString("#00ff7f")))
             val lore: ArrayList<Component> = ArrayList<Component>()
-            lore.add(
-                text(
-                    MessageFormat.format(Lang.getText("gui-jockey-name", player.locale()), Bukkit.getOfflinePlayer(players[i]).name),
-                    TextColor.fromHexString
-                        ("#00a497")
-                )
-            )
-            lore.add(
-                text(
-                    MessageFormat.format(Lang.getText("gui-jockey-odds", player.locale()), odds[players[i]]),
-                    TextColor.fromHexString("#e6b422")
-                )
-            )
+            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-name", player.locale()), Bukkit.getOfflinePlayer(players[i]).name),
+                TextColor.fromHexString("#00a497")))
+            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-odds", player.locale()), odds[players[i]]),
+                TextColor.fromHexString("#e6b422")))
             prevMeta.lore(lore)
             item.itemMeta = prevMeta
 

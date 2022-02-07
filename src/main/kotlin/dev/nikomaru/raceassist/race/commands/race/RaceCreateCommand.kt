@@ -33,7 +33,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 @CommandMethod("ra|RaceAssist race")
 class RaceCreateCommand {
-    @CommandPermission("RaceAssist.commands.race")
+    @CommandPermission("RaceAssist.commands.race.create")
     @CommandMethod("create <raceId>")
     fun create(sender: CommandSender, @Argument(value = "raceId") raceID: String) {
         RaceAssist.plugin.launch {

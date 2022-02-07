@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetCentral
@@ -31,16 +32,13 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceCentralCommand {
+    @CommandPermission("RaceAssist.commands.place.central")
     @CommandMethod("central <raceId>")
     fun central(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-setting", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
             canSetCentral[sender.uniqueId] = true

@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.PlayerList
@@ -35,29 +36,20 @@ import java.util.*
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceListCommand {
-
+    @CommandPermission("RaceAssist.commands.audience.list")
     @CommandMethod("list <raceId>")
     private fun list(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-display", sender.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display", sender.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
             sender.sendMessage(Component.text(Lang.getText("participants-list", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
             newSuspendedTransaction(Dispatchers.IO) {
                 PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                    sender.sendMessage(
-                        Component.text(
-                            Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name!!, TextColor.color(
-                                NamedTextColor.GREEN
-                            )
-                        )
-                    )
+                    sender.sendMessage(Component.text(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name!!,
+                        TextColor.color(NamedTextColor.GREEN)))
                 }
             }
         }

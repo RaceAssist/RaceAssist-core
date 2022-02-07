@@ -52,7 +52,7 @@ import java.text.MessageFormat
 @CommandMethod("ra|RaceAssist race")
 class RaceDebugCommand {
 
-    @CommandPermission("RaceAssist.commands.race")
+    @CommandPermission("RaceAssist.commands.race.debug")
     @CommandMethod("debug <raceId>")
     fun debug(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
@@ -79,26 +79,14 @@ class RaceDebugCommand {
             val lap: Int = getLapCount(raceID)
             val threshold = 40
             val centralXPoint: Int =
-                getCentralPoint(raceID, true) ?: return@launch player.sendMessage(
-                    Component.text(
-                        Lang.getText("no-exist-central-point", player.locale()), TextColor.color
-                            (NamedTextColor.YELLOW)
-                    )
-                )
+                getCentralPoint(raceID, true) ?: return@launch player.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    player.locale()), TextColor.color(NamedTextColor.YELLOW)))
             val centralYPoint: Int =
-                getCentralPoint(raceID, false) ?: return@launch player.sendMessage(
-                    Component.text(
-                        Lang.getText("no-exist-central-point", player.locale()),
-                        TextColor.color(NamedTextColor.YELLOW)
-                    )
-                )
+                getCentralPoint(raceID, false) ?: return@launch player.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    player.locale()), TextColor.color(NamedTextColor.YELLOW)))
             val goalDegree: Int =
-                getGoalDegree(raceID) ?: return@launch player.sendMessage(
-                    Component.text(
-                        Lang.getText("no-exist-goal-degree", player.locale()),
-                        TextColor.color(NamedTextColor.YELLOW)
-                    )
-                )
+                getGoalDegree(raceID) ?: return@launch player.sendMessage(Component.text(Lang.getText("no-exist-goal-degree", player.locale()),
+                    TextColor.color(NamedTextColor.YELLOW)))
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
@@ -115,14 +103,8 @@ class RaceDebugCommand {
                 showTimer.await()
             }
 
-            player.showTitle(
-                Title.title(
-                    Component.text(
-                        Lang.getText("to-notice-start-message", player.locale()),
-                        TextColor.color(NamedTextColor.GREEN)
-                    ), Component.text(" ")
-                )
-            )
+            player.showTitle(Title.title(Component.text(Lang.getText("to-notice-start-message", player.locale()),
+                TextColor.color(NamedTextColor.GREEN)), Component.text(" ")))
 
 
             while (counter < 180 && stop[raceID] != true) {
@@ -143,23 +125,16 @@ class RaceDebugCommand {
                 }
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    player.sendActionBar(
-                        Component.text(
-                            Lang.getText("outside-the-racetrack", player.locale()),
-                            TextColor.color(NamedTextColor.RED)
-                        )
-                    )
+                    player.sendActionBar(Component.text(Lang.getText("outside-the-racetrack", player.locale()), TextColor.color(NamedTextColor.RED)))
                 }
 
                 calculateLap.await()
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
-                val objective: Objective = scoreboard.registerNewObjective(
-                    Lang.getText("scoreboard-ranking", player.locale()),
+                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", player.locale()),
                     "dummy",
-                    Component.text(Lang.getText("scoreboard-context", player.locale()), TextColor.color(NamedTextColor.YELLOW))
-                )
+                    Component.text(Lang.getText("scoreboard-context", player.locale()), TextColor.color(NamedTextColor.YELLOW)))
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
                 val score = objective.getScore(Lang.getText("first-ranking", player.locale()) + "   " + "§b${player.name}")

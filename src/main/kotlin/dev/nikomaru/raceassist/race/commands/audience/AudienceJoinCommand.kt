@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.race.commands.CommandUtils.audience
@@ -30,7 +31,7 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceJoinCommand {
-
+    @CommandPermission("RaceAssist.commands.audience.join")
     @CommandMethod("join <raceId>")
     private fun join(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {

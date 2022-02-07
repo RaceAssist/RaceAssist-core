@@ -39,13 +39,12 @@ import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerAddCommand {
-    @CommandPermission("RaceAssist.commands.player")
-    @CommandMethod("add <raceId> <playerName>")
 
-    private fun addPlayer(
-        player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String
-    ) {
+    @CommandPermission("RaceAssist.commands.player.add")
+    @CommandMethod("add <raceId> <playerName>")
+    private fun addPlayer(player: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
 
         val jockey: OfflinePlayer = Bukkit.getOfflinePlayer(playerName)
 
@@ -56,12 +55,8 @@ class PlayerAddCommand {
 
         RaceAssist.plugin.launch {
             if (getRaceCreator(raceID) != player.uniqueId) {
-                player.sendMessage(
-                    Component.text(
-                        Lang.getText("only-race-creator-can-setting", player.locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                player.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", player.locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
             if (getRacePlayerExist(raceID, jockey.uniqueId)) {

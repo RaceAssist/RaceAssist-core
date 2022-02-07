@@ -67,18 +67,14 @@ import kotlin.math.roundToInt
 @CommandMethod("ra|RaceAssist race")
 class RaceStartCommand {
 
-    @CommandPermission("RaceAssist.commands.race")
+    @CommandPermission("RaceAssist.commands.race.start")
     @CommandMethod("start <raceId>")
     fun start(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {
 
             if (starting) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("now-starting-other-race", (sender as Player).locale()),
-                        TextColor.color(NamedTextColor.RED)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("now-starting-other-race", (sender as Player).locale()),
+                    TextColor.color(NamedTextColor.RED)))
                 return@launch
             }
             if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
@@ -93,19 +89,11 @@ class RaceStartCommand {
             getAllJockeys(raceID).forEach { jockey ->
                 if (jockey.isOnline) {
                     jockeys.add(jockey as Player)
-                    sender.sendMessage(
-                        Component.text(
-                            MessageFormat.format(Lang.getText("player-join", sender.locale()), jockey.name),
-                            TextColor.color(NamedTextColor.GREEN)
-                        )
-                    )
+                    sender.sendMessage(Component.text(MessageFormat.format(Lang.getText("player-join", sender.locale()), jockey.name),
+                        TextColor.color(NamedTextColor.GREEN)))
                 } else {
-                    sender.sendMessage(
-                        Component.text(
-                            MessageFormat.format(Lang.getText("player-is-offline", sender.locale()), jockey.name), TextColor.color
-                                (NamedTextColor.YELLOW)
-                        )
-                    )
+                    sender.sendMessage(Component.text(MessageFormat.format(Lang.getText("player-is-offline", sender.locale()), jockey.name),
+                        TextColor.color(NamedTextColor.YELLOW)))
                 }
             }
             if (jockeys.size < 2) {
@@ -113,30 +101,19 @@ class RaceStartCommand {
                 return@launch
             }
 
-            val centralXPoint: Int = getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(
-                Component.text(Lang.getText("no-exist-central-point", sender.locale()), TextColor.color(NamedTextColor.YELLOW))
-            )
-            val centralYPoint: Int = getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(
-                Component.text(
-                    Lang.getText("no-exist-central-point", sender.locale()),
-                    TextColor.color(NamedTextColor.YELLOW)
-                )
-            )
+            val centralXPoint: Int =
+                getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    sender.locale()), TextColor.color(NamedTextColor.YELLOW)))
+            val centralYPoint: Int =
+                getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
+                    sender.locale()), TextColor.color(NamedTextColor.YELLOW)))
             val goalDegree: Int =
-                getGoalDegree(raceID) ?: return@launch sender.sendMessage(
-                    Component.text(
-                        Lang.getText("no-exist-goal-degree", sender.locale()),
-                        TextColor.color(NamedTextColor.YELLOW)
-                    )
-                )
+                getGoalDegree(raceID) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-goal-degree", sender.locale()),
+                    TextColor.color(NamedTextColor.YELLOW)))
 
             if (goalDegree % 90 != 0) {
-                sender.sendMessage(
-                    Component.text(
-                        Lang.getText("goal-degree-must-multiple-90", sender.locale()),
-                        TextColor.color(NamedTextColor.YELLOW)
-                    )
-                )
+                sender.sendMessage(Component.text(Lang.getText("goal-degree-must-multiple-90", sender.locale()),
+                    TextColor.color(NamedTextColor.YELLOW)))
                 return@launch
             }
 
@@ -215,10 +192,8 @@ class RaceStartCommand {
             val innerCircumference = calculateCircumference.await()
 
             jockeys.forEach {
-                beforeDegree[it.uniqueId] = getRaceDegree(
-                    if (!reverse) (it.location.blockX - centralXPoint).toDouble()
-                    else (-1 * (it.location.blockX - centralXPoint)).toDouble(), (it.location.blockZ - centralYPoint).toDouble()
-                )
+                beforeDegree[it.uniqueId] = getRaceDegree(if (!reverse) (it.location.blockX - centralXPoint).toDouble()
+                else (-1 * (it.location.blockX - centralXPoint)).toDouble(), (it.location.blockZ - centralYPoint).toDouble())
                 currentLap[it.uniqueId] = 0
                 passBorders[it.uniqueId] = 0
             }
@@ -227,13 +202,11 @@ class RaceStartCommand {
             audiences.showTitleI18n("race-start")
 
             val randomJockey = jockeys.random()
-            val startDegree = getRaceDegree(
-                (randomJockey.location.blockZ - centralYPoint).toDouble(), if (reverse) {
-                    (-1 * (randomJockey.location.blockX - centralXPoint)).toDouble()
-                } else {
-                    (randomJockey.location.blockX - centralXPoint).toDouble()
-                }
-            )
+            val startDegree = getRaceDegree((randomJockey.location.blockZ - centralYPoint).toDouble(), if (reverse) {
+                (-1 * (randomJockey.location.blockX - centralXPoint)).toDouble()
+            } else {
+                (randomJockey.location.blockX - centralXPoint).toDouble()
+            })
 
             //レースの処理
             while (jockeys.size >= 1 && stop[raceID] != true) {
@@ -263,12 +236,8 @@ class RaceStartCommand {
                     }
 
                     if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                        player.sendActionBar(
-                            Component.text(
-                                Lang.getText("outside-the-racetrack", player.locale()),
-                                TextColor.color(NamedTextColor.RED)
-                            )
-                        )
+                        player.sendActionBar(Component.text(Lang.getText("outside-the-racetrack", player.locale()),
+                            TextColor.color(NamedTextColor.RED)))
                     }
 
                     calculateLap.await()
@@ -278,29 +247,22 @@ class RaceStartCommand {
                         finishJockey.add(uuid)
                         totalDegree.remove(uuid)
                         currentLap.remove(uuid)
-                        player.showTitle(
-                            Title.title(
-                                Component.text(
-                                    MessageFormat.format(Lang.getText("player-ranking", player.locale()), jockeyCount - jockeys.size, jockeyCount),
-                                    TextColor.color(NamedTextColor.GREEN)
-                                ), Component.text("")
-                            )
-                        )
+                        player.showTitle(Title.title(Component.text(MessageFormat.format(Lang.getText("player-ranking", player.locale()),
+                            jockeyCount - jockeys.size,
+                            jockeyCount), TextColor.color(NamedTextColor.GREEN)), Component.text("")))
                         time[uuid] = ((System.currentTimeMillis() - beforeTime) / 1000).toInt()
                         continue
                     }
                 }
                 val displayRanking = async(Dispatchers.minecraft) {
 
-                    displayScoreboard(
-                        finishJockey.plus(decideRanking(totalDegree)),
+                    displayScoreboard(finishJockey.plus(decideRanking(totalDegree)),
                         currentLap,
                         totalDegree,
                         raceAudience,
                         innerCircumference.roundToInt(),
                         startDegree,
-                        lap
-                    )
+                        lap)
                 }
                 delay(100)
                 displayRanking.await()
@@ -342,12 +304,10 @@ class RaceStartCommand {
         for (i in 0 until finishJockey.size) {
             val playerResult = JSONObject()
             playerResult["name"] = MessageFormat.format(Lang.getText("discord-webhook-ranking", Locale.getDefault()), i + 1)
-            playerResult["value"] = String.format(
-                "%s %2d:%02d",
+            playerResult["value"] = String.format("%s %2d:%02d",
                 Bukkit.getPlayer(finishJockey[i])?.name,
                 floor((time[finishJockey[i]]!!.toDouble() / 60)).toInt(),
-                time[finishJockey[i]]!! % 60
-            )
+                time[finishJockey[i]]!! % 60)
             playerResult["inline"] = true
             result.add(playerResult)
         }

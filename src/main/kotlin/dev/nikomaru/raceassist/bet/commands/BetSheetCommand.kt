@@ -59,7 +59,7 @@ class BetSheetCommand {
     }
 
     private suspend fun createNewSheets(sheetId: String, raceID: String) = withContext(Dispatchers.IO) {
-        val sheetsService = getSheetsService(sheetId)
+        val sheetsService = getSheetsService(sheetId) ?: return@withContext
         val content = BatchUpdateSpreadsheetRequest()
         val requests: ArrayList<Request> = ArrayList()
         val request1 = Request()
@@ -79,9 +79,7 @@ class BetSheetCommand {
         requests.add(request1)
         requests.add(request2)
         content.requests = requests
-        sheetsService?.spreadsheets()
-            ?.batchUpdate(sheetId, content)
-            ?.execute()
+        sheetsService.spreadsheets()?.batchUpdate(sheetId, content)?.execute()
     }
 
     private suspend fun getRaceCreator(raceID: String) =

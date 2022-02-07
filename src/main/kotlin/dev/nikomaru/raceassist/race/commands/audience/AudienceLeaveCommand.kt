@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.race.commands.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
@@ -27,7 +28,7 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceLeaveCommand {
-
+    @CommandPermission("RaceAssist.commands.audience.leave")
     @CommandMethod("leave <raceId>")
     private fun leave(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         if (audience[raceID]?.contains(sender.uniqueId) == false) {

@@ -33,7 +33,7 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStopCommand {
-    @CommandPermission("RaceAssist.commands.race")
+    @CommandPermission("RaceAssist.commands.race.stop")
     @CommandMethod("stop <raceId>")
     fun stop(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {

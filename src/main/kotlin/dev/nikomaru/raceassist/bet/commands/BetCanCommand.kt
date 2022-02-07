@@ -33,11 +33,9 @@ import java.text.MessageFormat
 class BetCanCommand {
 
     @CommandMethod("can <raceId> <type>")
-    fun setCanBet(
-        player: Player,
+    fun setCanBet(player: Player,
         @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "type", suggestions = "betType") type: String
-    ) {
+        @Argument(value = "type", suggestions = "betType") type: String) {
         RaceAssist.plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race", player.locale()), raceID))
