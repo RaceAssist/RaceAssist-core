@@ -42,11 +42,6 @@ class RaceCopyCommand {
     @CommandMethod("delete <raceId_1> <raceId_2>")
     fun copy(sender: Player, @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String, @Argument(value = "raceId_2") raceId_2: String) {
         plugin.launch {
-            if (CommandUtils.getRaceCreator(raceId_1) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
             if (CommandUtils.getRaceCreator(raceId_2) != null) {
                 sender.sendMessage(Lang.getText("already-used-the-name-race", sender.locale()))
                 return@launch
@@ -66,7 +61,7 @@ class RaceCopyCommand {
                 BetSetting.select { BetSetting.raceID eq raceId_1 }.forEach { before ->
                     BetSetting.insert { after ->
                         after[raceID] = raceId_2
-                        after[creator] = before[creator]
+                        after[creator] = sender.uniqueId.toString()
                         after[canBet] = false
                         after[returnPercent] = before[returnPercent]
                         after[spreadsheetId] = null
@@ -83,7 +78,7 @@ class RaceCopyCommand {
                 RaceList.select { RaceList.raceID eq raceId_1 }.forEach { before ->
                     RaceList.insert { after ->
                         after[raceID] = raceId_2
-                        after[creator] = before[creator]
+                        after[creator] = sender.uniqueId.toString()
                         after[reverse] = before[reverse]
                         after[lap] = before[lap]
                         after[centralXPoint] = before[centralXPoint]
