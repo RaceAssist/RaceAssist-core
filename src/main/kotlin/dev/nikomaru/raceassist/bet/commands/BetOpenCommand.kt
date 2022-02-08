@@ -48,22 +48,22 @@ class BetOpenCommand {
                 return@launch
             }
 
-            newSuspendedTransaction(Dispatchers.IO) {
-                TempBetDatas.forEach {
-                    if (it.uuid == player.uniqueId) {
-                        TempBetDatas.remove(it)
-                    }
+            val iterator = TempBetDatas.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.uuid == player.uniqueId) {
+                    iterator.remove()
                 }
-                withContext(Dispatchers.minecraft) {
-                    player.openInventory(vending.getGUI(player, raceID))
-                }
+            }
+            withContext(Dispatchers.minecraft) {
+                player.openInventory(vending.getGUI(player, raceID))
             }
 
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetChestGui.AllPlayers[raceID]?.forEach { jockey ->
-                    TempBetDatas.add(TempBetData(raceID, player.uniqueId, jockey, 0))
-                }
+
+            BetChestGui.AllPlayers[raceID]?.forEach { jockey ->
+                TempBetDatas.add(TempBetData(raceID, player.uniqueId, jockey, 0))
             }
+
         }
 
     }
