@@ -47,7 +47,10 @@ import org.bukkit.entity.Player
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.ScoreboardManager
+import java.awt.Polygon
 import java.text.MessageFormat
+import kotlin.math.hypot
+import kotlin.math.roundToInt
 
 @CommandMethod("ra|RaceAssist race")
 class RaceDebugCommand {
@@ -92,6 +95,8 @@ class RaceDebugCommand {
             var counter = 0
             var passBorders = 0
             var totalDegree = 0
+            val lengthCircle = calcurateLength(insidePolygon)
+
 
 
 
@@ -137,14 +142,17 @@ class RaceDebugCommand {
                     Component.text(Lang.getText("scoreboard-context", player.locale()), TextColor.color(NamedTextColor.YELLOW)))
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
-                val score = objective.getScore(Lang.getText("first-ranking", player.locale()) + "   " + "§b${player.name}")
-                score.score = 6
+                val score = objective.getScore("raceId = $raceID    goalDegree = $goalDegree°")
+                score.score = 7
                 val data1 = objective.getScore("relativeNowX = $relativeNowX m relativeNowY = $relativeNowY m")
-                data1.score = 5
+                data1.score = 6
                 val data2 = objective.getScore("passBorders = $passBorders times currentLap = $currentLap times")
-                data2.score = 4
+                data2.score = 5
                 val data3 = objective.getScore("totalDegree = $totalDegree° currentDegree = $currentDegree°")
-                data3.score = 3
+                data3.score = 4
+                val data4 =
+                    objective.getScore("lengthCircle = ${lengthCircle.roundToInt()} m nowLength = ${(lengthCircle / 360 * totalDegree).roundToInt()} m")
+                data4.score = 3
                 val degree = MessageFormat.format(Lang.getText("scoreboard-now-lap-and-now-degree", player.locale()), currentLap, totalDegree)
                 val displayDegree = objective.getScore(degree)
                 displayDegree.score = 2
@@ -160,6 +168,20 @@ class RaceDebugCommand {
             starting = false
 
         }
+    }
+
+    private fun calcurateLength(insidePolygon: Polygon): Double {
+        var total = 0.0
+        val insideX = insidePolygon.xpoints
+        val insideY = insidePolygon.ypoints
+        for (i in 0 until insidePolygon.npoints) {
+            total += if (i <= insidePolygon.npoints - 2) {
+                hypot((insideX[i] - insideX[i + 1]).toDouble(), (insideY[i] - insideY[i + 1]).toDouble())
+            } else {
+                hypot((insideX[i] - insideX[0]).toDouble(), (insideY[i] - insideY[0]).toDouble())
+            }
+        }
+        return total
     }
 
 }
