@@ -11,8 +11,7 @@ atanを使用してθを求めその差により順位決定をするためレ�
 
 ## Commands
 
-### Audience  `RaceAssist.commands.audience.*`
-
+### Audience 
 `/ra audience join <raceId>`  観客に自分を追加します  <br>
 permission: `RaceAssist.commands.audience.join`<br>
 
@@ -22,7 +21,7 @@ permission: `RaceAssist.commands.audience.leave`<br>
 `/ra audience list <raceId>` 観客の一覧を表示  <br>
 permission: `RaceAssist.commands.audience.list`<br>
 
-### Bet  `RaceAssist.commands.bet.*`
+### Bet  
 
 `/ra bet can <raceId> on/off` 対象のレースに対して賭けが可能か変更します  <br>
 permission: `RaceAssist.commands.bet.can`<br>
@@ -39,11 +38,14 @@ permission: `RaceAssist.commands.bet.open`<br>
 `/ra bet rate <raceId>`          賭けのレートを変更します  <br>
 permission: `RaceAssist.commands.bet.rate`<br>
 
-`/ra bet sheet <raceId> <SheetID>`  <br>
-permission: `RaceAssist.commands.bet.sheet`<br>
-`https://docs.google.com/spreadsheets/d/***********/edit#gid=0`  *****の部分をSheetIDに入力 spreadsheetを登録します
+`/ra bet revert <raceId>` すべての人に返金します <br>
+permission: `RaceAssist.commands.bet.revert`<br>
 
-### Place  `RaceAssist.commands.place.*`
+`/ra bet sheet <raceId> <SheetID>`       spreadsheetを登録します<br>
+permission: `RaceAssist.commands.bet.sheet`<br>
+`https://docs.google.com/spreadsheets/d/***********/edit#gid=0`  *****の部分をSheetIDに入力 
+
+### Place 
 
 `/ra place reverse <raceId>`  レースの走行方向の向きを反転  <br>
 permission: `RaceAssist.commands.place.reverse`<br>
@@ -63,7 +65,7 @@ permission: `RaceAssist.commands.place.set`<br>
 `/ra place finish` 上記の設定の終了  <br>
 permission: `RaceAssist.commands.place.finish`<br>
 
-### Player  `RaceAssist.commands.player.*`
+### Player  
 
 `/ra player add <raceId> <Player>`  騎手を追加  <br>
 permission: `RaceAssist.commands.player.add`<br>
@@ -77,7 +79,7 @@ permission: `RaceAssist.commands.player.delete`<br>
 `/ra player list <raceId>`  騎手の一覧を表示  <br>
 permission: `RaceAssist.commands.player.list`<br>
 
-### Race  `RaceAssist.commands.race.*`
+### Race 
 
 `/ra race start <raceId>`  レースを開始  <br>
 permission: `RaceAssist.commands.race.start`<br>
@@ -109,7 +111,32 @@ permission: `RaceAssist.commands.race.copy`<br>
 
 `RaceAssist.commands.*`
 
-## About Use sheets API
+## Usage
+
+### Race
+creator :`/ra race create <raceId>`<br>
+creator :`/ra place set <raceId> in`<br>
+creator :`/ra place finish`<br>
+creator :`/ra place set <raceId> out`<br>
+creator :`/ra place finish`<br>
+creator :`/ra place degree <raceId>`<br>
+creator :`/ra place central <raceId>`<br>
+creator :`/ra place reverse <raceId>` optional<br>
+creator :`/ra player add <raceId> <Player>`<br>
+audience :`/ra audience join <raceId>` <br>
+creator :`/ra race start <raceId>`<br>
+
+### Bet
+creator :`/ra bet rate <raceId>`<br>
+creator :`/ra bet sheet <raceId> <SheetID>` optional<br>
+creator :`/ra bet can <raceId> on` <br>
+player :`/ra bet open <raceId>`<br>
+creator :`/ra bet can <raceId> off`<br>
+race start<br>
+creator :Pay manually<br>
+creator :`/ra bet delete <raceId>`<br>
+
+## About use sheets API
 
 pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入れます 最初の賭けが行われるとコンソールにOAuthの認証画面が開かれるのでスプレッドシートの所有者が認証してください
 
