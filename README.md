@@ -161,6 +161,19 @@ pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入�
 }
 ```
 
+## translate 
+[crowdin](https://crowdin.com/project/raceassist)<br>
+`de_DE` : translate by DeepL API<br>
+`en_US` : translate by DeepL API<br>
+`fr_FR` : translate by DeepL API<br>
+`he_IL`: translate by Google translate API<br>
+`ja_JP` : Original <br>
+`ko_KR`: translate by Google translate API<br>
+`pt_PT` : translate by DeepL API<br>
+`tok` : WIP<br>
+`zh_CN` : translate by DeepL API<br>
+`zh_TW`: translate by Google translate API<br>
+
 ## License
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=large)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_large)
