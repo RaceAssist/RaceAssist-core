@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm") version "1.6.0"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("xyz.jpenilla.run-paper") version "1.0.6"
+    id("org.sonarqube") version "3.3"
 }
 
 group = "dev.nikomaru"
@@ -72,5 +73,13 @@ tasks {
 tasks {
     runServer {
         minecraftVersion("1.18.1")
+    }
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectKey", "Nlkomaru_RaceAssist-advance")
+        property("sonar.organization", "nlkomaru")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
