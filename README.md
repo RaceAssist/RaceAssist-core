@@ -1,56 +1,93 @@
 # RaceAssist
+
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_shield)
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![wakatime](https://wakatime.com/badge/user/20699a33-3350-4bf0-8061-c8a996192acf/project/92c8a9a0-f74b-44cc-a1b8-d328f40f803e.svg)](https://wakatime.com/badge/user/20699a33-3350-4bf0-8061-c8a996192acf/project/92c8a9a0-f74b-44cc-a1b8-d328f40f803e)
+
 ## Commands
 
-### Audience
+### Audience  `RaceAssist.commands.audience.*`
 
-/raceassist audience join [RaceID]  観客に自分を追加します<br>
-/raceassist audience leave [RaceID] 観客から自分を削除します<br>
-/raceassist audience list [RaceID]  観客の一覧を表示<br>
+`/ra audience join <raceId>`  観客に自分を追加します  <br>
+permission: `RaceAssist.commands.audience.join`<br>
+`/ra audience leave <raceId>` 観客から自分を削除します  <br>
+permission: `RaceAssist.commands.audience.leave`<br>
+`/ra audience list <raceId>` 観客の一覧を表示  <br>
+permission: `RaceAssist.commands.audience.list`<br>
 
-### Bet
+### Bet  `RaceAssist.commands.bet.*`
 
-/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します <br>
-/raceassist bet delete [RaceID]        賭けを削除します <br>
-/raceassist bet list [RaceID]          賭けの一覧を表示します<br>
-/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます <br>
-/raceassist bet rate [RaceID]          賭けのレートを変更します<br>
-/raceassist bet sheet [RaceID] <SheetID><br>
-https://docs.google.com/spreadsheets/d/***********/edit#gid=0  *****の部分をSheetIDに入力 spreadsheetを登録します<br>
+`/ra bet can <raceId> on/off` 対象のレースに対して賭けが可能か変更します  <br>
+permission: `RaceAssist.commands.bet.can`<br>
+`/ra bet delete <raceId>`        賭けを削除します  <br>
+permission: `RaceAssist.commands.bet.delete`<br>
+`/ra bet list <raceId>`          賭けの一覧を表示します  <br>
+permission: `RaceAssist.commands.bet.list`<br>
+`/ra bet open <raceId>`          賭けをすることのできる画面を開くことができます  <br>
+permission: `RaceAssist.commands.bet.open`<br>
+`/ra bet rate <raceId>`          賭けのレートを変更します  <br>
+permission: `RaceAssist.commands.bet.rate`<br>
+`/ra bet sheet <raceId> <SheetID>`  <br>
+permission: `RaceAssist.commands.bet.sheet`<br>
+`https://docs.google.com/spreadsheets/d/***********/edit#gid=0`  *****の部分をSheetIDに入力 spreadsheetを登録します
 
-     
+### Place  `RaceAssist.commands.place.*`
 
-### Place
+`/ra place reverse <raceId>`  レースの走行方向の向きを反転  <br>
+permission: `RaceAssist.commands.place.reverse`<br>
+`/ra place central <raceId>`  レースの中心点を設定  <br>
+permission: `RaceAssist.commands.place.central`<br>
+`/ra place degree <raceId>`  レースのゴールの角度を設定(立っている場所基準90度刻み)  <br>
+permission: `RaceAssist.commands.place.degree`<br>
+`/ra place lap <raceId> <lap>`  レースのラップ数を指定  <br>
+permission: `RaceAssist.commands.place.lap`<br>
+`/ra place set <raceId> in|out` レース場の内周、外周を指定  <br>
+permission: `RaceAssist.commands.place.set`<br>
+`/ra place finish` 上記の設定の終了  <br>
+permission: `RaceAssist.commands.place.finish`<br>
 
-/raceassist place reverse [RaceID]  レースの走行方向の向きを反転<br>
-/raceassist place central [RaceID]  レースの中心点を設定<br>
-/raceassist place degree [RaceID]  レースのゴールの角度を設定(立っている場所基準90度刻み)<br>
-/raceassist place lap [RaceID] <lap>  レースのラップ数を指定<br>
-/raceassist place set [RaceID] in|out レース場の内周、外周を指定<br>
-/raceassist place finish 上記の設定の終了<br>
+### Player  `RaceAssist.commands.player.*`
 
-### Player
+`/ra player add <raceId> <Player>`  騎手を追加  <br>
+permission: `RaceAssist.commands.player.add`<br>
+`/ra player remove <raceId>`  騎手を削除  <br>
+permission: `RaceAssist.commands.player.remove`<br>
+`/ra player delete <raceId>`  騎手をすべて削除  <br>
+permission: `RaceAssist.commands.player.delete`<br>
+`/ra player list <raceId>`  騎手の一覧を表示  <br>
+permission: `RaceAssist.commands.player.list`<br>
 
-/raceassist player add [RaceID] [Player]  騎手を追加<br>
-/raceassist player remove [RaceID]  騎手を削除<br>
-/raceassist player delete [RaceID]  騎手をすべて削除<br>
-/raceassist player list [RaceID]  騎手の一覧を表示<br>
+### Race  `RaceAssist.commands.race.*`
 
-### Race
+`/ra race start <raceId>`  レースを開始  <br>
+permission: `RaceAssist.commands.race.start`<br>
+`/ra race debug <raceId>`  レースのデバッグ  <br>
+permission: `RaceAssist.commands.race.debug`<br>
+`/ra race stop <raceId>`  レースの停止  <br>
+permission: `RaceAssist.commands.race.stop`<br>
+`/ra race create <raceId>`  レースの作成  <br>
+permission: `RaceAssist.commands.race.create`<br>
+`/ra race delete <raceId>`  レースの削除  <br>
+permission: `RaceAssist.commands.race.delete`<br>
+`/ra race copy <raceId_1> <raceId_2>` レース1のsheetId、賭けリスト以外をすべてコピーします  <br>
+permission: `RaceAssist.commands.race.copy`<br>
 
-/raceassist race start [RaceID]  レースを開始<br>
-/raceassist race debug [RaceID]  レースのデバッグ<br>
-/raceassist race stop [RaceID]  レースの停止<br>
-/raceassist race create [RaceID]  レースの作成<br>
-/raceassist race delete [RaceID]  レースの削除<br>
+### permission
+
+## 一般プレイヤー
+
+`RaceAssist.commands.audience.join`
+`RaceAssist.commands.audience.leave`
+`RaceAssist.commands.bet.open`
+
+## レース作成者
+
+`RaceAssist.commands.*`
 
 ## About Use sheets API
 
 pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入れます 最初の賭けが行われるとコンソールにOAuthの認証画面が開かれるのでスプレッドシートの所有者が認証してください
-
 
 ### credentials.jsonの設定
 

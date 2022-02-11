@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetList
@@ -32,6 +33,7 @@ import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetListCommand {
+    @CommandPermission("RaceAssist.commands.bet.list")
     @CommandMethod("list <raceId>")
     fun list(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {

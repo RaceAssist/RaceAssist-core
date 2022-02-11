@@ -39,7 +39,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 class RaceCopyCommand {
 
     @CommandPermission("RaceAssist.commands.race.copy")
-    @CommandMethod("delete <raceId_1> <raceId_2>")
+    @CommandMethod("copy <raceId_1> <raceId_2>")
     fun copy(sender: Player, @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String, @Argument(value = "raceId_2") raceId_2: String) {
         plugin.launch {
             if (CommandUtils.getRaceCreator(raceId_2) != null) {

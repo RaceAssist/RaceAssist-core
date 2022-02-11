@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetSetting
@@ -31,7 +32,7 @@ import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetCanCommand {
-
+    @CommandPermission("RaceAssist.commands.bet.open")
     @CommandMethod("can <raceId> <type>")
     fun setCanBet(player: Player,
         @Argument(value = "raceId", suggestions = "raceId") raceID: String,

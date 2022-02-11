@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetList
@@ -35,6 +36,7 @@ import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetDeleteCommand {
+    @CommandPermission("RaceAssist.commands.bet.delete")
     @CommandMethod("delete <raceId>")
     fun delete(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         RaceAssist.plugin.launch {

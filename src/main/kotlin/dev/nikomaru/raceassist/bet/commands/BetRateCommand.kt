@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
@@ -32,10 +33,9 @@ import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetRateCommand {
+    @CommandPermission("RaceAssist.commands.bet.rate")
     @CommandMethod("rate <raceId> <rate>")
-    fun setRate(player: Player,
-        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
-        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
+    fun setRate(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String, @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
         RaceAssist.plugin.launch {
             if (!raceExist(raceID)) {
                 player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))

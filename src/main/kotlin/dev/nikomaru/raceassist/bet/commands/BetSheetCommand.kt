@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import com.google.api.services.sheets.v4.model.AddSheetRequest
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
@@ -36,6 +37,7 @@ import org.jetbrains.exposed.sql.update
 
 @CommandMethod("ra|RaceAssist bet")
 class BetSheetCommand {
+    @CommandPermission("RaceAssist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
     fun sheet(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String, @Argument(value = "sheet") sheetId: String) {
         RaceAssist.plugin.launch {

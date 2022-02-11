@@ -126,6 +126,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         annotationParser.parse(BetRateCommand())
         annotationParser.parse(BetRevertCommand())
         annotationParser.parse(BetSheetCommand())
+        annotationParser.parse(RaceCopyCommand())
     }
 
     private fun registerEvents() {

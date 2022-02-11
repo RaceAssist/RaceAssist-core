@@ -53,14 +53,12 @@ class BetChestGui {
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
-        println("1")
         val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
             BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
         }
 
         AllPlayers[raceID] = ArrayList<UUID>()
         newSuspendedTransaction(Dispatchers.IO) {
-            println("2")
             PlayerList.select { PlayerList.raceID eq raceID }.forEach {
                 players.add(UUID.fromString(it[PlayerList.playerUUID]))
                 AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
@@ -106,7 +104,6 @@ class BetChestGui {
             gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
         }
 
-        println("3")
         val raceIDItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
         val raceIDMeta = raceIDItem.itemMeta
         raceIDMeta.displayName(text(raceID, TextColor.fromHexString("#00ff7f")))

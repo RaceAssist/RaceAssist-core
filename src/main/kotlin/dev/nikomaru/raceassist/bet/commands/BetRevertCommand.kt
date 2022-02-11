@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
@@ -37,7 +38,7 @@ import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetRevertCommand {
-
+    @CommandPermission("RaceAssist.commands.bet.revert")
     @CommandMethod("revert <raceId>")
     fun revert(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
         val eco: Economy = VaultAPI.getEconomy()
