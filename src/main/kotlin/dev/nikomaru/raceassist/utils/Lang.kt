@@ -31,6 +31,9 @@ object Lang {
     suspend fun load() {
         withContext(Dispatchers.IO) {
             val lang = listOf("de_DE", "en_US", "fr_FR", "he_IL", "ja_JP", "ko_KR", "pt_PT", "tok", "zh_CN", "zh_TW")
+            if (!plugin.dataFolder.exists()) {
+                plugin.dataFolder.mkdir()
+            }
             val pluginDir = File(plugin.dataFolder, "lang")
             if (!pluginDir.exists()) {
                 pluginDir.mkdir()
