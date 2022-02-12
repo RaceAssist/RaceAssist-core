@@ -73,7 +73,7 @@ class PlayerAddCommand {
                     it[playerUUID] = jockey.uniqueId.toString()
                 }
             }
-            player.sendMessage(MessageFormat.format(Lang.getText("player-add-to-race-group", player.locale()), player.name, raceID))
+            player.sendMessage(MessageFormat.format(Lang.getText("player-add-to-race-group", player.locale()), jockey.name, raceID))
         }
     }
 }

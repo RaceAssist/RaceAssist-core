@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.bet.commands.BetOpenCommand.Companion.TempBetDatas
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetList
+import dev.nikomaru.raceassist.database.BetList.rowNum
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.files.Config.betUnit
 import dev.nikomaru.raceassist.utils.Lang
@@ -46,7 +47,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.text.MessageFormat
 import java.time.LocalDateTime
@@ -266,7 +266,7 @@ class BetGuiClickEvent : Listener {
 
 
                 newSuspendedTransaction(Dispatchers.Default) {
-                    var row = BetList.selectAll().count().toInt()
+                    var row = getMaxRow(raceID)
                     val iterator = TempBetDatas.iterator()
                     while (iterator.hasNext()) {
                         val temp = iterator.next()
@@ -302,6 +302,16 @@ class BetGuiClickEvent : Listener {
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
         event.inventory.setItem(44, accept)
+    }
+
+    private suspend fun getMaxRow(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+        var maxRow = 0
+        BetList.select { BetList.raceID eq raceID }.forEach {
+            if (it[rowNum] > maxRow) {
+                maxRow = it[rowNum]
+            }
+        }
+        maxRow
     }
 
     private fun betProcess(player: Player, row: Int, bet: Int, jockey: UUID, eco: Economy, owner: OfflinePlayer) {
