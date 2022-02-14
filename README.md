@@ -142,7 +142,7 @@ pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入�
 
 ### credentials.jsonの設定
 
-基本はAPIのダウンロードしたものをそのままでもいいですがclient_secretを追加してください
+基本はAPIのダウンロードしたものにclient_secretを追加し、redirect_urlsのlocalhostを自分のドメイン(IP)に置き換える
 
 ```json
 {
