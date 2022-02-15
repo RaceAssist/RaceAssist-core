@@ -41,6 +41,10 @@ permission: `RaceAssist.commands.bet.rate`<br>
 `/ra bet revert <raceId>` すべての人に返金します <br>
 permission: `RaceAssist.commands.bet.revert`<br>
 
+
+`/ra bet remove <raceId> <betRow>` 指定した番号の賭けを返金 <br>
+permission: `RaceAssist.commands.bet.remove`<br>
+
 `/ra bet sheet <raceId> <SheetID>`       spreadsheetを登録します<br>
 permission: `RaceAssist.commands.bet.sheet`<br>
 `https://docs.google.com/spreadsheets/d/***********/edit#gid=0`  *****の部分をSheetIDに入力 
