@@ -22,8 +22,7 @@ jobs:
         run: |
           before="${{ steps.tag_version.outputs.new_tag }}"
           after="${before//v/}"
-          sed -i -e "s/version/$after/i" './build.gradle.kts'
-          cat ./src/main/resources/plugin.yml
+          sed -i -e "s/miencraft_plugin_version/$after/i" './build.gradle.kts'
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
       - name: Build with Gradle

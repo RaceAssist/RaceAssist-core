@@ -92,7 +92,7 @@ sonarqube {
 
 bukkit {
     name = "RaceAssist"
-    version = "version"
+    version = "miencraft_plugin_version"
     website = "https://github.com/Nlkomaru/RaceAssist-core"
 
     main = "dev.nikomaru.raceassist.RaceAssist"
