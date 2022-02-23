@@ -14,16 +14,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.database.BetList
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.RaceStaffUtils.removeAllStaff
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.bukkit.entity.Player
@@ -31,29 +32,35 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
-@CommandMethod("ra|RaceAssist bet")
-class BetDeleteCommand {
-    @CommandPermission("RaceAssist.commands.bet.delete")
+@CommandMethod("ra|RaceAssist setting")
+class SettingDeleteCommand {
+    @CommandPermission("RaceAssist.commands.setting.delete")
     @CommandMethod("delete <raceId>")
     fun delete(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-
             if (canDelete[sender.uniqueId] == true) {
                 newSuspendedTransaction(Dispatchers.IO) {
+                    RaceList.deleteWhere { RaceList.raceId eq raceId }
+                    CircuitPoint.deleteWhere { CircuitPoint.raceId eq raceId }
+                    PlayerList.deleteWhere { PlayerList.raceId eq raceId }
                     BetList.deleteWhere { BetList.raceId eq raceId }
+                    BetSetting.deleteWhere { BetSetting.raceId eq raceId }
+                    sender.sendMessage(Lang.getComponent("to-delete-race-and-so-on", sender.locale()))
+                    removeAllStaff(raceId)
                 }
-                sender.sendMessage(Lang.getComponent("bet-remove-race", sender.locale(), raceId))
             } else {
                 canDelete[sender.uniqueId] = true
-                sender.sendMessage(Lang.getComponent("bet-remove-race-confirm-message", sender.locale(), raceId))
+                sender.sendMessage(Lang.getComponent("race-remove-race-confirm-message", sender.locale(), raceId))
                 delay(5000)
                 canDelete.remove(sender.uniqueId)
             }
+
         }
     }
 
     companion object {
-        val canDelete: HashMap<UUID, Boolean> = HashMap()
+        val canDelete = HashMap<UUID, Boolean>()
     }
+
 }

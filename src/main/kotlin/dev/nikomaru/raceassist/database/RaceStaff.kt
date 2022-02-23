@@ -17,14 +17,8 @@
 package dev.nikomaru.raceassist.database
 
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.datetime
 
-object BetList : Table() {
-    val rowNum = integer("rowNum")
+object RaceStaff : Table() {
     val raceId = varchar("raceId", 30)
-    val timeStamp = datetime("timeStamp")
-    val playerName = varchar("playerName", 16)
-    val playerUUID = varchar("playerUUID", 40)
-    val jockey = varchar("jockey", 16)
-    val betting = integer("betting")
+    var uuid = varchar("uuid", 36)
 }

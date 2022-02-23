@@ -22,42 +22,34 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.PlayerList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerRemoveCommand {
     @CommandPermission("RaceAssist.commands.player.remove")
     @CommandMethod("remove <raceId> <playerName>")
     private fun removePlayer(sender: Player,
-        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         val player = Bukkit.getOfflinePlayer(playerName)
         if (!player.hasPlayedBefore()) {
-            sender.sendMessage(Lang.getText("player-add-not-exist", sender.locale()))
+            sender.sendMessage(Lang.getComponent("player-add-not-exist", sender.locale()))
             return
         }
 
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
-
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.deleteWhere { (PlayerList.raceID eq raceID) and (PlayerList.playerUUID eq player.uniqueId.toString()) }
+                PlayerList.deleteWhere { (PlayerList.raceId eq raceId) and (PlayerList.playerUUID eq player.uniqueId.toString()) }
             }
-            sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-player-from-race-group", sender.locale()), raceID))
+            sender.sendMessage(Lang.getComponent("to-delete-player-from-race-group", sender.locale(), raceId))
         }
     }
 }

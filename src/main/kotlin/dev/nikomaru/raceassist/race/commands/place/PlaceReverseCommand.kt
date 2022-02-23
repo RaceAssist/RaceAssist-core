@@ -22,13 +22,10 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getDirection
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils.getDirection
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
@@ -37,22 +34,18 @@ import org.jetbrains.exposed.sql.update
 class PlaceReverseCommand {
     @CommandPermission("RaceAssist.commands.place.reverse")
     @CommandMethod("reverse <raceId>")
-    fun reverse(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun reverse(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
-            val nowDirection = getDirection(raceID)
+            if (returnRaceSetting(raceId, sender)) return@launch
+            val nowDirection = getDirection(raceId)
 
             newSuspendedTransaction(Dispatchers.IO) {
-                RaceList.update({ RaceList.raceID eq raceID }) {
+                RaceList.update({ RaceList.raceId eq raceId }) {
                     it[reverse] = !nowDirection
                 }
             }
-            sender.sendMessage(Component.text(Lang.getText("to-change-race-orientation", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+            sender.sendMessage(Lang.getComponent("to-change-race-orientation", sender.locale()))
         }
     }
 

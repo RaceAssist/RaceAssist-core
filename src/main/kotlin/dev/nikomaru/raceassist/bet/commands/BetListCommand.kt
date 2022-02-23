@@ -22,34 +22,24 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetList
-import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetListCommand {
     @CommandPermission("RaceAssist.commands.bet.list")
     @CommandMethod("list <raceId>")
-    fun list(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun list(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            withContext(Dispatchers.IO) {
-                if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
-                    return@withContext
-                }
-                if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
-                    return@withContext
-                }
-            }
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { BetList.raceID eq raceID }.forEach {
-                    player.sendMessage(MessageFormat.format(Lang.getText("bet-list-detail-message", player.locale()),
+                BetList.select { BetList.raceId eq raceId }.forEach {
+                    sender.sendMessage(Lang.getComponent("bet-list-detail-message",
+                        sender.locale(),
                         it[BetList.rowNum],
                         it[BetList.timeStamp],
                         it[BetList.playerName],
@@ -60,14 +50,4 @@ class BetListCommand {
         }
     }
 
-    private suspend fun getRaceCreator(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
-
-    private suspend fun raceExist(raceID: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
-        }
-        return exist
-    }
 }

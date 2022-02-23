@@ -21,28 +21,21 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
-import dev.nikomaru.raceassist.race.commands.CommandUtils.stop
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.CommandUtils
+import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import kotlinx.coroutines.delay
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStopCommand {
     @CommandPermission("RaceAssist.commands.race.stop")
     @CommandMethod("stop <raceId>")
-    fun stop(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun stop(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != (sender as Player).uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-stop", sender.locale()), TextColor.color(NamedTextColor.RED)))
-            }
-            stop[raceID] = true
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+            stop[raceId] = true
             delay(1000)
-            stop[raceID] = false
+            stop[raceId] = false
         }
     }
 }

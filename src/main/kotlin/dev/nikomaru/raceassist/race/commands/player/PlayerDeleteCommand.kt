@@ -22,34 +22,27 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.PlayerList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerDeleteCommand {
 
     @CommandPermission("RaceAssist.commands.player.delete")
     @CommandMethod("delete <raceId>")
-    private fun deletePlayer(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    private fun deletePlayer(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-delete", sender.locale()), TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 
             newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.deleteWhere { PlayerList.raceID eq raceID }
+                PlayerList.deleteWhere { PlayerList.raceId eq raceId }
             }
-            sender.sendMessage(MessageFormat.format(Lang.getText("to-delete-all-player-from-race-group", sender.locale()), raceID))
+            sender.sendMessage(Lang.getComponent("to-delete-all-player-from-race-group", sender.locale(), raceId))
         }
     }
 }

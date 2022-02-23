@@ -21,33 +21,30 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.audience
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceExist
+import dev.nikomaru.raceassist.utils.CommandUtils.audience
+import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceJoinCommand {
     @CommandPermission("RaceAssist.commands.audience.join")
     @CommandMethod("join <raceId>")
-    private fun join(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    private fun join(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (!getRaceExist(raceID)) {
-                sender.sendMessage(Component.text(Lang.getText("not-found-this-race", sender.locale()), TextColor.color(NamedTextColor.RED)))
+            if (!getRaceExist(raceId)) {
+                sender.sendMessage(Lang.getComponent("not-found-this-race", sender.locale()))
                 return@launch
             }
-            if (audience[raceID]?.contains(sender.uniqueId) == true) {
-                sender.sendMessage(Component.text(Lang.getText("already-joined", sender.locale()), TextColor.color(NamedTextColor.RED)))
+            if (audience[raceId]?.contains(sender.uniqueId) == true) {
+                sender.sendMessage(Lang.getComponent("already-joined", sender.locale()))
                 return@launch
             }
-            if (!audience.containsKey(raceID)) {
-                audience[raceID] = ArrayList()
+            if (!audience.containsKey(raceId)) {
+                audience[raceId] = ArrayList()
             }
-            audience[raceID]?.add(sender.uniqueId)
-            sender.sendMessage(Component.text(Lang.getText("joined-group", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+            audience[raceId]?.add(sender.uniqueId)
+            sender.sendMessage(Lang.getComponent("joined-group", sender.locale()))
         }
     }
 }

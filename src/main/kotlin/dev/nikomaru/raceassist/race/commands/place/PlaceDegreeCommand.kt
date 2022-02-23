@@ -22,13 +22,12 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getCentralPoint
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getReverse
+import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
+import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
+import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
@@ -39,22 +38,18 @@ import org.jetbrains.exposed.sql.update
 class PlaceDegreeCommand {
     @CommandPermission("RaceAssist.commands.place.degree")
     @CommandMethod("degree <raceId>")
-    fun degree(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun degree(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
-            val centralXPoint =
-                getCentralPoint(raceID, true) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
-                    sender.locale()), TextColor.color(NamedTextColor.RED)))
-            val centralYPoint =
-                getCentralPoint(raceID, false) ?: return@launch sender.sendMessage(Component.text(Lang.getText("no-exist-central-point",
-                    sender.locale()), TextColor.color(NamedTextColor.RED)))
-            val reverse =
-                getReverse(raceID) ?: return@launch sender.sendMessage(Component.text(Lang.getText("orientation-is-not-set", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
+            if (returnRaceSetting(raceId, sender)) return@launch
+            val centralXPoint = getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
+                sender.locale(),
+                TextColor.color(NamedTextColor.RED)))
+            val centralYPoint = getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
+                sender.locale(),
+                TextColor.color(NamedTextColor.RED)))
+            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set",
+                sender.locale(),
+                TextColor.color(NamedTextColor.RED)))
             val nowX = sender.location.blockX
             val nowY = sender.location.blockZ
             val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
@@ -65,28 +60,28 @@ class PlaceDegreeCommand {
             var degree = 0
             when (currentDegree) {
                 in 0..45 -> {
-                    sender.sendMessage(Component.text(Lang.getText("to-set-0-degree", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+                    sender.sendMessage(Lang.getComponent("to-set-0-degree", sender.locale()))
                     degree = 0
                 }
                 in 46..135 -> {
-                    sender.sendMessage(Component.text(Lang.getText("to-set-90-degree", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+                    sender.sendMessage(Lang.getComponent("to-set-90-degree", sender.locale()))
                     degree = 90
                 }
                 in 136..225 -> {
-                    sender.sendMessage(Component.text(Lang.getText("to-set-180-degree", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+                    sender.sendMessage(Lang.getComponent("to-set-180-degree", sender.locale()))
                     degree = 180
                 }
                 in 226..315 -> {
-                    sender.sendMessage(Component.text(Lang.getText("to-set-270-degree", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+                    sender.sendMessage(Lang.getComponent("to-set-270-degree", sender.locale()))
                     degree = 270
                 }
                 in 316..360 -> {
-                    sender.sendMessage(Component.text(Lang.getText("to-set-0-degree", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+                    sender.sendMessage(Lang.getComponent("to-set-0-degree", sender.locale()))
                     degree = 0
                 }
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                RaceList.update({ RaceList.raceID eq raceID }) {
+                RaceList.update({ RaceList.raceId eq raceId }) {
                     it[goalDegree] = degree
                 }
             }

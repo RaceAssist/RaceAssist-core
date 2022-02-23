@@ -20,16 +20,12 @@ import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
-
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
@@ -39,25 +35,21 @@ class PlaceLapCommand {
     @CommandPermission("RaceAssist.commands.place.lap")
     @CommandMethod("lap <raceId> <lap>")
     fun setLap(sender: Player,
-        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 
             if (lap < 1) {
-                sender.sendMessage(Component.text(Lang.getText("to-need-enter-over-1", sender.locale()), TextColor.color(NamedTextColor.RED)))
+                sender.sendMessage(Lang.getComponent("to-need-enter-over-1", sender.locale()))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                RaceList.update({ RaceList.raceID eq raceID }) {
+                RaceList.update({ RaceList.raceId eq raceId }) {
                     it[this.lap] = lap
                 }
             }
-            sender.sendMessage(Component.text(Lang.getText("to-set-lap", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+            sender.sendMessage(Lang.getComponent("to-set-lap", sender.locale()))
         }
     }
 }

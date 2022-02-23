@@ -35,13 +35,12 @@ import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.text.MessageFormat
 import java.util.*
 import kotlin.math.floor
 
 class BetChestGui {
 
-    suspend fun getGUI(player: Player, raceID: String): Inventory {
+    suspend fun getGUI(player: Player, raceId: String): Inventory {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
         val playerWools = ImmutableList.of(Material.RED_WOOL,
             Material.BLUE_WOOL,
@@ -54,26 +53,26 @@ class BetChestGui {
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
         val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
-            BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
+            BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.returnPercent]
         }
 
-        AllPlayers[raceID] = ArrayList<UUID>()
+        AllPlayers[raceId] = ArrayList<UUID>()
         newSuspendedTransaction(Dispatchers.IO) {
-            PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+            PlayerList.select { PlayerList.raceId eq raceId }.forEach {
                 players.add(UUID.fromString(it[PlayerList.playerUUID]))
-                AllPlayers[raceID]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
+                AllPlayers[raceId]!!.add(UUID.fromString(it[PlayerList.playerUUID]))
             }
         }
 
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { BetList.raceID eq raceID }.forEach {
+            BetList.select { BetList.raceId eq raceId }.forEach {
                 sum += it[BetList.betting]
             }
         }
         players.forEach { jockey ->
             newSuspendedTransaction(Dispatchers.IO) {
                 var jockeySum = 0
-                BetList.select { (BetList.raceID eq raceID) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
+                BetList.select { (BetList.raceId eq raceId) and (BetList.jockey eq Bukkit.getOfflinePlayer(jockey).name!!) }.forEach {
                     jockeySum += it[BetList.betting]
                 }
                 odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
@@ -87,13 +86,10 @@ class BetChestGui {
         for (i in 0 until players.size) {
             val item = ItemStack(playerWools[i])
             val prevMeta = item.itemMeta
-            prevMeta.displayName(text(MessageFormat.format(Lang.getText("betting-zero-money", player.locale()), betUnit),
-                TextColor.fromHexString("#00ff7f")))
+            prevMeta.displayName(Lang.getComponent("betting-zero-money", player.locale(), betUnit))
             val lore: ArrayList<Component> = ArrayList<Component>()
-            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-name", player.locale()), Bukkit.getOfflinePlayer(players[i]).name),
-                TextColor.fromHexString("#00a497")))
-            lore.add(text(MessageFormat.format(Lang.getText("gui-jockey-odds", player.locale()), odds[players[i]]),
-                TextColor.fromHexString("#e6b422")))
+            lore.add(Lang.getComponent("gui-jockey-name", player.locale(), Bukkit.getOfflinePlayer(players[i]).name))
+            lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[players[i]]))
             prevMeta.lore(lore)
             item.itemMeta = prevMeta
 
@@ -104,12 +100,12 @@ class BetChestGui {
             gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
         }
 
-        val raceIDItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        val raceIDMeta = raceIDItem.itemMeta
-        raceIDMeta.displayName(text(raceID, TextColor.fromHexString("#00ff7f")))
-        raceIDItem.itemMeta = raceIDMeta
+        val raceIdItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+        val raceIdMeta = raceIdItem.itemMeta
+        raceIdMeta.displayName(text(raceId, TextColor.fromHexString("#00ff7f")))
+        raceIdItem.itemMeta = raceIdMeta
 
-        gui.setItem(8, raceIDItem)
+        gui.setItem(8, raceIdItem)
         gui.setItem(17, GuiComponent.reset(player.locale()))
         gui.setItem(35, GuiComponent.deny(player.locale()))
         gui.setItem(44, GuiComponent.accept(player.locale()))

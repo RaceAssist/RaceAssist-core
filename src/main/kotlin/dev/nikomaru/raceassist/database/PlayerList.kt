@@ -19,6 +19,6 @@ package dev.nikomaru.raceassist.database
 import org.jetbrains.exposed.sql.Table
 
 object PlayerList : Table() {
-    val raceID = varchar("raceID", 30)
+    val raceId = varchar("raceId", 30)
     val playerUUID = varchar("playerUUID", 40)
 }

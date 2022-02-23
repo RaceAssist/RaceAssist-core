@@ -25,6 +25,7 @@ import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
 import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
 import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
@@ -33,16 +34,22 @@ import dev.nikomaru.raceassist.race.commands.player.PlayerAddCommand
 import dev.nikomaru.raceassist.race.commands.player.PlayerDeleteCommand
 import dev.nikomaru.raceassist.race.commands.player.PlayerListCommand
 import dev.nikomaru.raceassist.race.commands.player.PlayerRemoveCommand
-import dev.nikomaru.raceassist.race.commands.race.*
+import dev.nikomaru.raceassist.race.commands.race.RaceDebugCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStartCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStopCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingCopyCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingCreateCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingDeleteCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingStaffCommand
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
+import net.luckperms.api.LuckPerms
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
@@ -56,7 +63,6 @@ class RaceAssist : SuspendingJavaPlugin() {
         Config.config = YamlConfiguration.loadConfiguration(File(dataFolder, "config.yml"))
         Config.load()
         settingDatabase()
-        setRaceID()
         setCommand()
         registerEvents()
         if (!VaultAPI.setupEconomy()) {
@@ -64,12 +70,19 @@ class RaceAssist : SuspendingJavaPlugin() {
             server.pluginManager.disablePlugin(this)
             return
         }
+        VaultAPI.setupPermissions()
+        if (!server.pluginManager.isPluginEnabled("LuckPerms")) {
+            plugin.logger.warning("LuckPerms not found, disabling plugin")
+            server.pluginManager.disablePlugin(this)
+            return
+        }
+        luckperms = plugin.server.servicesManager.load(LuckPerms::class.java)!!
     }
 
     private fun settingDatabase() {
         org.jetbrains.exposed.sql.Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
         transaction {
-            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, BetSetting)
+            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, BetSetting, RaceStaff)
         }
     }
 
@@ -101,24 +114,27 @@ class RaceAssist : SuspendingJavaPlugin() {
             }
 
         annotationParser.parse(CommandSuggestions())
+
         annotationParser.parse(AudienceJoinCommand())
         annotationParser.parse(AudienceLeaveCommand())
         annotationParser.parse(AudienceListCommand())
+
         annotationParser.parse(PlaceCentralCommand())
         annotationParser.parse(PlaceDegreeCommand())
         annotationParser.parse(PlaceFinishCommand())
         annotationParser.parse(PlaceLapCommand())
         annotationParser.parse(PlaceReverseCommand())
         annotationParser.parse(PlaceSetCommand())
+
         annotationParser.parse(PlayerAddCommand())
         annotationParser.parse(PlayerDeleteCommand())
         annotationParser.parse(PlayerListCommand())
         annotationParser.parse(PlayerRemoveCommand())
-        annotationParser.parse(RaceCreateCommand())
-        annotationParser.parse(RaceDebugCommand())
-        annotationParser.parse(RaceDeleteCommand())
+
         annotationParser.parse(RaceStartCommand())
         annotationParser.parse(RaceStopCommand())
+        annotationParser.parse(RaceDebugCommand())
+
         annotationParser.parse(BetCanCommand())
         annotationParser.parse(BetDeleteCommand())
         annotationParser.parse(BetListCommand())
@@ -126,8 +142,14 @@ class RaceAssist : SuspendingJavaPlugin() {
         annotationParser.parse(BetRateCommand())
         annotationParser.parse(BetRevertCommand())
         annotationParser.parse(BetSheetCommand())
-        annotationParser.parse(RaceCopyCommand())
         annotationParser.parse(BetRemoveCommand())
+
+        annotationParser.parse(SettingCreateCommand())
+        annotationParser.parse(SettingDeleteCommand())
+        annotationParser.parse(SettingCopyCommand())
+        annotationParser.parse(SettingStaffCommand())
+
+        annotationParser.parse(HelpCommand())
     }
 
     private fun registerEvents() {
@@ -139,15 +161,9 @@ class RaceAssist : SuspendingJavaPlugin() {
 
     companion object {
         lateinit var plugin: RaceAssist
-        val raceID = mutableListOf<String>()
-
-        fun setRaceID() {
-            transaction {
-                RaceList.selectAll().forEach {
-                    raceID.add(it[RaceList.raceID])
-                }
-            }
-        }
+            private set
+        lateinit var luckperms: LuckPerms
+            private set
     }
 }
 

@@ -19,10 +19,13 @@ package dev.nikomaru.raceassist.utils
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.MiniMessage
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.file.Files
+import java.text.MessageFormat
 import java.util.*
 
 object Lang {
@@ -39,9 +42,8 @@ object Lang {
                 pluginDir.mkdir()
             }
             lang.forEach { locale ->
-
                 val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
-                plugin.logger.info("Loading lang file for $locale")
+
                 val file = File(pluginDir, "$locale.properties")
                 if (!file.exists()) {
                     Files.copy(input, file.toPath())
@@ -50,6 +52,7 @@ object Lang {
             withContext(Dispatchers.IO) {
                 pluginDir.listFiles()?.forEach {
                     langList[it.nameWithoutExtension] = Properties().apply {
+                        plugin.logger.info("Loading lang file for ${it.nameWithoutExtension}")
                         load(InputStreamReader(it.inputStream(), "UTF-8"))
                     }
                 }
@@ -58,9 +61,14 @@ object Lang {
         }
     }
 
-    fun getText(key: String, locale: Locale): String {
+    fun getComponent(key: String, locale: Locale, vararg args: Any?): Component {
         val lang = langList[locale.toString()] ?: langList["ja_JP"]
-        return lang?.getProperty(key) ?: "Please tell your server administrator that you got this message.(RaceAssist is broken)"
+        return lang?.getProperty(key)?.let { MiniMessage.get().parse(MessageFormat.format(it, *args)) } ?: MiniMessage.get().parse(key)
+    }
+
+    fun getText(key: String, locale: Locale, vararg args: Any?): String {
+        val lang = langList[locale.toString()] ?: langList["ja_JP"]
+        return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
     }
 
 }

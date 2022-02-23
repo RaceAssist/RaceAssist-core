@@ -15,13 +15,10 @@
  */
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -36,15 +33,15 @@ class SetInsideCircuitEvent : Listener {
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(text(Lang.getText("to-suspend-process", player.locale()), TextColor.color(YELLOW)))
+            player.sendMessage(Lang.getComponent("to-suspend-process", player.locale()))
             canSetInsideCircuit.remove(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
-            event.player.sendMessage(text(Lang.getText("to-click-block", player.locale()), TextColor.color(YELLOW)))
+            event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return
         }
-        InsideCircuit.insideCircuit(player, circuitRaceID[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
+        InsideCircuit.insideCircuit(player, circuitRaceId[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
     }
 }
 

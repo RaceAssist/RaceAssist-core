@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.database
 import org.jetbrains.exposed.sql.Table
 
 object CircuitPoint : Table() {
-    val raceID = varchar("RaceID", 30)
+    val raceId = varchar("raceId", 30)
     val inside = bool("Inside")
     val XPoint = (integer("XPoint"))
     val YPoint = (integer("YPoint"))

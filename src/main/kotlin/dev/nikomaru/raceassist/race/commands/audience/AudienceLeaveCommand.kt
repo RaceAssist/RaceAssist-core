@@ -19,23 +19,20 @@ package dev.nikomaru.raceassist.race.commands.audience
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import dev.nikomaru.raceassist.race.commands.CommandUtils.audience
+import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceLeaveCommand {
     @CommandPermission("RaceAssist.commands.audience.leave")
     @CommandMethod("leave <raceId>")
-    private fun leave(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
-        if (audience[raceID]?.contains(sender.uniqueId) == false) {
-            sender.sendMessage(Component.text(Lang.getText("now-not-belong", sender.locale()), TextColor.color(NamedTextColor.RED)))
+    private fun leave(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (audience[raceId]?.contains(sender.uniqueId) == false) {
+            sender.sendMessage(Lang.getComponent("now-not-belong", sender.locale()))
             return
         }
-        audience[raceID]?.remove(sender.uniqueId)
-        sender.sendMessage(Component.text(Lang.getText("to-exit-the-group", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+        audience[raceId]?.remove(sender.uniqueId)
+        sender.sendMessage(Lang.getComponent("to-exit-the-group", sender.locale()))
     }
 }

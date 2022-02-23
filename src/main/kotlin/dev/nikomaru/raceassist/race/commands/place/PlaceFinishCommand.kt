@@ -20,34 +20,32 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceFinishCommand {
     @CommandPermission("RaceAssist.commands.place.finish")
     @CommandMethod("finish")
-    fun finish(sender: CommandSender) {
+    fun finish(sender: Player) {
         RaceAssist.plugin.launch {
-            val player = sender as Player
-            if (canSetOutsideCircuit[player.uniqueId] == true && canSetInsideCircuit[player.uniqueId] == true) {
-                player.sendMessage(Lang.getText("now-you-not-setting-mode", sender.locale()))
+            if (canSetOutsideCircuit[sender.uniqueId] == true && canSetInsideCircuit[sender.uniqueId] == true) {
+                sender.sendMessage(Lang.getComponent("now-you-not-setting-mode", sender.locale()))
                 return@launch
             }
-            if (canSetInsideCircuit[player.uniqueId] == true) {
-                canSetInsideCircuit.remove(player.uniqueId)
-                InsideCircuit.finish(player)
-                player.sendMessage(Lang.getText("to-finish-inside-course-setting", sender.locale()))
+            if (canSetInsideCircuit[sender.uniqueId] == true) {
+                canSetInsideCircuit.remove(sender.uniqueId)
+                InsideCircuit.finish(sender)
+                sender.sendMessage(Lang.getComponent("to-finish-inside-course-setting", sender.locale()))
             }
-            if (canSetOutsideCircuit[player.uniqueId] == true) {
-                canSetOutsideCircuit.remove(player.uniqueId)
-                OutsideCircuit.finish(player)
-                player.sendMessage(Lang.getText("to-finish-outside-course-setting", sender.locale()))
+            if (canSetOutsideCircuit[sender.uniqueId] == true) {
+                canSetOutsideCircuit.remove(sender.uniqueId)
+                OutsideCircuit.finish(sender)
+                sender.sendMessage(Lang.getComponent("to-finish-outside-course-setting", sender.locale()))
             }
         }
     }

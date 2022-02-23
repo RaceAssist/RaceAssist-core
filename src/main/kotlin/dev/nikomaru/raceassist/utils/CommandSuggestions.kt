@@ -40,7 +40,7 @@ open class CommandSuggestions {
         val list = ArrayList<String>()
         transaction {
             RaceList.selectAll().forEach {
-                list.add(it[RaceList.raceID])
+                list.add(it[RaceList.raceId])
             }
         }
         return list

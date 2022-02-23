@@ -21,29 +21,22 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetCentral
-import dev.nikomaru.raceassist.race.commands.CommandUtils.centralRaceID
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
+import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceCentralCommand {
     @CommandPermission("RaceAssist.commands.place.central")
     @CommandMethod("central <raceId>")
-    fun central(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun central(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
+            if (returnRaceSetting(raceId, sender)) return@launch
             canSetCentral[sender.uniqueId] = true
-            centralRaceID[sender.uniqueId] = raceID
-            sender.sendMessage(Component.text(Lang.getText("to-set-central-point", sender.locale()), TextColor.color(NamedTextColor.GREEN)))
+            centralRaceId[sender.uniqueId] = raceId
+            sender.sendMessage(Lang.getComponent("to-set-central-point", sender.locale()))
         }
     }
 }

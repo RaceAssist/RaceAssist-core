@@ -18,4 +18,4 @@ package dev.nikomaru.raceassist.utils
 
 import java.util.*
 
-data class TempBetData(val raceID: String, val uuid: UUID, val jockey: UUID, var bet: Int)
+data class TempBetData(val raceId: String, val uuid: UUID, val jockey: UUID, var bet: Int)

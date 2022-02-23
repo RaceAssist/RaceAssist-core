@@ -21,54 +21,47 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getInsideRaceExist
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
+import dev.nikomaru.raceassist.utils.CommandUtils.getInsideRaceExist
+import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceSetCommand {
     @CommandPermission("RaceAssist.commands.place.set")
     @CommandMethod("set <raceId> <type>")
-    fun set(player: Player,
-        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+    fun set(sender: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "type", suggestions = "placeType") type: String) {
         RaceAssist.plugin.launch {
 
-            if (getRaceCreator(raceID) == null) {
-                player.sendMessage(Component.text(Lang.getText("no-exist-race", player.locale()), TextColor.color(NamedTextColor.RED)))
+            if (!getRaceExist(raceId)) {
+                sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
                 return@launch
-            } else if (getRaceCreator(raceID) != player.uniqueId) {
-                player.sendMessage(Component.text(Lang.getText("only-race-creator-can-setting", player.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
+            } else if (returnRaceSetting(raceId, sender)) return@launch
 
-            if (canSetOutsideCircuit[player.uniqueId] != null || canSetInsideCircuit[player.uniqueId] != null) {
-                player.sendMessage(Lang.getText("already-setting-mode", player.locale()))
+            if (canSetOutsideCircuit[sender.uniqueId] != null || canSetInsideCircuit[sender.uniqueId] != null) {
+                sender.sendMessage(Lang.getComponent("already-setting-mode", sender.locale()))
                 return@launch
             }
             if (type == "in") {
-                canSetInsideCircuit[player.uniqueId] = true
-                player.sendMessage(Component.text(Lang.getText("to-be-inside-set-mode", player.locale()), TextColor.color(NamedTextColor.GREEN)))
+                canSetInsideCircuit[sender.uniqueId] = true
+                sender.sendMessage(Lang.getComponent("to-be-inside-set-mode", sender.locale()))
             } else if (type == "out") {
-                if (!getInsideRaceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-inside-course-set", player.locale()))
+                if (!getInsideRaceExist(raceId)) {
+                    sender.sendMessage(Lang.getComponent("no-inside-course-set", sender.locale()))
                     return@launch
                 }
-                canSetOutsideCircuit[player.uniqueId] = true
-                player.sendMessage(Component.text(Lang.getText("to-be-outside-set-mode", player.locale()), TextColor.color(NamedTextColor.GREEN)))
+                canSetOutsideCircuit[sender.uniqueId] = true
+                sender.sendMessage(Lang.getComponent("to-be-outside-set-mode", sender.locale()))
             }
-            circuitRaceID[player.uniqueId] = raceID
-            player.sendMessage(Component.text(Lang.getText("to-click-left-start-right-finish", player.locale()),
-                TextColor.color(NamedTextColor.GREEN)))
-            player.sendMessage(Lang.getText("to-enter-finish-message", player.locale()))
+            circuitRaceId[sender.uniqueId] = raceId
+            sender.sendMessage(Lang.getComponent("to-click-left-start-right-finish", sender.locale()))
+            sender.sendMessage(Lang.getComponent("to-enter-finish-message", sender.locale()))
         }
     }
 }

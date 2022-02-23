@@ -22,56 +22,38 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
-import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetCanCommand {
-    @CommandPermission("RaceAssist.commands.bet.open")
+    @CommandPermission("RaceAssist.commands.bet.can")
     @CommandMethod("can <raceId> <type>")
     fun setCanBet(player: Player,
-        @Argument(value = "raceId", suggestions = "raceId") raceID: String,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "type", suggestions = "betType") type: String) {
         RaceAssist.plugin.launch {
-            if (!raceExist(raceID)) {
-                player.sendMessage(MessageFormat.format(Lang.getText("no-exist-this-raceid-race", player.locale()), raceID))
-                return@launch
-            }
-            if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
-                return@launch
-            }
+            if (CommandUtils.returnRaceSetting(raceId, player)) return@launch
             if (type == "on") {
                 newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.update({ BetSetting.raceID eq raceID }) {
+                    BetSetting.update({ BetSetting.raceId eq raceId }) {
                         it[canBet] = true
                     }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("can-bet-this-raceid", player.locale()), raceID))
+                player.sendMessage(Lang.getComponent("can-bet-this-raceid", player.locale(), raceId))
             } else if (type == "off") {
                 newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.update({ BetSetting.raceID eq raceID }) {
+                    BetSetting.update({ BetSetting.raceId eq raceId }) {
                         it[canBet] = false
                     }
                 }
-                player.sendMessage(MessageFormat.format(Lang.getText("cannot-bet-this-raceid", player.locale()), raceID))
+                player.sendMessage(Lang.getComponent("cannot-bet-this-raceid", player.locale(), raceId))
             }
         }
     }
 
-    private suspend fun getRaceCreator(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
-
-    private suspend fun raceExist(raceID: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
-        }
-        return exist
-    }
 }

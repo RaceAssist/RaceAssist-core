@@ -36,41 +36,41 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 class BetOpenCommand {
     @CommandPermission("RaceAssist.commands.bet.open")
     @CommandMethod("open <raceId>")
-    fun openVending(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    fun openVending(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (!raceExist(raceID)) {
-                player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
+            if (!raceExist(raceId)) {
+                sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
                 return@launch
             }
             val vending = BetChestGui()
-            val canBet = newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.canBet] }
+            val canBet = newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.canBet] }
             if (!canBet) {
-                player.sendMessage(Lang.getText("now-cannot-bet-race", player.locale()))
+                sender.sendMessage(Lang.getComponent("now-cannot-bet-race", sender.locale()))
                 return@launch
             }
 
             val iterator = TempBetDatas.iterator()
             while (iterator.hasNext()) {
                 val it = iterator.next()
-                if (it.uuid == player.uniqueId) {
+                if (it.uuid == sender.uniqueId) {
                     iterator.remove()
                 }
             }
-            withContext(Dispatchers.minecraft) {
-                player.openInventory(vending.getGUI(player, raceID))
+            withContext(minecraft) {
+                sender.openInventory(vending.getGUI(sender, raceId))
             }
 
 
-            BetChestGui.AllPlayers[raceID]?.forEach { jockey ->
-                TempBetDatas.add(TempBetData(raceID, player.uniqueId, jockey, 0))
+            BetChestGui.AllPlayers[raceId]?.forEach { jockey ->
+                TempBetDatas.add(TempBetData(raceId, sender.uniqueId, jockey, 0))
             }
 
         }
 
     }
 
-    private suspend fun raceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
+    private suspend fun raceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
     }
 
     companion object {

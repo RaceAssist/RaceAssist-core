@@ -23,50 +23,34 @@ import cloud.commandframework.annotations.specifier.Range
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
-import java.text.MessageFormat
 
 @CommandMethod("ra|RaceAssist bet")
 class BetRateCommand {
     @CommandPermission("RaceAssist.commands.bet.rate")
     @CommandMethod("rate <raceId> <rate>")
-    fun setRate(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String, @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
+    fun setRate(sender: Player,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
         RaceAssist.plugin.launch {
-            if (!raceExist(raceID)) {
-                player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
-                return@launch
-            }
-            if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
-                return@launch
-            }
+            if (returnRaceSetting(raceId, sender)) return@launch
             if (rate !in 1..100) {
-                player.sendMessage(Lang.getText("set-rate-message-in1-100", player.locale()))
+                sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", sender.locale()))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.update({ BetSetting.raceID eq raceID }) {
+                BetSetting.update({ BetSetting.raceId eq raceId }) {
                     it[returnPercent] = rate
                 }
             }
         }
-        player.sendMessage(MessageFormat.format(Lang.getText("change-bet-rate-message", player.locale()), raceID, rate))
+        sender.sendMessage(Lang.getComponent("change-bet-rate-message", sender.locale(), raceId, rate))
 
     }
 
-    private suspend fun getRaceCreator(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
-
-    private suspend fun raceExist(raceID: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
-        }
-        return exist
-    }
 }

@@ -23,7 +23,7 @@ import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.database.BetList
-import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
@@ -35,70 +35,50 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.text.MessageFormat
 import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetRemoveCommand {
     @CommandPermission("RaceAssist.commands.bet.revert")
     @CommandMethod("remove <raceId> <betId>")
-    fun remove(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String, @Argument(value = "betId") betId: Int) {
+    fun remove(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "betId") betId: Int) {
         val eco: Economy = VaultAPI.getEconomy()
         RaceAssist.plugin.launch {
             withContext(Dispatchers.IO) {
-                if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
-                    return@withContext
-                }
-                if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
-                    return@withContext
-                }
-                if (eco.getBalance(player) < getBetSum(raceID)) {
-                    player.sendMessage(Lang.getText("no-have-money", player.locale()))
+                if (returnRaceSetting(raceId, sender)) return@withContext
+                if (eco.getBalance(sender) < getBetSum(raceId)) {
+                    sender.sendMessage(Lang.getComponent("no-have-money", sender.locale()))
                     return@withContext
                 }
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { (BetList.rowNum eq betId) and (BetList.raceID eq raceID) }.forEach {
+                BetList.select { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }.forEach {
                     val receiver = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID].toString()))
-                    withContext(Dispatchers.minecraft) {
-                        eco.withdrawPlayer(player, it[BetList.betting].toDouble())
+                    withContext(minecraft) {
+                        eco.withdrawPlayer(sender, it[BetList.betting].toDouble())
                         eco.depositPlayer(receiver, it[BetList.betting].toDouble())
                     }
-                    player.sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-owner", player.locale()),
-                        receiver.name,
-                        it[BetList.betting]))
+                    sender.sendMessage(Lang.getComponent("bet-revert-return-message-owner", sender.locale(), receiver.name, it[BetList.betting]))
 
                     if (receiver.isOnline) {
-                        (receiver as Player).sendMessage(MessageFormat.format(Lang.getText("bet-revert-return-message-player", receiver.locale()),
-                            player.name,
-                            it[BetList.raceID],
+                        (receiver as Player).sendMessage(Lang.getComponent("bet-revert-return-message-player",
+                            receiver.locale(),
+                            sender.name,
+                            it[BetList.raceId],
                             it[BetList.jockey],
                             it[BetList.betting]))
                     }
 
                 }
 
-                BetList.deleteWhere { (BetList.rowNum eq betId) and (BetList.raceID eq raceID) }
+                BetList.deleteWhere { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }
             }
 
         }
     }
 
-    private suspend fun getRaceCreator(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
-
-    private suspend fun raceExist(raceID: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
-        }
-        return exist
-    }
-
-    private suspend fun getBetSum(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.select { BetList.raceID eq raceID }.sumOf {
+    private suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.select { BetList.raceId eq raceId }.sumOf {
             it[BetList.betting]
         }
     }

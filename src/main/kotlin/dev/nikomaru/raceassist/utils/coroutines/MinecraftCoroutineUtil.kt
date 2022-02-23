@@ -16,11 +16,10 @@
 
 package dev.nikomaru.raceassist.utils.coroutines
 
-import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
-val Dispatchers.async: CoroutineContext
+val async: CoroutineContext
     get() = DispatcherContainer.async
 
-val Dispatchers.minecraft: CoroutineContext
+val minecraft: CoroutineContext
     get() = DispatcherContainer.sync

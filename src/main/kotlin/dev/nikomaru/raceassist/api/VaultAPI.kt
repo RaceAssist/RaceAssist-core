@@ -17,12 +17,14 @@
 package dev.nikomaru.raceassist.api
 
 import net.milkbowl.vault.economy.Economy
+import net.milkbowl.vault.permission.Permission
 import org.bukkit.Bukkit.getServer
 import org.bukkit.plugin.RegisteredServiceProvider
 
 object VaultAPI {
 
     private lateinit var econ: Economy
+    private lateinit var perms: Permission
 
     fun setupEconomy(): Boolean {
         if (getServer().pluginManager.getPlugin("Vault") == null) {
@@ -33,7 +35,14 @@ object VaultAPI {
         return true
     }
 
+    fun setupPermissions(): Boolean {
+        val rsp = getServer().servicesManager.getRegistration(Permission::class.java)
+        perms = rsp!!.provider
+        return true
+    }
+
     fun getEconomy(): Economy {
         return econ
     }
+
 }

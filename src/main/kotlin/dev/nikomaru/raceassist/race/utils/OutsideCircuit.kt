@@ -17,14 +17,10 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.CircuitPoint
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.race.commands.CommandUtils.circuitRaceID
-
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor.GREEN
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
@@ -33,7 +29,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.Polygon
-import java.text.MessageFormat
 
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
@@ -43,18 +38,18 @@ object OutsideCircuit {
         insidePolygonMap.putIfAbsent(raceId, Polygon())
         if (insidePolygonMap[raceId]!!.npoints == 0) {
             newSuspendedTransaction(Dispatchers.IO) {
-                CircuitPoint.select { (CircuitPoint.raceID eq raceId) and (CircuitPoint.inside eq true) }.forEach {
+                CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq true) }.forEach {
                     insidePolygonMap[raceId]!!.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
                 }
             }
         }
 
         if (insidePolygonMap[raceId]!!.contains(x, z)) {
-            player.sendActionBar(text(Lang.getText("to-click-inside-point", player.locale())))
+            player.sendActionBar(Lang.getComponent("to-click-inside-point", player.locale()))
             return
         }
         outsidePolygonMap[raceId]!!.addPoint(x, z)
-        player.sendActionBar(text(MessageFormat.format(Lang.getText("to-click-next-point", player.locale()), x, z)))
+        player.sendActionBar(Lang.getComponent("to-click-next-point", player.locale(), x, z))
         canSetOutsideCircuit.remove(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
             canSetOutsideCircuit[player.uniqueId] = true
@@ -65,23 +60,22 @@ object OutsideCircuit {
 
         newSuspendedTransaction(Dispatchers.IO) {
             CircuitPoint.deleteWhere {
-                (CircuitPoint.raceID eq circuitRaceID[player.uniqueId]!!) and (CircuitPoint.inside eq false)
+                (CircuitPoint.raceId eq circuitRaceId[player.uniqueId]!!) and (CircuitPoint.inside eq false)
             }
         }
-        val x = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.xpoints
-        val y = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.ypoints
-        val n = outsidePolygonMap[circuitRaceID[player.uniqueId]]!!.npoints
+        val x = outsidePolygonMap[circuitRaceId[player.uniqueId]]!!.xpoints
+        val y = outsidePolygonMap[circuitRaceId[player.uniqueId]]!!.ypoints
+        val n = outsidePolygonMap[circuitRaceId[player.uniqueId]]!!.npoints
         for (i in 0 until n) {
             newSuspendedTransaction(Dispatchers.IO) {
                 CircuitPoint.insert {
-                    it[raceID] = circuitRaceID[player.uniqueId]!!
+                    it[raceId] = circuitRaceId[player.uniqueId]!!
                     it[inside] = false
                     it[XPoint] = x[i]
                     it[YPoint] = y[i]
                 }
             }
         }
-        outsidePolygonMap.remove(circuitRaceID[player.uniqueId])
-        player.sendMessage(text("設定完了しました", TextColor.color(GREEN)))
+        outsidePolygonMap.remove(circuitRaceId[player.uniqueId])
     }
 }

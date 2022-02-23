@@ -17,8 +17,8 @@
 package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.canSetCentral
-import dev.nikomaru.raceassist.race.commands.CommandUtils.centralRaceID
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
+import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.event.EventHandler
@@ -38,12 +38,12 @@ class SetCentralPointEvent : Listener {
             return
         }
         newSuspendedTransaction(Dispatchers.IO) {
-            RaceList.update({ RaceList.raceID eq (centralRaceID[event.player.uniqueId]!!) }) {
+            RaceList.update({ RaceList.raceId eq (centralRaceId[event.player.uniqueId]!!) }) {
                 it[centralXPoint] = event.clickedBlock?.location?.blockX ?: 0
                 it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0
             }
         }
-        event.player.sendMessage(Lang.getText("to-set-this-point-central", event.player.locale()))
+        event.player.sendMessage(Lang.getComponent("to-set-this-point-central", event.player.locale()))
         canSetCentral.remove(event.player.uniqueId)
     }
 }

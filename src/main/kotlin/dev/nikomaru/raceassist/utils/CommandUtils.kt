@@ -14,18 +14,21 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands
+package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.CircuitPoint
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.RaceStaffUtils.existStaff
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor.*
+import kotlinx.coroutines.withContext
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor.BLUE
+import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -37,7 +40,6 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.Polygon
-import java.text.MessageFormat
 import java.util.*
 import kotlin.math.atan2
 
@@ -46,26 +48,21 @@ object CommandUtils {
     val audience: HashMap<String, ArrayList<UUID>> = HashMap()
     val canSetInsideCircuit = HashMap<UUID, Boolean>()
     val canSetOutsideCircuit = HashMap<UUID, Boolean>()
-    val circuitRaceID = HashMap<UUID, String>()
+    val circuitRaceId = HashMap<UUID, String>()
     val canSetCentral = HashMap<UUID, Boolean>()
-    val centralRaceID = HashMap<UUID, String>()
-    var starting = false
+    val centralRaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
 
-    suspend fun getRaceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceID eq raceID }.count() > 0
+    suspend fun getRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceId eq raceId }.count() > 0
     }
 
-    suspend fun getDirection(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse) == true
+    suspend fun getDirection(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.reverse) == true
     }
 
-    suspend fun getInsideRaceExist(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq true) }.count() > 0
-    }
-
-    suspend fun getSheetID(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetSetting.select { BetSetting.raceID eq raceID }.firstOrNull()?.get(BetSetting.spreadsheetId)
+    suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq true) }.count() > 0
     }
 
     fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
@@ -74,22 +71,42 @@ object CommandUtils {
         }
         if (currentLap > beforeLap) {
             if (currentLap == lap - 1) {
-                player.showTitle(title((text(Lang.getText("last-lap", player.locale()), TextColor.color(GREEN))),
-                    text(Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))))
+                player.showTitle(title((Lang.getComponent("last-lap", player.locale(), TextColor.color(GREEN))),
+                    Lang.getComponent("one-step-forward-lap", player.locale(), TextColor.color(BLUE))))
             } else {
-                player.showTitle(title((text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap),
-                    TextColor.color(GREEN))), text(Lang.getText("one-step-forward-lap", player.locale()), TextColor.color(BLUE))))
+                player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                    Lang.getComponent("one-step-forward-lap", player.locale(), TextColor.color(BLUE))))
             }
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
         } else if (currentLap < beforeLap) {
-            player.showTitle(title(text(MessageFormat.format(Lang.getText("now-lap", player.locale()), currentLap, lap), TextColor.color(GREEN)),
-                text(Lang.getText("one-step-backwards-lap", player.locale()), TextColor.color(RED))))
+            player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                Lang.getComponent("one-step-backwards-lap", player.locale())))
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
             }, 40)
         }
+    }
+
+    suspend fun returnRaceSetting(raceId: String, player: Player) = withContext(Dispatchers.IO) {
+        if (!raceExist(raceId)) {
+            player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale()))
+            return@withContext true
+        }
+        if (!existStaff(raceId, player.uniqueId)) {
+            player.sendMessage(Lang.getComponent("only-race-creator-can-setting", player.locale()))
+            return@withContext true
+        }
+        return@withContext false
+    }
+
+    private suspend fun raceExist(raceId: String): Boolean {
+        var exist = false
+        newSuspendedTransaction(Dispatchers.IO) {
+            exist = BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
+        }
+        return exist
     }
 
     fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
@@ -156,23 +173,24 @@ object CommandUtils {
                 val scoreboard = manager.newScoreboard
                 val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", player.locale()),
                     "dummy",
-                    text(Lang.getText("scoreboard-now-ranking", player.locale()), TextColor.color(YELLOW)))
+                    Lang.getComponent("scoreboard-now-ranking", player.locale()))
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
                 for (i in nowRankings.indices) {
                     val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-                    val score =
-                        objective.getScore(MessageFormat.format(Lang.getText("scoreboard-now-ranking-and-name", player.locale()), i + 1, playerName))
+                    val score = objective.getScore(LegacyComponentSerializer.legacySection()
+                        .serialize(Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)))
                     score.score = nowRankings.size * 2 - 2 * i - 1
-                    val degree: String = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
-                        Lang.getText("finished-the-race", player.locale())
+                    val degree: Component = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
+                        Lang.getComponent("finished-the-race", player.locale())
                     } else {
-                        MessageFormat.format(Lang.getText("now-lap-and-now-length", player.locale()),
+                        Lang.getComponent("now-lap-and-now-length",
+                            player.locale(),
                             currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
                             lap,
                             (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360))
                     }
-                    val displayDegree = objective.getScore(degree)
+                    val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(degree))
                     displayDegree.score = nowRankings.size * 2 - 2 * i - 2
                 }
                 player.scoreboard = scoreboard
@@ -190,46 +208,46 @@ object CommandUtils {
         return ranking
     }
 
-    suspend fun getLapCount(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceID eq raceID }.first()[RaceList.lap]
+    suspend fun getLapCount(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceId eq raceId }.first()[RaceList.lap]
     }
 
-    suspend fun getAllJockeys(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
+    suspend fun getAllJockeys(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
         val jockeys: ArrayList<OfflinePlayer> = ArrayList()
-        PlayerList.select { PlayerList.raceID eq raceID }.forEach {
+        PlayerList.select { PlayerList.raceId eq raceId }.forEach {
             jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])))
         }
         jockeys
     }
 
-    suspend fun getGoalDegree(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.goalDegree)
+    suspend fun getGoalDegree(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.goalDegree)
     }
 
-    suspend fun getCircuitExist(raceID: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
-        CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.count() > 0
+    suspend fun getCircuitExist(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
+        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq inside) }.count() > 0
     }
 
-    suspend fun getPolygon(raceID: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
+    suspend fun getPolygon(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
         val polygon = Polygon()
-        CircuitPoint.select { (CircuitPoint.raceID eq raceID) and (CircuitPoint.inside eq inside) }.forEach {
+        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq inside) }.forEach {
             polygon.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
         }
         polygon
     }
 
-    suspend fun getRaceCreator(raceID: String): UUID? {
+    suspend fun getOwner(raceId: String): UUID? {
         var raceCreator: String? = null
         newSuspendedTransaction(Dispatchers.IO) {
-            raceCreator = RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.creator)
+            raceCreator = RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.creator)
         }
         raceCreator ?: return null
         return UUID.fromString(raceCreator)
     }
 
-    suspend fun getCentralPoint(raceID: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
+    suspend fun getCentralPoint(raceId: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
         var point: Int? = null
-        RaceList.select { RaceList.raceID eq raceID }.forEach {
+        RaceList.select { RaceList.raceId eq raceId }.forEach {
             point = if (xPoint) {
                 it.getOrNull(RaceList.centralXPoint)
             } else {
@@ -239,17 +257,17 @@ object CommandUtils {
         point
     }
 
-    suspend fun getReverse(raceID: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceID eq raceID }.firstOrNull()?.get(RaceList.reverse)
+    suspend fun getReverse(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.reverse)
     }
 
     suspend fun getRacePlayerAmount(): Long = newSuspendedTransaction {
         PlayerList.select {
-            PlayerList.raceID eq "raceID"
+            PlayerList.raceId eq "raceId"
         }.count()
     }
 
-    suspend fun getRacePlayerExist(RaceID: String, playerUUID: UUID) = newSuspendedTransaction(Dispatchers.IO) {
-        PlayerList.select { (PlayerList.raceID eq RaceID) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
+    suspend fun getRacePlayerExist(RaceId: String, playerUUID: UUID) = newSuspendedTransaction(Dispatchers.IO) {
+        PlayerList.select { (PlayerList.raceId eq RaceId) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
     }
 }

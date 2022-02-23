@@ -19,16 +19,11 @@ package dev.nikomaru.raceassist.race.commands.player
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.database.PlayerList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.CommandUtils
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.select
@@ -40,18 +35,13 @@ class PlayerListCommand {
 
     @CommandPermission("RaceAssist.commands.player.list")
     @CommandMethod("list <raceId>")
-    private fun displayPlayerList(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String) {
+    private fun displayPlayerList(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != sender.uniqueId) {
-                sender.sendMessage(Component.text(Lang.getText("only-race-creator-can-display", sender.locale()),
-                    TextColor.color(NamedTextColor.RED)))
-                return@launch
-            }
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 
             newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.select { PlayerList.raceID eq raceID }.forEach {
-                    sender.sendMessage(Component.text(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString(),
-                        TextColor.color(NamedTextColor.YELLOW)))
+                PlayerList.select { PlayerList.raceId eq raceId }.forEach {
+                    sender.sendMessage(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString())
                 }
             }
         }

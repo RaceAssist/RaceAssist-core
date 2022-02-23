@@ -14,37 +14,37 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands.race
+package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.CommandUtils.getRaceCreator
+import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import kotlinx.coroutines.Dispatchers
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
-@CommandMethod("ra|RaceAssist race")
-class RaceCreateCommand {
-    @CommandPermission("RaceAssist.commands.race.create")
+@CommandMethod("ra|RaceAssist setting")
+class SettingCreateCommand {
+    @CommandPermission("RaceAssist.commands.setting.create")
     @CommandMethod("create <raceId>")
-    fun create(sender: CommandSender, @Argument(value = "raceId") raceID: String) {
-        RaceAssist.plugin.launch {
-            if (getRaceCreator(raceID) != null) {
-                sender.sendMessage(Lang.getText("already-used-the-name-race", (sender as Player).locale()))
+    fun create(sender: Player, @Argument(value = "raceId") raceId: String) {
+        plugin.launch {
+            if (getOwner(raceId) != null) {
+                sender.sendMessage(Lang.getComponent("already-used-the-name-race", sender.locale()))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
                 RaceList.insert {
-                    it[this.raceID] = raceID
-                    it[this.creator] = (sender as Player).uniqueId.toString()
+                    it[this.raceId] = raceId
+                    it[this.creator] = sender.uniqueId.toString()
                     it[this.reverse] = false
                     it[this.lap] = 1
                     it[this.centralXPoint] = null
@@ -52,15 +52,15 @@ class RaceCreateCommand {
                     it[this.goalDegree] = null
                 }
                 BetSetting.insert {
-                    it[this.raceID] = raceID
+                    it[this.raceId] = raceId
                     it[this.canBet] = false
                     it[this.returnPercent] = 75
-                    it[this.creator] = (sender as Player).uniqueId.toString()
+                    it[this.creator] = sender.uniqueId.toString()
                     it[this.spreadsheetId] = null
                 }
             }
-            RaceAssist.setRaceID()
-            sender.sendMessage(Lang.getText("to-create-race", (sender as Player).locale()))
+            RaceStaffUtils.addStaff(raceId, sender.uniqueId)
+            sender.sendMessage(Lang.getComponent("to-create-race", sender.locale()))
         }
     }
 }

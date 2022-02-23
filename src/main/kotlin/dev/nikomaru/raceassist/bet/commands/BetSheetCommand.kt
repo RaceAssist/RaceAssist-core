@@ -27,6 +27,7 @@ import com.google.api.services.sheets.v4.model.SheetProperties
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,28 +40,25 @@ import org.jetbrains.exposed.sql.update
 class BetSheetCommand {
     @CommandPermission("RaceAssist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
-    fun sheet(player: Player, @Argument(value = "raceId", suggestions = "raceId") raceID: String, @Argument(value = "sheet") sheetId: String) {
+    fun sheet(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "sheet") sheetId: String) {
         RaceAssist.plugin.launch {
             withContext(Dispatchers.IO) {
-                if (!raceExist(raceID)) {
-                    player.sendMessage(Lang.getText("no-exist-this-raceid-race", player.locale()))
+                if (!raceExist(raceId)) {
+                    sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
                     return@withContext
                 }
-                if (getRaceCreator(raceID) != player.uniqueId.toString()) {
-                    player.sendMessage(Lang.getText("only-race-creator-can-setting", player.locale()))
-                    return@withContext
-                }
+                if (returnRaceSetting(raceId, sender)) return@withContext
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.update({ BetSetting.raceID eq raceID }) {
+                BetSetting.update({ BetSetting.raceId eq raceId }) {
                     it[spreadsheetId] = sheetId
                 }
             }
-            createNewSheets(sheetId, raceID)
+            createNewSheets(sheetId, raceId)
         }
     }
 
-    private suspend fun createNewSheets(sheetId: String, raceID: String) = withContext(Dispatchers.IO) {
+    private suspend fun createNewSheets(sheetId: String, raceId: String) = withContext(Dispatchers.IO) {
         val sheetsService = getSheetsService(sheetId) ?: return@withContext
         val content = BatchUpdateSpreadsheetRequest()
         val requests: ArrayList<Request> = ArrayList()
@@ -71,9 +69,9 @@ class BetSheetCommand {
         val properties1 = SheetProperties()
         val properties2 = SheetProperties()
         //賭けを表示するためのシート
-        properties1.title = "${raceID}_RaceAssist_Bet"
+        properties1.title = "${raceId}_RaceAssist_Bet"
         //将来の結果のため
-        properties2.title = "${raceID}_RaceAssist_Result"
+        properties2.title = "${raceId}_RaceAssist_Result"
         addSheet1.properties = properties1
         addSheet2.properties = properties2
         request1.addSheet = addSheet1
@@ -84,13 +82,10 @@ class BetSheetCommand {
         sheetsService.spreadsheets()?.batchUpdate(sheetId, content)?.execute()
     }
 
-    private suspend fun getRaceCreator(raceID: String) =
-        newSuspendedTransaction(Dispatchers.IO) { BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator] }
-
-    private suspend fun raceExist(raceID: String): Boolean {
+    private suspend fun raceExist(raceId: String): Boolean {
         var exist = false
         newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceID eq raceID }.count() > 0
+            exist = BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
         }
         return exist
     }
