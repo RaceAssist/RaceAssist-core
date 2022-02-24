@@ -269,13 +269,13 @@ class RaceStartCommand {
         val embeds = JSONArray()
         val author = JSONObject()
         val embedsObject = JSONObject()
-        embedsObject["title"] = Lang.getComponent("discord-webhook-race-result", Locale.getDefault())
-        author["name"] = Lang.getComponent("discord-webhook-name", Locale.getDefault(), Bukkit.getOfflinePlayer(starter).name, raceId)
+        embedsObject["title"] = Lang.getText("discord-webhook-race-result", Locale.getDefault())
+        author["name"] = Lang.getText("discord-webhook-name", Locale.getDefault(), Bukkit.getOfflinePlayer(starter).name, raceId)
         author["icon_url"] = "https://crafthead.net/avatar/$starter"
         embedsObject["author"] = author
         for (i in 0 until finishJockey.size) {
             val playerResult = JSONObject()
-            playerResult["name"] = Lang.getComponent("discord-webhook-ranking", Locale.getDefault(), i + 1)
+            playerResult["name"] = Lang.getText("discord-webhook-ranking", Locale.getDefault(), i + 1)
             playerResult["value"] = String.format("%s %2d:%02d",
                 Bukkit.getPlayer(finishJockey[i])?.name,
                 floor((time[finishJockey[i]]!!.toDouble() / 60)).toInt(),
