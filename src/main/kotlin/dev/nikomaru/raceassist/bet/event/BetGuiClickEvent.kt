@@ -359,24 +359,22 @@ class BetGuiClickEvent : Listener {
 
         var i = 1
         val data: ArrayList<ValueRange> = ArrayList()
-        data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}")
-            .setValues(listOf(listOf(Lang.getComponent("sheet-timestamp", Locale.getDefault()),
-                Lang.getComponent("sheet-minecraft-name", Locale.getDefault()),
-                Lang.getComponent("sheet-jockey", Locale.getDefault()),
-                Lang.getComponent("sheet-bet-price", Locale.getDefault()),
-                Lang.getComponent("sheet-bet-multiplier", Locale.getDefault()),
+        data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}").setValues(listOf(listOf(Lang.getText("sheet-timestamp", Locale.getDefault()),
+                Lang.getText("sheet-minecraft-name", Locale.getDefault()),
+                Lang.getText("sheet-jockey", Locale.getDefault()),
+                Lang.getText("sheet-bet-price", Locale.getDefault()),
+                Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
                 getBetPercent(raceId)))))
 
         newSuspendedTransaction(Dispatchers.Default) {
             BetList.select { BetList.raceId eq raceId }.forEach {
-
+                i++
                 val player = it[BetList.playerName]
                 val jockey = it[BetList.jockey]
                 val betting = it[BetList.betting]
                 val timeStamp = it[BetList.timeStamp]
-                data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i + 1}")
+                data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}")
                     .setValues(listOf(listOf(timeStamp.toString(), player, jockey, betting))))
-                i++
             }
             val batchBody = BatchUpdateValuesRequest().setValueInputOption("USER_ENTERED").setData(data)
 
