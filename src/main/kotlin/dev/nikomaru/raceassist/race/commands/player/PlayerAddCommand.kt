@@ -55,7 +55,7 @@ class PlayerAddCommand {
                 sender.sendMessage(Lang.getComponent("already-exist-this-user", sender.locale()))
                 return@launch
             }
-            if (getRacePlayerAmount() >= 8) {
+            if (getRacePlayerAmount(raceId) > 7) {
                 sender.sendMessage(Lang.getComponent("max-player-is-eight", sender.locale()))
                 return@launch
             }

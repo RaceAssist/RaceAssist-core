@@ -42,13 +42,16 @@ class BetChestGui {
 
     suspend fun getGUI(player: Player, raceId: String): Inventory {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
-        val playerWools = ImmutableList.of(Material.RED_WOOL,
+        val playerWools = ImmutableList.of(
+            Material.RED_WOOL,
             Material.BLUE_WOOL,
             Material.YELLOW_WOOL,
             Material.GREEN_WOOL,
             Material.BROWN_WOOL,
             Material.PINK_WOOL,
-            Material.WHITE_WOOL)
+            Material.WHITE_WOOL,
+            Material.ORANGE_WOOL,
+        )
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0

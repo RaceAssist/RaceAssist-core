@@ -105,7 +105,7 @@ bukkit {
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            childrenMap = mapOf("RaceAssist.commands.*" to true)
+            children = listOf("RaceAssist.commands.*")
         }
         register("RaceAssist.user") {
             default = Default.TRUE

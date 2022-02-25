@@ -261,9 +261,9 @@ object CommandUtils {
         RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.reverse)
     }
 
-    suspend fun getRacePlayerAmount(): Long = newSuspendedTransaction {
+    suspend fun getRacePlayerAmount(raceId: String): Long = newSuspendedTransaction {
         PlayerList.select {
-            PlayerList.raceId eq "raceId"
+            PlayerList.raceId eq raceId
         }.count()
     }
 
