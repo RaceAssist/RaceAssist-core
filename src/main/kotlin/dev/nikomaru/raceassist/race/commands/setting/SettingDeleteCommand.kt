@@ -24,7 +24,6 @@ import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.RaceStaffUtils.removeAllStaff
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.bukkit.entity.Player
@@ -46,8 +45,8 @@ class SettingDeleteCommand {
                     PlayerList.deleteWhere { PlayerList.raceId eq raceId }
                     BetList.deleteWhere { BetList.raceId eq raceId }
                     BetSetting.deleteWhere { BetSetting.raceId eq raceId }
+                    RaceStaff.deleteWhere { RaceStaff.raceId eq raceId }
                     sender.sendMessage(Lang.getComponent("to-delete-race-and-so-on", sender.locale()))
-                    removeAllStaff(raceId)
                 }
             } else {
                 canDelete[sender.uniqueId] = true
