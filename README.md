@@ -94,22 +94,28 @@ permission: `RaceAssist.commands.race.debug`<br>
 `/ra race stop <raceId>`  レースの停止  <br>
 permission: `RaceAssist.commands.race.stop`<br>
 
-`/ra race create <raceId>`  レースの作成  <br>
-permission: `RaceAssist.commands.race.create`<br>
+### Setting
+`/ra setting create <raceId>`  レースの作成  <br>
+permission: `RaceAssist.commands.setting.create`<br>
 
-`/ra race delete <raceId>`  レースの削除  <br>
-permission: `RaceAssist.commands.race.delete`<br>
+`/ra setting delete <raceId>`  レースの削除  <br>
+permission: `RaceAssist.commands.setting.delete`<br>
 
-`/ra race copy <raceId_1> <raceId_2>` レース1のsheetId、賭けリスト以外をすべてコピーします  <br>
-permission: `RaceAssist.commands.race.copy`<br>
+`/ra setting copy <raceId_1> <raceId_2>` レース1のsheetId、賭けリスト以外をすべてコピーします  <br>
+permission: `RaceAssist.commands.setting.copy`<br>
+
+#### staff
+`/ra setting staff add <raceId> <Player>` スタッフを追加します  <br>
+`/ra setting staff remove <raceId> <Player>` スタッフを削除します  <br>
+`/ra setting staff lista <raceId> <Player>` スタッフを表示します  <br>
+permission: `RaceAssist.commands.setting.staff`<br>
 
 ## permission
 
 ### 一般プレイヤー
 
-`RaceAssist.commands.audience.join`
-`RaceAssist.commands.audience.leave`
-`RaceAssist.commands.bet.open`
+`RaceAssist.user`
+
 
 ### レース作成者
 
@@ -118,7 +124,7 @@ permission: `RaceAssist.commands.race.copy`<br>
 ## Usage
 
 ### Race
-creator :`/ra race create <raceId>`<br>
+creator :`/ra setting create <raceId>`<br>
 creator :`/ra place set <raceId> in`<br>
 creator :`/ra place finish`<br>
 creator :`/ra place set <raceId> out`<br>
