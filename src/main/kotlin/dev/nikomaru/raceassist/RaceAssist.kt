@@ -143,6 +143,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         annotationParser.parse(BetRevertCommand())
         annotationParser.parse(BetSheetCommand())
         annotationParser.parse(BetRemoveCommand())
+        annotationParser.parse(BetReturnCommand())
 
         annotationParser.parse(SettingCreateCommand())
         annotationParser.parse(SettingDeleteCommand())

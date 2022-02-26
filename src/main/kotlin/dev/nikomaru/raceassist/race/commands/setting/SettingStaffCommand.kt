@@ -83,10 +83,6 @@ class SettingStaffCommand {
             sender.sendMessage(Lang.getComponent("not-exsist-staff-this-player", sender.locale(), playerName, sender.locale()))
             return true
         }
-        if (!target.isOnline) {
-            sender.sendMessage(Lang.getComponent("player-not-online", sender.locale(), playerName))
-            return true
-        }
         return false
     }
 }

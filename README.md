@@ -47,6 +47,8 @@ permission: `RaceAssist.commands.bet.rate`<br>
 `/ra bet revert <raceId>` すべての人に返金します <br>
 permission: `RaceAssist.commands.bet.revert`<br>
 
+`/ra bet return <raceId> <playerName>` 指定したプレイヤーにかけている人に支払いをします <br>
+permission: `RaceAssist.commands.bet.return`<br>
 
 `/ra bet remove <raceId> <betRow>` 指定した番号の賭けを返金 <br>
 permission: `RaceAssist.commands.bet.remove`<br>
