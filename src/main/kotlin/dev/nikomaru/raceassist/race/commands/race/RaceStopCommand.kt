@@ -24,13 +24,13 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import kotlinx.coroutines.delay
-import org.bukkit.entity.Player
+import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStopCommand {
     @CommandPermission("RaceAssist.commands.race.stop")
     @CommandMethod("stop <raceId>")
-    fun stop(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun stop(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             stop[raceId] = true

@@ -16,15 +16,10 @@
 
 package dev.nikomaru.raceassist.utils
 
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
-import java.io.File
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.nio.file.Files
 import java.text.MessageFormat
 import java.util.*
 
@@ -34,28 +29,11 @@ object Lang {
     suspend fun load() {
         withContext(Dispatchers.IO) {
             val lang = listOf("ja_JP")
-            if (!plugin.dataFolder.exists()) {
-                plugin.dataFolder.mkdir()
-            }
-            val pluginDir = File(plugin.dataFolder, "lang")
-            if (!pluginDir.exists()) {
-                pluginDir.mkdir()
-            }
-            lang.forEach { locale ->
-                val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
 
-                val file = File(pluginDir, "$locale.properties")
-                if (!file.exists()) {
-                    Files.copy(input, file.toPath())
-                }
-            }
-            withContext(Dispatchers.IO) {
-                pluginDir.listFiles()?.forEach {
-                    langList[it.nameWithoutExtension] = Properties().apply {
-                        plugin.logger.info("Loading lang file for ${it.nameWithoutExtension}")
-                        load(InputStreamReader(it.inputStream(), "UTF-8"))
-                    }
-                }
+            lang.forEach { locale ->
+                val conf = Properties()
+                conf.load(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties"))
+                langList[locale] = conf
             }
 
         }
@@ -63,7 +41,8 @@ object Lang {
 
     fun getComponent(key: String, locale: Locale, vararg args: Any?): Component {
         val lang = langList[locale.toString()] ?: langList["ja_JP"]
-        return lang?.getProperty(key)?.let { MiniMessage.get().parse(MessageFormat.format(it, *args)) } ?: MiniMessage.get().parse(key)
+        return lang?.getProperty(key)?.let { MiniMessage.miniMessage().deserialize(MessageFormat.format(it, *args)) } ?: MiniMessage.miniMessage()
+            .deserialize(key)
     }
 
     fun getText(key: String, locale: Locale, vararg args: Any?): String {

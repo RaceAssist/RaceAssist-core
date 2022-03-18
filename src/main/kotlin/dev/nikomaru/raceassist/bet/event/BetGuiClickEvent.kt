@@ -249,10 +249,7 @@ class BetGuiClickEvent : Listener {
                 player.closeInventory()
 
                 val eco: Economy = VaultAPI.getEconomy()
-                val owner = Bukkit.getOfflinePlayer(UUID.fromString(newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.creator]
-                }))
-
+                val owner = getBetOwner(raceId)
 
                 newSuspendedTransaction(Dispatchers.Default) {
                     var row = getMaxRow(raceId)
@@ -360,11 +357,11 @@ class BetGuiClickEvent : Listener {
         var i = 1
         val data: ArrayList<ValueRange> = ArrayList()
         data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}").setValues(listOf(listOf(Lang.getText("sheet-timestamp", Locale.getDefault()),
-                Lang.getText("sheet-minecraft-name", Locale.getDefault()),
-                Lang.getText("sheet-jockey", Locale.getDefault()),
-                Lang.getText("sheet-bet-price", Locale.getDefault()),
-                Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
-                getBetPercent(raceId)))))
+            Lang.getText("sheet-minecraft-name", Locale.getDefault()),
+            Lang.getText("sheet-jockey", Locale.getDefault()),
+            Lang.getText("sheet-bet-price", Locale.getDefault()),
+            Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
+            getBetPercent(raceId)))))
 
         newSuspendedTransaction(Dispatchers.Default) {
             BetList.select { BetList.raceId eq raceId }.forEach {
@@ -394,5 +391,9 @@ class BetGuiClickEvent : Listener {
     companion object {
         //Prevention of chattering-like phenomena
         private val clicked = HashMap<UUID, Boolean>()
+
+        suspend fun getBetOwner(raceId: String) = Bukkit.getOfflinePlayer(UUID.fromString(newSuspendedTransaction(Dispatchers.IO) {
+            BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.creator]
+        }))
     }
 }

@@ -26,21 +26,24 @@ import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
+import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetRateCommand {
     @CommandPermission("RaceAssist.commands.bet.rate")
     @CommandMethod("rate <raceId> <rate>")
-    fun setRate(sender: Player,
+    fun setRate(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
         RaceAssist.plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
             if (rate !in 1..100) {
-                sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", sender.locale()))
+                sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", locale))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
@@ -49,7 +52,7 @@ class BetRateCommand {
                 }
             }
         }
-        sender.sendMessage(Lang.getComponent("change-bet-rate-message", sender.locale(), raceId, rate))
+        sender.sendMessage(Lang.getComponent("change-bet-rate-message", locale, raceId, rate))
 
     }
 

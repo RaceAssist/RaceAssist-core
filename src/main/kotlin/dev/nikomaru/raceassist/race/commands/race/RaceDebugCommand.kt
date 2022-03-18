@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
@@ -53,29 +54,33 @@ class RaceDebugCommand {
 
     @CommandPermission("RaceAssist.commands.race.debug")
     @CommandMethod("debug <raceId>")
-    fun debug(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
+        val locale = sender.locale()
         RaceAssist.plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
-                sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
+                sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
 
             val insidePolygon = getPolygon(raceId, true)
             val outsidePolygon = getPolygon(raceId, false)
             if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
-                sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
+                sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
             val reverse = getReverse(raceId) ?: false
             val lap: Int = getLapCount(raceId)
             val threshold = 40
             val centralXPoint: Int =
-                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
-                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
-            val goalDegree: Int =
-                getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", sender.locale()))
+                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+            val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", locale))
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
@@ -88,13 +93,13 @@ class RaceDebugCommand {
 
             for (timer in 0..4) {
                 val showTimer = async(minecraft) {
-                    sender.showTitle(Title.title(Lang.getComponent("${5 - timer}", sender.locale()), Lang.getComponent("", sender.locale())))
+                    sender.showTitle(Title.title(Lang.getComponent("${5 - timer}", locale), Lang.getComponent("", locale)))
                 }
                 delay(1000)
                 showTimer.await()
             }
 
-            sender.showTitle(Title.title(Lang.getComponent("to-notice-start-message", sender.locale()), Lang.getComponent(" ", sender.locale())))
+            sender.showTitle(Title.title(Lang.getComponent("to-notice-start-message", locale), Lang.getComponent(" ", locale)))
 
             while (counter < 180 && stop[raceId] != true) {
 
@@ -114,16 +119,16 @@ class RaceDebugCommand {
                 }
 
                 if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
-                    sender.sendActionBar(Lang.getComponent("outside-the-racetrack", sender.locale()))
+                    sender.sendActionBar(Lang.getComponent("outside-the-racetrack", locale))
                 }
 
                 calculateLap.await()
 
                 val manager: ScoreboardManager = Bukkit.getScoreboardManager()
                 val scoreboard = manager.newScoreboard
-                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", sender.locale()),
+                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", locale),
                     "dummy",
-                    Lang.getComponent("scoreboard-context", sender.locale()))
+                    Lang.getComponent("scoreboard-context", locale))
 
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
@@ -138,10 +143,10 @@ class RaceDebugCommand {
                 val data4 =
                     objective.getScore("lengthCircle = ${lengthCircle.roundToInt()} m nowLength = ${(lengthCircle / 360 * totalDegree).roundToInt()} m")
                 data4.score = 3
-                val degree = Lang.getComponent("scoreboard-now-lap-and-now-degree", sender.locale(), currentLap.toString(), totalDegree.toString())
+                val degree = Lang.getComponent("scoreboard-now-lap-and-now-degree", locale, currentLap.toString(), totalDegree.toString())
                 val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(degree))
                 displayDegree.score = 2
-                val residue = objective.getScore(Lang.getText("time-remaining", sender.locale(), (180 - counter).toString()))
+                val residue = objective.getScore(Lang.getText("time-remaining", locale, (180 - counter).toString()))
                 residue.score = 1
                 sender.scoreboard = scoreboard
                 counter++

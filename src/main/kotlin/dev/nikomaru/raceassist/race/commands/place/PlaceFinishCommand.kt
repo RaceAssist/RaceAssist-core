@@ -25,13 +25,18 @@ import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceFinishCommand {
     @CommandPermission("RaceAssist.commands.place.finish")
     @CommandMethod("finish")
-    fun finish(sender: Player) {
+    fun finish(sender: CommandSender) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (canSetOutsideCircuit[sender.uniqueId] == true && canSetInsideCircuit[sender.uniqueId] == true) {
                 sender.sendMessage(Lang.getComponent("now-you-not-setting-mode", sender.locale()))

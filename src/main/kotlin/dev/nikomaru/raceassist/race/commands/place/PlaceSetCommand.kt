@@ -28,15 +28,20 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getInsideRaceExist
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceSetCommand {
     @CommandPermission("RaceAssist.commands.place.set")
     @CommandMethod("set <raceId> <type>")
-    fun set(sender: Player,
+    fun set(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "type", suggestions = "placeType") type: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
 
             if (!getRaceExist(raceId)) {

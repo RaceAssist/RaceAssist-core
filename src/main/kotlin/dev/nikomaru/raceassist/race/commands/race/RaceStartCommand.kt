@@ -21,6 +21,8 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.bet.commands.BetReturnCommand
+import dev.nikomaru.raceassist.bet.commands.BetReturnCommand.Companion.canReturn
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.CommandUtils
@@ -32,6 +34,7 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.utils.CommandUtils.getCircuitExist
 import dev.nikomaru.raceassist.utils.CommandUtils.getGoalDegree
 import dev.nikomaru.raceassist.utils.CommandUtils.getLapCount
+import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
 import dev.nikomaru.raceassist.utils.CommandUtils.getPolygon
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
 import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
@@ -49,6 +52,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.DisplaySlot
 import org.json.simple.JSONArray
@@ -64,37 +68,38 @@ class RaceStartCommand {
 
     @CommandPermission("RaceAssist.commands.race.start")
     @CommandMethod("start <raceId>")
-    fun start(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun start(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+
             if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
-                sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
+                sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
             val jockeys: ArrayList<Player> = ArrayList()
             getAllJockeys(raceId).forEach { jockey ->
                 if (jockey.isOnline) {
                     jockeys.add(jockey as Player)
-                    sender.sendMessage(Lang.getComponent("player-join", sender.locale(), jockey.name))
+                    sender.sendMessage(Lang.getComponent("player-join", locale, jockey.name))
                 } else {
-                    sender.sendMessage(Lang.getComponent("player-is-offline", sender.locale(), jockey.name))
+                    sender.sendMessage(Lang.getComponent("player-is-offline", locale, jockey.name))
                 }
             }
             if (jockeys.size < 2) {
-                sender.sendMessage(Lang.getComponent("over-two-users-need", sender.locale()))
+                sender.sendMessage(Lang.getComponent("over-two-users-need", locale))
                 return@launch
             }
 
             val centralXPoint: Int =
-                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
-                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree",
-                sender.locale(),
+                locale,
                 TextColor.color(NamedTextColor.YELLOW)))
 
             if (goalDegree % 90 != 0) {
-                sender.sendMessage(Lang.getComponent("goal-degree-must-multiple-90", sender.locale()))
+                sender.sendMessage(Lang.getComponent("goal-degree-must-multiple-90", locale))
                 return@launch
             }
 
@@ -105,6 +110,7 @@ class RaceStartCommand {
             val currentLap: HashMap<UUID, Int> = HashMap()
             val threshold = Config.threshold!!
             val raceAudience: TreeSet<UUID> = TreeSet()
+            var suspend = false
 
             val passBorders: HashMap<UUID, Int> = HashMap()
             val time: HashMap<UUID, Int> = HashMap()
@@ -126,7 +132,9 @@ class RaceStartCommand {
             jockeys.forEach {
                 audiences.add(it)
             }
-            audiences.add(sender)
+            if (sender is Player) {
+                audiences.add(sender)
+            }
             audiences.getUUID().forEach {
                 raceAudience.add(it)
             }
@@ -185,8 +193,18 @@ class RaceStartCommand {
             })
 
             //レースの処理
-            while (jockeys.size >= 1 && stop[raceId] != true) {
-
+            while (true) {
+                if (jockeys.size < 1) {
+                    canReturn[raceId] = true
+                    val betReturnCommand = BetReturnCommand()
+                    betReturnCommand.returnBet(sender, raceId, Bukkit.getOfflinePlayer(finishJockey[0]).name.toString())
+                    break
+                }
+                if (stop[raceId] == true) {
+                    suspend = true
+                    audiences.sendMessageI18n("suspended-race")
+                    break
+                }
                 val iterator = jockeys.iterator()
                 while (iterator.hasNext()) {
                     val player: Player = iterator.next()
@@ -251,7 +269,7 @@ class RaceStartCommand {
 
             withContext(Dispatchers.IO) {
                 if (Config.discordWebHook != null) {
-                    sendWebHook(finishJockey, time, sender.uniqueId, raceId)
+                    sendWebHook(finishJockey, time, getOwner(raceId)!!, raceId, suspend)
                 }
             }
             Bukkit.getOnlinePlayers().forEach {
@@ -261,7 +279,7 @@ class RaceStartCommand {
         }
     }
 
-    private fun sendWebHook(finishJockey: ArrayList<UUID>, time: HashMap<UUID, Int>, starter: UUID, raceId: String) {
+    private fun sendWebHook(finishJockey: ArrayList<UUID>, time: HashMap<UUID, Int>, starter: UUID, raceId: String, suspend: Boolean) {
         val json = JSONObject()
         json["username"] = "RaceAssist"
         json["avatar_url"] = "https://3.bp.blogspot.com/-Y3AVYVjLcPs/UYiNxIliDxI/AAAAAAAARSg/nZLIqBRUta8/s800/animal_uma.png"
@@ -269,7 +287,7 @@ class RaceStartCommand {
         val embeds = JSONArray()
         val author = JSONObject()
         val embedsObject = JSONObject()
-        embedsObject["title"] = Lang.getText("discord-webhook-race-result", Locale.getDefault())
+        embedsObject["title"] = if (suspend) "RaceAssist_suspend" else "RaceAssist"
         author["name"] = Lang.getText("discord-webhook-name", Locale.getDefault(), Bukkit.getOfflinePlayer(starter).name, raceId)
         author["icon_url"] = "https://crafthead.net/avatar/$starter"
         embedsObject["author"] = author

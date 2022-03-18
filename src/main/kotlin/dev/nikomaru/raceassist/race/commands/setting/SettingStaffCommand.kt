@@ -27,49 +27,53 @@ import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import java.util.*
 
 @CommandMethod("ra|RaceAssist setting")
 @CommandPermission("RaceAssist.commands.setting.staff")
 class SettingStaffCommand {
 
     @CommandMethod("staff add <raceId> <playerName>")
-    fun addStaff(sender: Player,
+    fun addStaff(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             val target = Bukkit.getOfflinePlayer(playerName)
             if (returnCanSetPlayer(target, sender, playerName)) return@launch
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
             if (RaceStaffUtils.addStaff(raceId, target.uniqueId)) {
-                sender.sendMessage(Lang.getComponent("add-staff", sender.locale()))
+                sender.sendMessage(Lang.getComponent("add-staff", locale))
             } else {
-                sender.sendMessage(Lang.getComponent("already-added-staff", sender.locale()))
+                sender.sendMessage(Lang.getComponent("already-added-staff", locale))
             }
         }
     }
 
     @CommandMethod("staff remove <raceId> <playerName>")
-    fun removeStaff(sender: Player,
+    fun removeStaff(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             val target = Bukkit.getOfflinePlayer(playerName)
             if (returnCanSetPlayer(target, sender, playerName)) return@launch
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
             if (getOwner(raceId) == target.uniqueId) {
-                return@launch sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", sender.locale()))
+                return@launch sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
             }
             if (RaceStaffUtils.removeStaff(raceId, target.uniqueId)) {
-                sender.sendMessage(Lang.getComponent("delete-staff", sender.locale()))
+                sender.sendMessage(Lang.getComponent("delete-staff", locale))
             } else {
-                sender.sendMessage(Lang.getComponent("not-find-staff", sender.locale()))
+                sender.sendMessage(Lang.getComponent("not-find-staff", locale))
             }
         }
     }
 
     @CommandMethod("staff list <raceId>")
-    fun listStaff(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun listStaff(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             RaceStaffUtils.getStaff(raceId).forEach {
@@ -78,9 +82,10 @@ class SettingStaffCommand {
         }
     }
 
-    private fun returnCanSetPlayer(target: OfflinePlayer, sender: Player, playerName: String): Boolean {
+    private fun returnCanSetPlayer(target: OfflinePlayer, sender: CommandSender, playerName: String): Boolean {
         if (!target.hasPlayedBefore()) {
-            sender.sendMessage(Lang.getComponent("not-exsist-staff-this-player", sender.locale(), playerName, sender.locale()))
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+            sender.sendMessage(Lang.getComponent("not-exsist-staff-this-player", locale, playerName, locale))
             return true
         }
         return false

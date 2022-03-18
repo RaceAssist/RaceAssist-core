@@ -28,6 +28,7 @@ import dev.nikomaru.raceassist.utils.TempBetData
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -36,7 +37,11 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 class BetOpenCommand {
     @CommandPermission("RaceAssist.commands.bet.open")
     @CommandMethod("open <raceId>")
-    fun openVending(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun openVending(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (!raceExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))

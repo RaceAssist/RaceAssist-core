@@ -26,6 +26,7 @@ import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -35,7 +36,11 @@ import java.util.*
 class SettingDeleteCommand {
     @CommandPermission("RaceAssist.commands.setting.delete")
     @CommandMethod("delete <raceId>")
-    fun delete(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun delete(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             if (canDelete[sender.uniqueId] == true) {

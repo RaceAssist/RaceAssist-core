@@ -25,16 +25,19 @@ import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import java.util.*
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceListCommand {
     @CommandPermission("RaceAssist.commands.audience.list")
     @CommandMethod("list <raceId>")
-    private fun list(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    private fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
         RaceAssist.plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
-            sender.sendMessage(Lang.getComponent("participants-list", sender.locale()))
+            sender.sendMessage(Lang.getComponent("participants-list", locale))
             CommandUtils.audience[raceId]?.forEach {
                 sender.sendMessage(Bukkit.getOfflinePlayer(it).name.toString())
             }

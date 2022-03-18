@@ -29,6 +29,7 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -39,7 +40,13 @@ class SettingCopyCommand {
 
     @CommandPermission("RaceAssist.commands.setting.copy")
     @CommandMethod("copy <raceId_1> <raceId_2>")
-    fun copy(sender: Player, @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String, @Argument(value = "raceId_2") raceId_2: String) {
+    fun copy(sender: CommandSender,
+        @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String,
+        @Argument(value = "raceId_2") raceId_2: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         plugin.launch {
             if (getOwner(raceId_2) != null) {
                 sender.sendMessage(Lang.getComponent("already-used-the-name-race", sender.locale()))

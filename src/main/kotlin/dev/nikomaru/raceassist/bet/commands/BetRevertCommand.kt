@@ -22,8 +22,8 @@ import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent.Companion.getBetOwner
 import dev.nikomaru.raceassist.database.BetList
-import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -31,7 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.milkbowl.vault.economy.Economy
-import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
@@ -42,14 +42,14 @@ import java.util.*
 class BetRevertCommand {
     @CommandPermission("RaceAssist.commands.bet.revert")
     @CommandMethod("revert <raceId>")
-    fun revert(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun revert(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         val eco: Economy = VaultAPI.getEconomy()
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             withContext(Dispatchers.IO) {
-                if (!raceExist(raceId)) {
-                    sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
-                    return@withContext
-                }
                 if (returnRaceSetting(raceId, sender)) return@withContext
                 if (eco.getBalance(sender) < getBetSum(raceId)) {
                     sender.sendMessage(Lang.getComponent("no-have-money", sender.locale()))
@@ -62,13 +62,12 @@ class BetRevertCommand {
                 newSuspendedTransaction(Dispatchers.IO) {
 
                     BetList.select { BetList.raceId eq raceId }.forEach {
-                        val receiver = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID].toString()))
+                        val receiver = getBetOwner(raceId)
                         withContext(minecraft) {
                             eco.withdrawPlayer(sender, it[BetList.betting].toDouble())
                             eco.depositPlayer(receiver, it[BetList.betting].toDouble())
                         }
                         sender.sendMessage(Lang.getComponent("bet-revert-return-message-owner", sender.locale(), receiver.name, it[BetList.betting]))
-
                         if (receiver.isOnline) {
                             (receiver as Player).sendMessage(Lang.getComponent("bet-revert-return-message-player",
                                 receiver.locale(),
@@ -88,14 +87,6 @@ class BetRevertCommand {
                 canRevert.remove(sender.uniqueId)
             }
         }
-    }
-
-    private suspend fun raceExist(raceId: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
-        }
-        return exist
     }
 
     private suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {

@@ -26,6 +26,7 @@ import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
@@ -34,9 +35,13 @@ import org.jetbrains.exposed.sql.update
 class PlaceLapCommand {
     @CommandPermission("RaceAssist.commands.place.lap")
     @CommandMethod("lap <raceId> <lap>")
-    fun setLap(sender: Player,
+    fun setLap(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 

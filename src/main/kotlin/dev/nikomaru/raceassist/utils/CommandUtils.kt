@@ -32,6 +32,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.command.CommandSender
+import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
@@ -89,7 +91,11 @@ object CommandUtils {
         }
     }
 
-    suspend fun returnRaceSetting(raceId: String, player: Player) = withContext(Dispatchers.IO) {
+    suspend fun returnRaceSetting(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
+        if (player is ConsoleCommandSender) {
+            return@withContext true
+        }
+        (player as Player)
         if (!raceExist(raceId)) {
             player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale()))
             return@withContext true

@@ -27,6 +27,7 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -35,7 +36,11 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 class SettingCreateCommand {
     @CommandPermission("RaceAssist.commands.setting.create")
     @CommandMethod("create <raceId>")
-    fun create(sender: Player, @Argument(value = "raceId") raceId: String) {
+    fun create(sender: CommandSender, @Argument(value = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         plugin.launch {
             if (getOwner(raceId) != null) {
                 sender.sendMessage(Lang.getComponent("already-used-the-name-race", sender.locale()))

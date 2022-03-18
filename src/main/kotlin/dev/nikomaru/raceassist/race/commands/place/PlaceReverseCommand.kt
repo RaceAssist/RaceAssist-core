@@ -26,6 +26,7 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getDirection
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
@@ -34,8 +35,11 @@ import org.jetbrains.exposed.sql.update
 class PlaceReverseCommand {
     @CommandPermission("RaceAssist.commands.place.reverse")
     @CommandMethod("reverse <raceId>")
-    fun reverse(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-
+    fun reverse(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
             val nowDirection = getDirection(raceId)

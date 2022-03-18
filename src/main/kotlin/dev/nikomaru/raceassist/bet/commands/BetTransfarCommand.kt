@@ -14,61 +14,49 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands.player
+package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils
-import dev.nikomaru.raceassist.utils.CommandUtils.getRacePlayerAmount
-import dev.nikomaru.raceassist.utils.CommandUtils.getRacePlayerExist
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.update
 import java.util.*
 
-@CommandMethod("ra|RaceAssist player")
-class PlayerAddCommand {
-
-    @CommandPermission("RaceAssist.commands.player.add")
-    @CommandMethod("add <raceId> <playerName>")
-    private fun addPlayer(sender: CommandSender,
+@CommandMethod("ra|RaceAssist bet")
+class BetTransfarCommand {
+    @CommandPermission("RaceAssist.commands.bet.transfar")
+    @CommandMethod("transfar <raceId> <playerName>")
+    fun transfer(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-
-        val jockey: OfflinePlayer = Bukkit.getOfflinePlayer(playerName)
-
-        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        if (!jockey.hasPlayedBefore()) {
-            sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-            return
-        }
-
-        RaceAssist.plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            if (getRacePlayerExist(raceId, jockey.uniqueId)) {
-                sender.sendMessage(Lang.getComponent("already-exist-this-user", locale))
-                return@launch
+        plugin.launch {
+            withContext(Dispatchers.IO) {
+                if (CommandUtils.returnRaceSetting(raceId, sender)) return@withContext
             }
-            if (getRacePlayerAmount(raceId) > 7) {
-                sender.sendMessage(Lang.getComponent("max-player-is-eight", locale))
+            val player: OfflinePlayer = Bukkit.getOfflinePlayer(playerName)
+
+            if (!player.hasPlayedBefore()) {
+                val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+                sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
                 return@launch
             }
             newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.insert {
-                    it[this.raceId] = raceId
-                    it[playerUUID] = jockey.uniqueId.toString()
+                BetSetting.update({ BetSetting.raceId eq raceId }) {
+                    it[creator] = player.uniqueId.toString()
                 }
             }
-            sender.sendMessage(Lang.getComponent("player-add-to-race-group", locale, jockey.name.toString(), raceId))
         }
     }
 }

@@ -25,13 +25,18 @@ import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
 import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceCentralCommand {
     @CommandPermission("RaceAssist.commands.place.central")
     @CommandMethod("central <raceId>")
-    fun central(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun central(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
             canSetCentral[sender.uniqueId] = true

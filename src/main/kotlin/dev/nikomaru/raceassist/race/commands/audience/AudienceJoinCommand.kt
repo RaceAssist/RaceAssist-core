@@ -24,13 +24,18 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.Lang
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceJoinCommand {
     @CommandPermission("RaceAssist.commands.audience.join")
     @CommandMethod("join <raceId>")
-    private fun join(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    private fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (!getRaceExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("not-found-this-race", sender.locale()))

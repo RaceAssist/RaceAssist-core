@@ -25,35 +25,49 @@ import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
+import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetCanCommand {
     @CommandPermission("RaceAssist.commands.bet.can")
     @CommandMethod("can <raceId> <type>")
-    fun setCanBet(player: Player,
+    fun setCanBet(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "type", suggestions = "betType") type: String) {
         RaceAssist.plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, player)) return@launch
+            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             if (type == "on") {
-                newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.update({ BetSetting.raceId eq raceId }) {
-                        it[canBet] = true
-                    }
-                }
-                player.sendMessage(Lang.getComponent("can-bet-this-raceid", player.locale(), raceId))
+                setCanBet(raceId, sender)
             } else if (type == "off") {
-                newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.update({ BetSetting.raceId eq raceId }) {
-                        it[canBet] = false
-                    }
-                }
-                player.sendMessage(Lang.getComponent("cannot-bet-this-raceid", player.locale(), raceId))
+                setCannotBet(raceId, sender)
             }
         }
     }
 
+    private suspend fun setCanBet(raceId: String, sender: CommandSender) {
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetSetting.update({ BetSetting.raceId eq raceId }) {
+                it[canBet] = true
+            }
+        }
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        sender.sendMessage(Lang.getComponent("can-bet-this-raceid", locale, raceId))
+    }
+
+    companion object {
+        suspend fun setCannotBet(raceId: String, sender: CommandSender) {
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetSetting.update({ BetSetting.raceId eq raceId }) {
+                    it[canBet] = false
+                }
+            }
+
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+            sender.sendMessage(Lang.getComponent("cannot-bet-this-raceid", locale, raceId))
+        }
+    }
 }

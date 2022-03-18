@@ -25,7 +25,7 @@ import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.utils.CommandUtils
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
+import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
@@ -35,7 +35,7 @@ class PlayerListCommand {
 
     @CommandPermission("RaceAssist.commands.player.list")
     @CommandMethod("list <raceId>")
-    private fun displayPlayerList(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    private fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         RaceAssist.plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 

@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -41,7 +42,11 @@ import java.util.*
 class BetRemoveCommand {
     @CommandPermission("RaceAssist.commands.bet.revert")
     @CommandMethod("remove <raceId> <betId>")
-    fun remove(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "betId") betId: Int) {
+    fun remove(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "betId") betId: Int) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         val eco: Economy = VaultAPI.getEconomy()
         RaceAssist.plugin.launch {
             withContext(Dispatchers.IO) {

@@ -45,7 +45,7 @@ class HelpCommand {
             <color:yellow><click:suggest_command:'/ra bet open'><color:#92fe9d>/ra bet open <raceId></click> 賭け画面を開く
             """.trimIndent()
         }
-        sender.sendMessage(MiniMessage.get().parse(message))
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(message))
     }
 
     @CommandMethod("help <tag>")
@@ -120,7 +120,7 @@ class HelpCommand {
                 ""
             }
         }
-        sender.sendMessage(MiniMessage.get().parse(message))
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(message))
 
     }
 }

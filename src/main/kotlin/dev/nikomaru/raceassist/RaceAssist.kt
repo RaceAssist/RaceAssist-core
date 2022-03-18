@@ -46,7 +46,6 @@ import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
-import net.luckperms.api.LuckPerms
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -76,7 +75,6 @@ class RaceAssist : SuspendingJavaPlugin() {
             server.pluginManager.disablePlugin(this)
             return
         }
-        luckperms = plugin.server.servicesManager.load(LuckPerms::class.java)!!
     }
 
     private fun settingDatabase() {
@@ -144,6 +142,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         annotationParser.parse(BetSheetCommand())
         annotationParser.parse(BetRemoveCommand())
         annotationParser.parse(BetReturnCommand())
+        annotationParser.parse(BetTransfarCommand())
 
         annotationParser.parse(SettingCreateCommand())
         annotationParser.parse(SettingDeleteCommand())
@@ -163,8 +162,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     companion object {
         lateinit var plugin: RaceAssist
             private set
-        lateinit var luckperms: LuckPerms
-            private set
+
     }
 }
 

@@ -30,6 +30,7 @@ import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
@@ -38,7 +39,11 @@ import org.jetbrains.exposed.sql.update
 class PlaceDegreeCommand {
     @CommandPermission("RaceAssist.commands.place.degree")
     @CommandMethod("degree <raceId>")
-    fun degree(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun degree(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
         RaceAssist.plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
             val centralXPoint = getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
@@ -47,8 +52,7 @@ class PlaceDegreeCommand {
             val centralYPoint = getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
                 sender.locale(),
                 TextColor.color(NamedTextColor.RED)))
-            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set",
-                sender.locale(),
+            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set", sender.locale(),
                 TextColor.color(NamedTextColor.RED)))
             val nowX = sender.location.blockX
             val nowY = sender.location.blockZ

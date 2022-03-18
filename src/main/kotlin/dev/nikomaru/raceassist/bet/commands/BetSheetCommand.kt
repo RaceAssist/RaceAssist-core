@@ -28,11 +28,9 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
-import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.select
+import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
 
@@ -40,13 +38,9 @@ import org.jetbrains.exposed.sql.update
 class BetSheetCommand {
     @CommandPermission("RaceAssist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
-    fun sheet(sender: Player, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "sheet") sheetId: String) {
+    fun sheet(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "sheet") sheetId: String) {
         RaceAssist.plugin.launch {
             withContext(Dispatchers.IO) {
-                if (!raceExist(raceId)) {
-                    sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
-                    return@withContext
-                }
                 if (returnRaceSetting(raceId, sender)) return@withContext
             }
             newSuspendedTransaction(Dispatchers.IO) {
@@ -82,11 +76,4 @@ class BetSheetCommand {
         sheetsService.spreadsheets()?.batchUpdate(sheetId, content)?.execute()
     }
 
-    private suspend fun raceExist(raceId: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
-        }
-        return exist
-    }
 }

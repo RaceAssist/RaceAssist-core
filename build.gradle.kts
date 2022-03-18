@@ -24,16 +24,16 @@ repositories {
     maven("https://repo.incendo.org/content/repositories/snapshots")
 }
 
-val exposedVersion: String by project
+val exposedVersion = findProperty("exposedVersion") as String
+val cloudVersion = findProperty("cloudVersion") as String
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("cloud.commandframework:cloud-core:1.6.1")
-    implementation("cloud.commandframework:cloud-kotlin-extensions:1.6.1")
-    implementation("cloud.commandframework:cloud-paper:1.6.1")
-    implementation("cloud.commandframework:cloud-annotations:1.6.1")
-    implementation("net.kyori:adventure-platform-bukkit:4.0.1")
+    implementation("cloud.commandframework:cloud-core:$cloudVersion")
+    implementation("cloud.commandframework:cloud-kotlin-extensions:$cloudVersion")
+    implementation("cloud.commandframework:cloud-paper:$cloudVersion")
+    implementation("cloud.commandframework:cloud-annotations:$cloudVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
@@ -43,12 +43,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("com.google.api-client:google-api-client:1.33.2")
-    implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.0")
-    implementation("com.google.apis:google-api-services-sheets:v4-rev20210629-1.32.1")
-    implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT")
-    compileOnly("net.luckperms:api:5.4")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.1")
+    implementation("com.google.apis:google-api-services-sheets:v4-rev20220221-1.32.1")
     library(kotlin("stdlib"))
-    library("com.google.code.gson", "gson", "2.8.7")
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 }
 
@@ -58,17 +55,11 @@ java {
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "11"
+        kotlinOptions.jvmTarget = "17"
         kotlinOptions.javaParameters = true
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "11"
-    }
-
-    shadowJar {
-        relocate("co.aikar.commands", "dev.nikomaru.receassist.acf")
-        relocate("co.aikar.locales", "dev.nikomaru.raceassist.acf.locales")
-        archiveClassifier.set("")
+        kotlinOptions.jvmTarget = "17"
     }
     build {
         dependsOn(shadowJar)
@@ -105,7 +96,35 @@ bukkit {
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            children = listOf("RaceAssist.commands.*")
+            children = listOf("RaceAssist.commands.audience.join",
+                "RaceAssist.commands.audience.leave",
+                "RaceAssist.commands.audience.list",
+                "RaceAssist.commands.bet.can",
+                "RaceAssist.commands.bet.delete",
+                "RaceAssist.commands.bet.list",
+                "RaceAssist.commands.bet.open",
+                "RaceAssist.commands.bet.rate",
+                "RaceAssist.commands.bet.revert",
+                "RaceAssist.commands.bet.return",
+                "RaceAssist.commands.bet.remove",
+                "RaceAssist.commands.bet.sheet",
+                "RaceAssist.commands.place.reverse",
+                "RaceAssist.commands.place.central",
+                "RaceAssist.commands.place.degree",
+                "RaceAssist.commands.place.lap",
+                "RaceAssist.commands.place.set",
+                "RaceAssist.commands.place.finish",
+                "RaceAssist.commands.player.add",
+                "RaceAssist.commands.player.remove",
+                "RaceAssist.commands.player.delete",
+                "RaceAssist.commands.player.list",
+                "RaceAssist.commands.race.start",
+                "RaceAssist.commands.race.debug",
+                "RaceAssist.commands.race.stop",
+                "RaceAssist.commands.setting.create",
+                "RaceAssist.commands.setting.delete",
+                "RaceAssist.commands.setting.copy",
+                "RaceAssist.commands.setting.staff")
         }
         register("RaceAssist.user") {
             default = Default.TRUE
