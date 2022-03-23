@@ -16,26 +16,46 @@
 
 package dev.nikomaru.raceassist.utils
 
+import com.github.shynixn.mccoroutine.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import java.io.File
+import java.io.InputStreamReader
 import java.text.MessageFormat
 import java.util.*
 
 object Lang {
     private val langList: HashMap<String, Properties> = HashMap()
 
-    suspend fun load() {
-        withContext(Dispatchers.IO) {
-            val lang = listOf("ja_JP")
+    fun load() {
+        plugin.launch {
+            withContext(Dispatchers.IO) {
+                val lang = listOf("ja_JP")
 
-            lang.forEach { locale ->
-                val conf = Properties()
-                conf.load(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties"))
-                langList[locale] = conf
+                lang.forEach { locale ->
+                    val conf = Properties()
+                    conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!, "UTF-8"))
+                    langList[locale] = conf
+                }
+                if (!plugin.dataFolder.exists()) {
+                    plugin.dataFolder.mkdir()
+                }
+                val pluginDir = File(plugin.dataFolder, "lang")
+                if (!pluginDir.exists()) {
+                    pluginDir.mkdir()
+                }
+                withContext(Dispatchers.IO) {
+                    pluginDir.listFiles()?.forEach {
+                        langList[it.nameWithoutExtension] = Properties().apply {
+                            plugin.logger.info("Loading lang file for ${it.nameWithoutExtension}")
+                            load(InputStreamReader(it.inputStream(), "UTF-8"))
+                        }
+                    }
+                }
             }
-
         }
     }
 

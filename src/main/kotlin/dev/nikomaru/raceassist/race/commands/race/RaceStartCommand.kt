@@ -198,6 +198,7 @@ class RaceStartCommand {
                     canReturn[raceId] = true
                     val betReturnCommand = BetReturnCommand()
                     betReturnCommand.returnBet(sender, raceId, Bukkit.getOfflinePlayer(finishJockey[0]).name.toString())
+                    canReturn[raceId] = false
                     break
                 }
                 if (stop[raceId] == true) {

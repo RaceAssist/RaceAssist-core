@@ -18,7 +18,6 @@ package dev.nikomaru.raceassist
 import cloud.commandframework.bukkit.CloudBukkitCapabilities
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
 import cloud.commandframework.meta.SimpleCommandMeta
-import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.commands.*
@@ -48,13 +47,14 @@ import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-class RaceAssist : SuspendingJavaPlugin() {
+class RaceAssist : JavaPlugin() {
 
-    override suspend fun onEnableAsync() {
+    override fun onEnable() {
         // Plugin startup logic
         plugin = this
         Lang.load()
@@ -84,7 +84,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         }
     }
 
-    override suspend fun onDisableAsync() {
+    override fun onDisable() {
         // Plugin shutdown logic
     }
 

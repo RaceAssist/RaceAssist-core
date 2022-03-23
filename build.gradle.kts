@@ -36,8 +36,8 @@ dependencies {
     implementation("cloud.commandframework:cloud-annotations:$cloudVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.6.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.6.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
@@ -66,20 +66,6 @@ tasks {
     }
 }
 
-tasks {
-    runServer {
-        minecraftVersion("1.18.1")
-    }
-}
-
-sonarqube {
-    properties {
-        property("sonar.projectKey", "Nlkomaru_RaceAssist-advance")
-        property("sonar.organization", "nlkomaru")
-        property("sonar.host.url", "https://sonarcloud.io")
-    }
-}
-
 
 bukkit {
     name = "RaceAssist"
@@ -90,7 +76,7 @@ bukkit {
 
     apiVersion = "1.18"
     softDepend = listOf("Vault")
-    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
+    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.6.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.6.0")
 
 
     permissions {
