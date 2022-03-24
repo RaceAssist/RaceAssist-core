@@ -52,7 +52,8 @@ class PlaceDegreeCommand {
             val centralYPoint = getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
                 sender.locale(),
                 TextColor.color(NamedTextColor.RED)))
-            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set", sender.locale(),
+            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set",
+                sender.locale(),
                 TextColor.color(NamedTextColor.RED)))
             val nowX = sender.location.blockX
             val nowY = sender.location.blockZ

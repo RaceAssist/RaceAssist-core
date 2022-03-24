@@ -61,6 +61,10 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "17"
     }
+    shadowJar {
+        relocate("cloud.commandframework", "dev.nikomaru.receassist.shaded.cloud")
+        relocate("io.leangen.geantyref", "dev.nikomaru.receassist.shaded.typetoken")
+    }
     build {
         dependsOn(shadowJar)
     }

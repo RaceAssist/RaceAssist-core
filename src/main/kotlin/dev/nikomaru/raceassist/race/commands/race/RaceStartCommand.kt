@@ -194,6 +194,7 @@ class RaceStartCommand {
 
             //レースの処理
             while (true) {
+                //正常時の終了
                 if (jockeys.size < 1) {
                     canReturn[raceId] = true
                     val betReturnCommand = BetReturnCommand()
@@ -201,12 +202,14 @@ class RaceStartCommand {
                     canReturn[raceId] = false
                     break
                 }
+                //stopコマンドによる終了
                 if (stop[raceId] == true) {
                     suspend = true
                     audiences.sendMessageI18n("suspended-race")
                     break
                 }
                 val iterator = jockeys.iterator()
+                //各騎手の位置の取得
                 while (iterator.hasNext()) {
                     val player: Player = iterator.next()
                     if (!player.isOnline) {
@@ -222,6 +225,7 @@ class RaceStartCommand {
                     val uuid = player.uniqueId
 
                     val beforeLap = currentLap[uuid]
+                    //ラップの計算
                     val calculateLap = async(Dispatchers.Default) {
                         currentLap[uuid] = currentLap[uuid]!! + judgeLap(goalDegree, beforeDegree[uuid], currentDegree, threshold)
                         passBorders[uuid] = passBorders[uuid]!! + judgeLap(0, beforeDegree[uuid], currentDegree, threshold)
@@ -230,12 +234,14 @@ class RaceStartCommand {
                         totalDegree[uuid] = currentDegree + (passBorders[uuid]!! * 360)
                     }
 
+                    //コース内にいるか判断
                     if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
                         player.sendActionBar(Lang.getComponent("outside-the-racetrack", player.locale()))
                     }
 
                     calculateLap.await()
 
+                    //ゴールした時の処理
                     if (currentLap[uuid]!! >= lap) {
                         iterator.remove()
                         finishJockey.add(uuid)
@@ -247,6 +253,7 @@ class RaceStartCommand {
                         continue
                     }
                 }
+                //順位の表示
                 val displayRanking = async(minecraft) {
 
                     displayScoreboard(finishJockey.plus(decideRanking(totalDegree)),
@@ -260,13 +267,13 @@ class RaceStartCommand {
                 delay(200)
                 displayRanking.await()
             }
+            //終了時の処理
             audiences.showTitleI18n("finish-race")
             delay(2000)
 
             for (i in 0 until finishJockey.size) {
                 audiences.sendMessageI18n("to-notice-ranking-message", i + 1, Bukkit.getPlayer(finishJockey[i])?.name!!)
             }
-
 
             withContext(Dispatchers.IO) {
                 if (Config.discordWebHook != null) {

@@ -43,14 +43,14 @@ object Lang {
                 if (!plugin.dataFolder.exists()) {
                     plugin.dataFolder.mkdir()
                 }
-                val pluginDir = File(plugin.dataFolder, "lang")
-                if (!pluginDir.exists()) {
-                    pluginDir.mkdir()
+                val langDir = File(plugin.dataFolder, "lang")
+                if (!langDir.exists()) {
+                    langDir.mkdir()
                 }
                 withContext(Dispatchers.IO) {
-                    pluginDir.listFiles()?.forEach {
+                    langDir.listFiles()?.forEach {
+                        plugin.logger.info("Loading lang file for ${it.nameWithoutExtension}")
                         langList[it.nameWithoutExtension] = Properties().apply {
-                            plugin.logger.info("Loading lang file for ${it.nameWithoutExtension}")
                             load(InputStreamReader(it.inputStream(), "UTF-8"))
                         }
                     }
