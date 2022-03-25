@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
@@ -47,11 +48,17 @@ class BetTransfarCommand {
             }
             val player: OfflinePlayer = Bukkit.getOfflinePlayer(playerName)
 
+            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
             if (!player.hasPlayedBefore()) {
-                val locale = if (sender is Player) sender.locale() else Locale.getDefault()
                 sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
                 return@launch
             }
+
+            if (!RaceStaffUtils.existStaff(raceId, player.uniqueId)) {
+                sender.sendMessage(Lang.getComponent("cant-set-not-staff", locale))
+                return@launch
+            }
+
             newSuspendedTransaction(Dispatchers.IO) {
                 BetSetting.update({ BetSetting.raceId eq raceId }) {
                     it[creator] = player.uniqueId.toString()
