@@ -4,6 +4,11 @@
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+
+## Wiki
+
+[Wiki](https://github.com/Nlkomaru/RaceAssist-core/wiki)
+
 ## structure
 atanを使用してθを求めその差により順位決定をするためレース場は一周し交差のない形である必要があります。<br>
 今後、交差させたレース場にも対応させるためベクトルによる算出に置き換える予定です。
