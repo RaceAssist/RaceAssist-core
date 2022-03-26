@@ -21,17 +21,10 @@ plugins/RaceAssist/Lang内に翻訳されたpropertiesファイルを入れる�
 標準ではja_JPを使用します。
 
 [crowdin](https://crowdin.com/project/raceassist)<br>
-`de_DE` : translate by DeepL API<br>
-`en_US` : translate by DeepL API<br>
-`fr_FR` : translate by DeepL API<br>
-`he_IL`: translate by Google translate API<br>
-`ja_JP` : Original <br>
-`ko_KR`: translate by Google translate API<br>
-`pt_PT` : translate by DeepL API<br>
-`tok` : WIP<br>
-`zh_CN` : translate by DeepL API<br>
-`zh_TW`: translate by Google translate API<br>
+
 
 ## License
+
+[GPLv3ライセンス](https://github.com/Nlkomaru/RaceAssist-core/blob/master/LICENSE)での公開です。ソースコードの使用規約等はGPLv3ライセンスに従います。
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-core.svg?type=large)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-core?ref=badge_large)
