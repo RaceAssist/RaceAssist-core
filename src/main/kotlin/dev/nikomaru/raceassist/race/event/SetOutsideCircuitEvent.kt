@@ -19,8 +19,6 @@ import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -35,12 +33,12 @@ class SetOutsideCircuitEvent : Listener {
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(Lang.getComponent("to-suspend-process", player.locale(), TextColor.color(YELLOW)))
+            player.sendMessage(Lang.getComponent("to-suspend-process", player.locale()))
             canSetOutsideCircuit.remove(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
-            event.player.sendMessage(Lang.getComponent("to-click-block", player.locale(), TextColor.color(YELLOW)))
+            event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return
         }
 

@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
@@ -48,7 +48,7 @@ class BetRemoveCommand {
             return
         }
         val eco: Economy = VaultAPI.getEconomy()
-        RaceAssist.plugin.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (returnRaceSetting(raceId, sender)) return@withContext
                 if (eco.getBalance(sender) < getBetSum(raceId)) {

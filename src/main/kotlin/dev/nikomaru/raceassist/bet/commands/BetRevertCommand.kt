@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent.Companion.getBetOwner
 import dev.nikomaru.raceassist.database.BetList
@@ -48,7 +48,7 @@ class BetRevertCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (returnRaceSetting(raceId, sender)) return@withContext
                 if (eco.getBalance(sender) < getBetSum(raceId)) {

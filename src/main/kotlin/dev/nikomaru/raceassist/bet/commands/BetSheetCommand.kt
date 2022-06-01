@@ -19,12 +19,12 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.api.services.sheets.v4.model.AddSheetRequest
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
 import com.google.api.services.sheets.v4.model.Request
 import com.google.api.services.sheets.v4.model.SheetProperties
-import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
@@ -39,7 +39,7 @@ class BetSheetCommand {
     @CommandPermission("RaceAssist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
     fun sheet(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "sheet") sheetId: String) {
-        RaceAssist.plugin.launch {
+        plugin.launch {
             withContext(Dispatchers.IO) {
                 if (returnRaceSetting(raceId, sender)) return@withContext
             }

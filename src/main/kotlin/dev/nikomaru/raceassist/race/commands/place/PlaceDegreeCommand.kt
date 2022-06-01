@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.place
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
@@ -28,8 +28,6 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -44,47 +42,39 @@ class PlaceDegreeCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
-            val centralXPoint = getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
-                sender.locale(),
-                TextColor.color(NamedTextColor.RED)))
-            val centralYPoint = getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
-                sender.locale(),
-                TextColor.color(NamedTextColor.RED)))
-            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set",
-                sender.locale(),
-                TextColor.color(NamedTextColor.RED)))
+            val centralXPoint =
+                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+            val centralYPoint =
+                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+            val reverse = getReverse(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("orientation-is-not-set", sender.locale()))
             val nowX = sender.location.blockX
             val nowY = sender.location.blockZ
             val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
             val relativeNowY = nowY - centralYPoint
-            val currentDegree = getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())
 
-            sender.sendMessage("Degree: $currentDegree")
-            var degree = 0
-            when (currentDegree) {
+            val degree = when (getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())) {
                 in 0..45 -> {
-                    sender.sendMessage(Lang.getComponent("to-set-0-degree", sender.locale()))
-                    degree = 0
+                    0
                 }
                 in 46..135 -> {
-                    sender.sendMessage(Lang.getComponent("to-set-90-degree", sender.locale()))
-                    degree = 90
+                    90
                 }
                 in 136..225 -> {
-                    sender.sendMessage(Lang.getComponent("to-set-180-degree", sender.locale()))
-                    degree = 180
+                    180
                 }
                 in 226..315 -> {
-                    sender.sendMessage(Lang.getComponent("to-set-270-degree", sender.locale()))
-                    degree = 270
+                    270
                 }
                 in 316..360 -> {
-                    sender.sendMessage(Lang.getComponent("to-set-0-degree", sender.locale()))
-                    degree = 0
+                    0
+                }
+                else -> {
+                    0
                 }
             }
+            sender.sendMessage(Lang.getComponent("to-set-degree", sender.locale(), degree))
             newSuspendedTransaction(Dispatchers.IO) {
                 RaceList.update({ RaceList.raceId eq raceId }) {
                     it[goalDegree] = degree

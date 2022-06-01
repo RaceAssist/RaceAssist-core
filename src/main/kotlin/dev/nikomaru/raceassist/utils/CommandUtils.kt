@@ -24,10 +24,7 @@ import dev.nikomaru.raceassist.database.RaceList
 import dev.nikomaru.raceassist.utils.RaceStaffUtils.existStaff
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor.BLUE
-import net.kyori.adventure.text.format.NamedTextColor.GREEN
-import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
@@ -73,11 +70,10 @@ object CommandUtils {
         }
         if (currentLap > beforeLap) {
             if (currentLap == lap - 1) {
-                player.showTitle(title((Lang.getComponent("last-lap", player.locale(), TextColor.color(GREEN))),
-                    Lang.getComponent("one-step-forward-lap", player.locale(), TextColor.color(BLUE))))
+                player.showTitle(title((Lang.getComponent("last-lap", player.locale())), Lang.getComponent("one-step-forward-lap", player.locale())))
             } else {
                 player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                    Lang.getComponent("one-step-forward-lap", player.locale(), TextColor.color(BLUE))))
+                    Lang.getComponent("one-step-forward-lap", player.locale())))
             }
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 player.clearTitle()
@@ -169,6 +165,7 @@ object CommandUtils {
         raceAudience: TreeSet<UUID>,
         innerCircumference: Int,
         startDegree: Int,
+        goalDegree: Int,
         lap: Int) {
 
         raceAudience.forEach {
@@ -183,21 +180,26 @@ object CommandUtils {
                 objective.displaySlot = DisplaySlot.SIDEBAR
 
                 for (i in nowRankings.indices) {
+
                     val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-                    val score = objective.getScore(LegacyComponentSerializer.legacySection()
-                        .serialize(Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)))
-                    score.score = nowRankings.size * 2 - 2 * i - 1
-                    val degree: Component = if (currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId] == null) {
-                        Lang.getComponent("finished-the-race", player.locale())
+                    val goalDistance = (((lap - 1).toDouble() + if (goalDegree > startDegree) {
+                        ((goalDegree.toDouble() - startDegree.toDouble()) / 360.0)
                     } else {
-                        Lang.getComponent("now-lap-and-now-length",
-                            player.locale(),
-                            currentLap[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.toInt(),
-                            lap,
-                            (currentDegree[Bukkit.getPlayer(nowRankings[i])?.uniqueId]?.minus(startDegree))?.times(innerCircumference)?.div(360))
+                        ((goalDegree.toDouble() + 360.0 - startDegree.toDouble()) / 360.0)
+                    }) * innerCircumference.toDouble()).toInt()
+
+                    val component = if (currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId] == null) {
+                        MiniMessage.miniMessage().deserialize("<color:gold>${i + 1}位</color:gold> <color:aqua>$playerName</color:aqua> ")
+                            .append(Lang.getComponent("finished-the-race", player.locale()))
+                    } else {
+                        val currentDistance =
+                            ((currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId]!!.toDouble() - startDegree.toDouble()) / 360.0 * innerCircumference.toDouble()).toInt()
+                        MiniMessage.miniMessage()
+                            .deserialize("<color:gold>${i + 1}位</color:gold> <color:aqua>$playerName</color:aqua> ${currentDistance}m/${goalDistance}m ")
                     }
-                    val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(degree))
-                    displayDegree.score = nowRankings.size * 2 - 2 * i - 2
+
+                    val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(component))
+                    displayDegree.score = nowRankings.size - i
                 }
                 player.scoreboard = scoreboard
             }

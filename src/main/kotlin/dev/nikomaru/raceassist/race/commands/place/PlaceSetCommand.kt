@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.place
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
@@ -42,7 +42,7 @@ class PlaceSetCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
 
             if (!getRaceExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))

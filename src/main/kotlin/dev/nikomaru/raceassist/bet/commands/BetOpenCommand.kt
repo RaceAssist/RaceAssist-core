@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.Lang
@@ -42,7 +42,7 @@ class BetOpenCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (!raceExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
                 return@launch

@@ -20,8 +20,8 @@ import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
@@ -40,7 +40,7 @@ class BetRateCommand {
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (returnRaceSetting(raceId, sender)) return@launch
             if (rate !in 1..100) {
                 sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", locale))
@@ -53,7 +53,6 @@ class BetRateCommand {
             }
         }
         sender.sendMessage(Lang.getComponent("change-bet-rate-message", locale, raceId, rate))
-
     }
 
 }

@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.audience
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.Lang
@@ -36,7 +36,7 @@ class AudienceJoinCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (!getRaceExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("not-found-this-race", sender.locale()))
                 return@launch

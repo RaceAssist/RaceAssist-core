@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.race
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
@@ -60,7 +60,7 @@ class RaceDebugCommand {
             return
         }
         val locale = sender.locale()
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
             if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))

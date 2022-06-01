@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.race.commands.setting
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.database.CircuitPoint
@@ -48,19 +48,18 @@ class SettingCopyCommand {
             return
         }
         plugin.launch {
+            val locale = sender.locale()
             if (getOwner(raceId_2) != null) {
-                sender.sendMessage(Lang.getComponent("already-used-the-name-race", sender.locale()))
+                sender.sendMessage(Lang.getComponent("already-used-the-name-race", locale))
                 return@launch
             }
             if (!CommandUtils.getCircuitExist(raceId_1, true) || !CommandUtils.getCircuitExist(raceId_1, false)) {
-                sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
+                sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
-            CommandUtils.getCentralPoint(raceId_1, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
-                sender.locale()))
-            CommandUtils.getCentralPoint(raceId_1, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point",
-                sender.locale()))
-            CommandUtils.getGoalDegree(raceId_1) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", sender.locale()))
+            CommandUtils.getCentralPoint(raceId_1, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+            CommandUtils.getCentralPoint(raceId_1, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+            CommandUtils.getGoalDegree(raceId_1) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", locale))
 
             newSuspendedTransaction(Dispatchers.IO) {
                 BetSetting.select { BetSetting.raceId eq raceId_1 }.forEach { before ->

@@ -18,7 +18,9 @@ package dev.nikomaru.raceassist
 import cloud.commandframework.bukkit.CloudBukkitCapabilities
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
 import cloud.commandframework.meta.SimpleCommandMeta
-import com.github.shynixn.mccoroutine.registerSuspendingEvents
+import cloud.commandframework.paper.PaperCommandManager
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
@@ -45,16 +47,17 @@ import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
 import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.plugin.java.JavaPlugin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-class RaceAssist : JavaPlugin() {
+class RaceAssist : SuspendingJavaPlugin() {
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
         Lang.load()
@@ -64,16 +67,8 @@ class RaceAssist : JavaPlugin() {
         settingDatabase()
         setCommand()
         registerEvents()
-        if (!VaultAPI.setupEconomy()) {
-            plugin.logger.warning("Vault not found, disabling plugin")
-            server.pluginManager.disablePlugin(this)
-            return
-        }
-        VaultAPI.setupPermissions()
-        if (!server.pluginManager.isPluginEnabled("LuckPerms")) {
-            plugin.logger.warning("LuckPerms not found, disabling plugin")
-            server.pluginManager.disablePlugin(this)
-            return
+        withContext(minecraft) {
+            VaultAPI.setupEconomy()
         }
     }
 
@@ -89,19 +84,12 @@ class RaceAssist : JavaPlugin() {
     }
 
     private fun setCommand() {
-        var commandManager: cloud.commandframework.paper.PaperCommandManager<CommandSender>? = null
-        try {
-            commandManager = cloud.commandframework.paper.PaperCommandManager(this,
-                AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
-                java.util.function.Function.identity(),
-                java.util.function.Function.identity())
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-        if (commandManager == null) {
-            server.pluginManager.disablePlugin(this)
-            return
-        }
+
+        val commandManager: PaperCommandManager<CommandSender> = PaperCommandManager(this,
+            AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
+            java.util.function.Function.identity(),
+            java.util.function.Function.identity())
+
 
         if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions()

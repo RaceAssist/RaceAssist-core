@@ -24,8 +24,8 @@ repositories {
     maven("https://repo.incendo.org/content/repositories/snapshots")
 }
 
-val exposedVersion = findProperty("exposedVersion") as String
-val cloudVersion = findProperty("cloudVersion") as String
+val cloudVersion = "1.6.2"
+val exposedVersion = "0.37.3"
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
@@ -35,16 +35,16 @@ dependencies {
     implementation("cloud.commandframework:cloud-paper:$cloudVersion")
     implementation("cloud.commandframework:cloud-annotations:$cloudVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.6.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.2.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.2.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("com.google.api-client:google-api-client:1.33.2")
-    implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.1")
-    implementation("com.google.apis:google-api-services-sheets:v4-rev20220221-1.32.1")
+    implementation("com.google.api-client:google-api-client:1.33.4")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.33.2")
+    implementation("com.google.apis:google-api-services-sheets:v4-rev20220308-1.32.1")
     library(kotlin("stdlib"))
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 }
@@ -79,8 +79,8 @@ bukkit {
     main = "dev.nikomaru.raceassist.RaceAssist"
 
     apiVersion = "1.18"
-    softDepend = listOf("Vault")
-    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.6.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.6.0")
+    depend = listOf("Vault")
+    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.2.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.2.0")
 
 
     permissions {

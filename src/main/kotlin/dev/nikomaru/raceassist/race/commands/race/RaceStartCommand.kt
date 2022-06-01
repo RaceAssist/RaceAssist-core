@@ -19,10 +19,9 @@ package dev.nikomaru.raceassist.race.commands.race
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.commands.BetReturnCommand
-import dev.nikomaru.raceassist.bet.commands.BetReturnCommand.Companion.canReturn
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.CommandUtils
@@ -48,8 +47,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -69,7 +66,7 @@ class RaceStartCommand {
     @CommandPermission("RaceAssist.commands.race.start")
     @CommandMethod("start <raceId>")
     fun start(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        RaceAssist.plugin.launch {
+        plugin.launch {
             val locale = if (sender is Player) sender.locale() else Locale.getDefault()
 
             if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
@@ -94,9 +91,7 @@ class RaceStartCommand {
                 getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
                 getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree",
-                locale,
-                TextColor.color(NamedTextColor.YELLOW)))
+            val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", locale))
 
             if (goalDegree % 90 != 0) {
                 sender.sendMessage(Lang.getComponent("goal-degree-must-multiple-90", locale))
@@ -196,10 +191,8 @@ class RaceStartCommand {
             while (true) {
                 //正常時の終了
                 if (jockeys.size < 1) {
-                    canReturn[raceId] = true
-                    val betReturnCommand = BetReturnCommand()
-                    betReturnCommand.returnBet(sender, raceId, Bukkit.getOfflinePlayer(finishJockey[0]).name.toString())
-                    canReturn[raceId] = false
+                    BetReturnCommand.canReturn[raceId] = true
+                    BetReturnCommand.payRefund(Bukkit.getOfflinePlayer(finishJockey[0]), raceId, sender, locale)
                     break
                 }
                 //stopコマンドによる終了
@@ -262,6 +255,7 @@ class RaceStartCommand {
                         raceAudience,
                         innerCircumference.roundToInt(),
                         startDegree,
+                        goalDegree,
                         lap)
                 }
                 delay(200)

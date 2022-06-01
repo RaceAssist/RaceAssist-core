@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.player
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.PlayerList
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
@@ -38,7 +38,7 @@ class PlayerDeleteCommand {
     @CommandMethod("delete <raceId>")
     private fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
 
             newSuspendedTransaction(Dispatchers.IO) {

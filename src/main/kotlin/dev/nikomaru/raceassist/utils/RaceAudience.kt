@@ -16,7 +16,7 @@
 
 package dev.nikomaru.raceassist.utils
 
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

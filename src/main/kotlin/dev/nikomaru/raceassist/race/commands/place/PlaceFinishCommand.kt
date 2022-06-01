@@ -18,8 +18,8 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
-import dev.nikomaru.raceassist.RaceAssist
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
@@ -37,7 +37,7 @@ class PlaceFinishCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        RaceAssist.plugin.launch {
+        plugin.launch {
             if (canSetOutsideCircuit[sender.uniqueId] == true && canSetInsideCircuit[sender.uniqueId] == true) {
                 sender.sendMessage(Lang.getComponent("now-you-not-setting-mode", sender.locale()))
                 return@launch

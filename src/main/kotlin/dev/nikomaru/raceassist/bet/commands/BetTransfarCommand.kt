@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.database.BetSetting
 import dev.nikomaru.raceassist.utils.CommandUtils
@@ -46,10 +46,10 @@ class BetTransfarCommand {
             withContext(Dispatchers.IO) {
                 if (CommandUtils.returnRaceSetting(raceId, sender)) return@withContext
             }
-            val player: OfflinePlayer = Bukkit.getOfflinePlayer(playerName)
+            val player: OfflinePlayer? = Bukkit.getOfflinePlayerIfCached(playerName)
 
             val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            if (!player.hasPlayedBefore()) {
+            if (player == null) {
                 sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
                 return@launch
             }

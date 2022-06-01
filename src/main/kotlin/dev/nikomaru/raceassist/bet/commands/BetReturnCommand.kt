@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent.Companion.getBetOwner
@@ -80,22 +80,7 @@ class BetReturnCommand {
             val odds = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
 
             if (canReturn[raceId] == true) {
-                newSuspendedTransaction(Dispatchers.IO) {
-                    BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
-                        val returnAmount = it[BetList.betting] * odds
-                        val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
-                        withContext(minecraft) {
-                            val eco = VaultAPI.getEconomy()
-                            eco.depositPlayer(retunrPlayer, returnAmount)
-                            eco.withdrawPlayer(getBetOwner(raceId), returnAmount)
-                        }
-                        sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
-                        retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player", locale, player.name, returnAmount))
-                    }
-                    BetList.deleteWhere { BetList.raceId eq raceId }
-                }
-                sender.sendMessage(Lang.getComponent("finish-pay", locale))
-
+                payRefund(player, raceId, sender, locale)
             } else {
                 canReturn[raceId] = true
                 newSuspendedTransaction(Dispatchers.IO) {
@@ -125,5 +110,42 @@ class BetReturnCommand {
 
     companion object {
         val canReturn: HashMap<String, Boolean> = HashMap()
+
+        suspend fun payRefund(player: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
+            var sum = 0
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetList.select { BetList.raceId eq raceId }.forEach {
+                    sum += it[BetList.betting]
+                }
+            }
+
+            val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
+                BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.returnPercent]
+            }
+            var jockeySum = 0
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
+                    jockeySum += it[BetList.betting]
+                }
+            }
+
+            val odds = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
+
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
+                    val returnAmount = it[BetList.betting] * odds
+                    val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
+                    withContext(minecraft) {
+                        val eco = VaultAPI.getEconomy()
+                        eco.depositPlayer(retunrPlayer, returnAmount)
+                        eco.withdrawPlayer(getBetOwner(raceId), returnAmount)
+                    }
+                    sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
+                    retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player", locale, player.name, returnAmount))
+                }
+                BetList.deleteWhere { BetList.raceId eq raceId }
+            }
+            sender.sendMessage(Lang.getComponent("finish-pay", locale))
+        }
     }
 }
