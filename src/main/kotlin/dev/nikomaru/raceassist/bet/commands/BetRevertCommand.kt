@@ -16,9 +16,7 @@
 
 package dev.nikomaru.raceassist.bet.commands
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
@@ -27,9 +25,7 @@ import dev.nikomaru.raceassist.database.BetList
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player

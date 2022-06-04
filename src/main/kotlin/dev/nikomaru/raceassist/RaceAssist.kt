@@ -27,24 +27,12 @@ import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.race.commands.HelpCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
+import dev.nikomaru.raceassist.race.commands.audience.*
 import dev.nikomaru.raceassist.race.commands.place.*
-import dev.nikomaru.raceassist.race.commands.player.PlayerAddCommand
-import dev.nikomaru.raceassist.race.commands.player.PlayerDeleteCommand
-import dev.nikomaru.raceassist.race.commands.player.PlayerListCommand
-import dev.nikomaru.raceassist.race.commands.player.PlayerRemoveCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceDebugCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceStartCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceStopCommand
-import dev.nikomaru.raceassist.race.commands.setting.SettingCopyCommand
-import dev.nikomaru.raceassist.race.commands.setting.SettingCreateCommand
-import dev.nikomaru.raceassist.race.commands.setting.SettingDeleteCommand
-import dev.nikomaru.raceassist.race.commands.setting.SettingStaffCommand
-import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
-import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
-import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.race.commands.player.*
+import dev.nikomaru.raceassist.race.commands.race.*
+import dev.nikomaru.raceassist.race.commands.setting.*
+import dev.nikomaru.raceassist.race.event.*
 import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -150,7 +138,6 @@ class RaceAssist : SuspendingJavaPlugin() {
     companion object {
         lateinit var plugin: RaceAssist
             private set
-
     }
 }
 

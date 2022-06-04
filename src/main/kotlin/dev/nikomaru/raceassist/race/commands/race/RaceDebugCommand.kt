@@ -16,9 +16,7 @@
 
 package dev.nikomaru.raceassist.race.commands.race
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils
@@ -34,17 +32,13 @@ import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.bukkit.scoreboard.DisplaySlot
-import org.bukkit.scoreboard.Objective
-import org.bukkit.scoreboard.ScoreboardManager
+import org.bukkit.scoreboard.*
 import java.awt.Polygon
 import kotlin.math.hypot
 import kotlin.math.roundToInt
