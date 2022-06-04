@@ -1,6 +1,10 @@
 name: Gradle Build Action
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+
 
 jobs:
   build:
