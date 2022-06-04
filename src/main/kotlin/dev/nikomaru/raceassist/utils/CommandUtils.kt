@@ -17,24 +17,16 @@
 package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.CircuitPoint
-import dev.nikomaru.raceassist.database.PlayerList
-import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.utils.RaceStaffUtils.existStaff
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
-import org.bukkit.scoreboard.DisplaySlot
-import org.bukkit.scoreboard.Objective
-import org.bukkit.scoreboard.ScoreboardManager
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -159,52 +151,7 @@ object CommandUtils {
         }
     }
 
-    fun displayScoreboard(nowRankings: List<UUID>,
-        currentLap: HashMap<UUID, Int>,
-        currentDegree: HashMap<UUID, Int>,
-        raceAudience: TreeSet<UUID>,
-        innerCircumference: Int,
-        startDegree: Int,
-        goalDegree: Int,
-        lap: Int) {
 
-        raceAudience.forEach {
-
-            if (Bukkit.getOfflinePlayer(it).isOnline) {
-                val player = Bukkit.getPlayer(it)!!
-                val manager: ScoreboardManager = Bukkit.getScoreboardManager()
-                val scoreboard = manager.newScoreboard
-                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", player.locale()),
-                    "dummy",
-                    Lang.getComponent("scoreboard-now-ranking", player.locale()))
-                objective.displaySlot = DisplaySlot.SIDEBAR
-
-                for (i in nowRankings.indices) {
-
-                    val playerName = Bukkit.getPlayer(nowRankings[i])?.name
-                    val goalDistance = (((lap - 1).toDouble() + if (goalDegree > startDegree) {
-                        ((goalDegree.toDouble() - startDegree.toDouble()) / 360.0)
-                    } else {
-                        ((goalDegree.toDouble() + 360.0 - startDegree.toDouble()) / 360.0)
-                    }) * innerCircumference.toDouble()).toInt()
-
-                    val component = if (currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId] == null) {
-                        MiniMessage.miniMessage().deserialize("<color:gold>${i + 1}位</color:gold> <color:aqua>$playerName</color:aqua> ")
-                            .append(Lang.getComponent("finished-the-race", player.locale()))
-                    } else {
-                        val currentDistance =
-                            ((currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId]!!.toDouble() - startDegree.toDouble()) / 360.0 * innerCircumference.toDouble()).toInt()
-                        MiniMessage.miniMessage()
-                            .deserialize("<color:gold>${i + 1}位</color:gold> <color:aqua>$playerName</color:aqua> ${currentDistance}m/${goalDistance}m ")
-                    }
-
-                    val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(component))
-                    displayDegree.score = nowRankings.size - i
-                }
-                player.scoreboard = scoreboard
-            }
-        }
-    }
 
     fun decideRanking(totalDegree: HashMap<UUID, Int>): ArrayList<UUID> {
         val ranking = ArrayList<UUID>()

@@ -16,18 +16,12 @@
 
 package dev.nikomaru.raceassist.race.commands.setting
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.CircuitPoint
-import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.utils.CommandUtils
+import dev.nikomaru.raceassist.database.*
+import dev.nikomaru.raceassist.utils.*
 import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.RaceStaffUtils
 import kotlinx.coroutines.Dispatchers
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player

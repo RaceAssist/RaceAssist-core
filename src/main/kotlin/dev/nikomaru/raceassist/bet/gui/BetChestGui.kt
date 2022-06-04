@@ -18,9 +18,7 @@ package dev.nikomaru.raceassist.bet.gui
 
 import com.google.common.collect.ImmutableList
 import dev.nikomaru.raceassist.bet.GuiComponent
-import dev.nikomaru.raceassist.database.BetList
-import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config.betUnit
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers

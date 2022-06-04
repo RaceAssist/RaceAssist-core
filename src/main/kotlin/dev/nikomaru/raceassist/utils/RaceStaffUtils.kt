@@ -18,10 +18,7 @@ package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.database.RaceStaff
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
@@ -58,11 +55,4 @@ object RaceStaffUtils {
             UUID.fromString(it[RaceStaff.uuid])
         }
     }
-
-    suspend fun removeAllStaff(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceStaff.deleteWhere {
-            RaceStaff.raceId eq raceId
-        }
-    }
-
 }

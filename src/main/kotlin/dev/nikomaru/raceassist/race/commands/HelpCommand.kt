@@ -16,10 +16,7 @@
 
 package dev.nikomaru.raceassist.race.commands
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
-import cloud.commandframework.annotations.Hidden
+import cloud.commandframework.annotations.*
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.command.CommandSender
 

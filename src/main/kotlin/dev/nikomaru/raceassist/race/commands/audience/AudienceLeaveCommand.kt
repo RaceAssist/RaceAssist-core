@@ -16,9 +16,7 @@
 
 package dev.nikomaru.raceassist.race.commands.audience
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender

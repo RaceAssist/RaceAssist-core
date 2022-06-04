@@ -16,18 +16,15 @@
 
 package dev.nikomaru.raceassist.race.commands.race
 
-import cloud.commandframework.annotations.Argument
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.commands.BetReturnCommand
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.utils.CommandUtils
+import dev.nikomaru.raceassist.utils.*
 import dev.nikomaru.raceassist.utils.CommandUtils.decideRanking
 import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
-import dev.nikomaru.raceassist.utils.CommandUtils.displayScoreboard
 import dev.nikomaru.raceassist.utils.CommandUtils.getAllJockeys
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.utils.CommandUtils.getCircuitExist
@@ -39,26 +36,21 @@ import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
 import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.RaceAudience
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.bukkit.scoreboard.DisplaySlot
+import org.bukkit.scoreboard.*
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import java.awt.Polygon
 import java.util.*
-import kotlin.math.floor
-import kotlin.math.hypot
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStartCommand {
@@ -250,7 +242,6 @@ class RaceStartCommand {
                 val displayRanking = async(minecraft) {
 
                     displayScoreboard(finishJockey.plus(decideRanking(totalDegree)),
-                        currentLap,
                         totalDegree,
                         raceAudience,
                         innerCircumference.roundToInt(),
@@ -309,6 +300,53 @@ class RaceStartCommand {
 
         val discordWebHook = DiscordWebhook()
         discordWebHook.sendWebHook(json.toString())
+    }
+
+    private fun displayScoreboard(nowRankings: List<UUID>,
+        currentDegree: HashMap<UUID, Int>,
+        raceAudience: TreeSet<UUID>,
+        innerCircumference: Int,
+        startDegree: Int,
+        goalDegree: Int,
+        lap: Int) {
+
+        raceAudience.forEach {
+
+            if (Bukkit.getOfflinePlayer(it).isOnline) {
+                val player = Bukkit.getPlayer(it)!!
+                val manager: ScoreboardManager = Bukkit.getScoreboardManager()
+                val scoreboard = manager.newScoreboard
+                val objective: Objective = scoreboard.registerNewObjective(Lang.getText("scoreboard-ranking", player.locale()),
+                    "dummy",
+                    Lang.getComponent("scoreboard-now-ranking", player.locale()))
+                objective.displaySlot = DisplaySlot.SIDEBAR
+
+                for (i in nowRankings.indices) {
+
+                    val playerName = Bukkit.getPlayer(nowRankings[i])?.name
+                    val goalDistance = (((lap - 1).toDouble() + if (goalDegree > startDegree) {
+                        ((goalDegree.toDouble() - startDegree.toDouble()) / 360.0)
+                    } else {
+                        ((goalDegree.toDouble() + 360.0 - startDegree.toDouble()) / 360.0)
+                    }) * innerCircumference.toDouble()).toInt()
+
+                    val component = if (currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId] == null) {
+                        Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)
+                            .append(Lang.getComponent("finished-the-race", player.locale()))
+                    } else {
+                        val currentDistance =
+                            ((currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId]!!.toDouble() - startDegree.toDouble()) / 360.0 * innerCircumference.toDouble()).toInt()
+
+                        Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)
+                            .append(MiniMessage.miniMessage().deserialize("${currentDistance}m/${goalDistance}m "))
+                    }
+
+                    val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(component))
+                    displayDegree.score = nowRankings.size - i
+                }
+                player.scoreboard = scoreboard
+            }
+        }
     }
 
 }
