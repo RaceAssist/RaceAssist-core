@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -15,57 +15,67 @@
  */
 package dev.nikomaru.raceassist
 
-import co.aikar.commands.PaperCommandManager
-import com.github.shynixn.mccoroutine.registerSuspendingEvents
+import cloud.commandframework.bukkit.CloudBukkitCapabilities
+import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
+import cloud.commandframework.meta.SimpleCommandMeta
+import cloud.commandframework.paper.PaperCommandManager
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
-import dev.nikomaru.raceassist.bet.commands.OpenBetGuiCommand
-import dev.nikomaru.raceassist.bet.commands.SetBetCommand
+import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.race.commands.AudiencesCommand
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
-import dev.nikomaru.raceassist.race.commands.PlayerCommand
-import dev.nikomaru.raceassist.race.commands.RaceCommand
+import dev.nikomaru.raceassist.race.commands.HelpCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
+import dev.nikomaru.raceassist.race.commands.place.*
+import dev.nikomaru.raceassist.race.commands.player.PlayerAddCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerDeleteCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerListCommand
+import dev.nikomaru.raceassist.race.commands.player.PlayerRemoveCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceDebugCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStartCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStopCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingCopyCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingCreateCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingDeleteCommand
+import dev.nikomaru.raceassist.race.commands.setting.SettingStaffCommand
 import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
 import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
 import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
-import org.bukkit.Bukkit
+import dev.nikomaru.raceassist.utils.CommandSuggestions
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import kotlinx.coroutines.withContext
+import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.plugin.java.JavaPlugin
-import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-class RaceAssist : JavaPlugin() {
+class RaceAssist : SuspendingJavaPlugin() {
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
+        Lang.load()
         saveDefaultConfig()
         Config.config = YamlConfiguration.loadConfiguration(File(dataFolder, "config.yml"))
         Config.load()
         settingDatabase()
-        setRaceID()
-        registerCommands()
+        setCommand()
         registerEvents()
-
-        if (!VaultAPI.setupEconomy()) {
-            plugin!!.logger.info("No economy plugin found. Disabling Vault")
-            server.pluginManager.disablePlugin(this)
-            return
+        withContext(minecraft) {
+            VaultAPI.setupEconomy()
         }
     }
 
     private fun settingDatabase() {
-        Database.connect(
-            "jdbc:sqlite:${plugin!!.dataFolder}${File.separator}RaceAssist.db",
-            driver = "org.sqlite.JDBC"
-        )
+        org.jetbrains.exposed.sql.Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
         transaction {
-            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, TempBetData, BetSetting)
+            SchemaUtils.create(CircuitPoint, PlayerList, RaceList, BetList, BetSetting, RaceStaff)
         }
     }
 
@@ -73,40 +83,74 @@ class RaceAssist : JavaPlugin() {
         // Plugin shutdown logic
     }
 
-    private fun registerCommands() {
-        val manager = PaperCommandManager(this)
-        manager.registerCommand(PlaceCommands())
-        manager.registerCommand(RaceCommand())
-        manager.registerCommand(AudiencesCommand())
-        manager.registerCommand(PlayerCommand())
-        manager.registerCommand(OpenBetGuiCommand())
-        manager.registerCommand(SetBetCommand())
+    private fun setCommand() {
 
-        manager.commandCompletions.registerCompletion("RaceID") {
-            raceID
+        val commandManager: PaperCommandManager<CommandSender> = PaperCommandManager(this,
+            AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
+            java.util.function.Function.identity(),
+            java.util.function.Function.identity())
+
+
+        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            commandManager.registerAsynchronousCompletions()
         }
+        val annotationParser: cloud.commandframework.annotations.AnnotationParser<CommandSender> =
+            cloud.commandframework.annotations.AnnotationParser(commandManager, CommandSender::class.java) {
+                SimpleCommandMeta.empty()
+            }
 
+        annotationParser.parse(CommandSuggestions())
+
+        annotationParser.parse(AudienceJoinCommand())
+        annotationParser.parse(AudienceLeaveCommand())
+        annotationParser.parse(AudienceListCommand())
+
+        annotationParser.parse(PlaceCentralCommand())
+        annotationParser.parse(PlaceDegreeCommand())
+        annotationParser.parse(PlaceFinishCommand())
+        annotationParser.parse(PlaceLapCommand())
+        annotationParser.parse(PlaceReverseCommand())
+        annotationParser.parse(PlaceSetCommand())
+
+        annotationParser.parse(PlayerAddCommand())
+        annotationParser.parse(PlayerDeleteCommand())
+        annotationParser.parse(PlayerListCommand())
+        annotationParser.parse(PlayerRemoveCommand())
+
+        annotationParser.parse(RaceStartCommand())
+        annotationParser.parse(RaceStopCommand())
+        annotationParser.parse(RaceDebugCommand())
+
+        annotationParser.parse(BetCanCommand())
+        annotationParser.parse(BetDeleteCommand())
+        annotationParser.parse(BetListCommand())
+        annotationParser.parse(BetOpenCommand())
+        annotationParser.parse(BetRateCommand())
+        annotationParser.parse(BetRevertCommand())
+        annotationParser.parse(BetSheetCommand())
+        annotationParser.parse(BetRemoveCommand())
+        annotationParser.parse(BetReturnCommand())
+        annotationParser.parse(BetTransfarCommand())
+
+        annotationParser.parse(SettingCreateCommand())
+        annotationParser.parse(SettingDeleteCommand())
+        annotationParser.parse(SettingCopyCommand())
+        annotationParser.parse(SettingStaffCommand())
+
+        annotationParser.parse(HelpCommand())
     }
 
     private fun registerEvents() {
-        Bukkit.getPluginManager().registerEvents(SetInsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetOutsideCircuitEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SetCentralPointEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetInsideCircuitEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), this)
+        server.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), this)
         server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
     }
 
     companion object {
-        var plugin: RaceAssist? = null
+        lateinit var plugin: RaceAssist
+            private set
 
-        val raceID = mutableListOf<String>()
-
-        fun setRaceID() {
-            transaction {
-                RaceList.selectAll().forEach {
-                    raceID.add(it[RaceList.raceID])
-                }
-            }
-        }
     }
 }
 

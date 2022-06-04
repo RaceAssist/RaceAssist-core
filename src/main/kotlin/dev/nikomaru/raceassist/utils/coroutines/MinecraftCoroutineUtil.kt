@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -16,11 +16,10 @@
 
 package dev.nikomaru.raceassist.utils.coroutines
 
-import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
-val Dispatchers.async: CoroutineContext
+val async: CoroutineContext
     get() = DispatcherContainer.async
 
-val Dispatchers.minecraft: CoroutineContext
+val minecraft: CoroutineContext
     get() = DispatcherContainer.sync

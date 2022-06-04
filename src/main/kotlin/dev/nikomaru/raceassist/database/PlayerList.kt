@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,6 @@ package dev.nikomaru.raceassist.database
 import org.jetbrains.exposed.sql.Table
 
 object PlayerList : Table() {
-    val raceID = varchar("raceID", 30)
+    val raceId = varchar("raceId", 30)
     val playerUUID = varchar("playerUUID", 40)
 }

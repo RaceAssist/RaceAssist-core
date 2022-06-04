@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -17,95 +17,95 @@
 package dev.nikomaru.raceassist.bet
 
 import dev.nikomaru.raceassist.files.Config.betUnit
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.format.TextColor
+import dev.nikomaru.raceassist.utils.Lang
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import java.util.*
 
 object GuiComponent {
 
-    fun guiComponent(): TextComponent {
-        return text("レース賭け自販機").color(TextColor.fromHexString("#228b22"))
+    fun guiComponent(): Component {
+        return Component.text("レース賭け自販機")
     }
 
-    fun onceUp(): ItemStack {
+    fun onceUp(locale: Locale): ItemStack {
         val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
         val onceUpMeta: ItemMeta = onceUp.itemMeta
-        onceUpMeta.displayName(text("1単位 ${betUnit}円 賭ける").color(TextColor.fromHexString("#f08080")))
+        onceUpMeta.displayName(Lang.getComponent("to-bet-one-unit", locale, betUnit))
         onceUp.itemMeta = onceUpMeta
         return onceUp
     }
 
-    fun onceDown(): ItemStack {
+    fun onceDown(locale: Locale): ItemStack {
         val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
         val onceDownMeta: ItemMeta = onceDown.itemMeta
-        onceDownMeta.displayName(text("1単位 ${betUnit}円 下げる").color(TextColor.fromHexString("#add8e6")))
+        onceDownMeta.displayName(Lang.getComponent("to-cancel-bet-one-unit", locale, betUnit))
         onceDown.itemMeta = onceDownMeta
         return onceDown
     }
 
-    fun tenTimesUp(): ItemStack {
+    fun tenTimesUp(locale: Locale): ItemStack {
         val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
         val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-        tenTimesUpMeta.displayName(text("10単位 ${betUnit * 10}円 賭ける").color(TextColor.fromHexString("#ff0000")))
+        tenTimesUpMeta.displayName(Lang.getComponent("to-bet-ten-unit", locale, betUnit * 10))
         tenTimesUp.itemMeta = tenTimesUpMeta
         return tenTimesUp
     }
 
-    fun tenTimesDown(): ItemStack {
+    fun tenTimesDown(locale: Locale): ItemStack {
         val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
         val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-        tenTimesDownMeta.displayName(text("10単位 ${betUnit * 10}円 下げる").color(TextColor.fromHexString("#0000cd")))
+        tenTimesDownMeta.displayName(Lang.getComponent("to-cancel-bet-ten-unit", locale, betUnit * 10))
         tenTimesDown.itemMeta = tenTimesDownMeta
         return tenTimesDown
     }
 
-    fun accept(): ItemStack {
+    fun accept(locale: Locale): ItemStack {
         val accept = ItemStack(Material.GREEN_WOOL)
         val acceptMeta: ItemMeta = accept.itemMeta
-        acceptMeta.displayName(text("決定する").color(TextColor.fromHexString("#228b22")))
+        acceptMeta.displayName(Lang.getComponent("gui-decide", locale))
         accept.itemMeta = acceptMeta
         return accept
     }
 
-    fun deny(): ItemStack {
+    fun deny(locale: Locale): ItemStack {
         val deny = ItemStack(Material.RED_WOOL)
         val denyMeta: ItemMeta = deny.itemMeta
-        denyMeta.displayName(text("キャンセルする").color(TextColor.fromHexString("#ff0000")))
+        denyMeta.displayName(Lang.getComponent("gui-cancel", locale))
         deny.itemMeta = denyMeta
         return deny
     }
 
-    fun reset(): ItemStack {
+    fun reset(locale: Locale): ItemStack {
         val reset = ItemStack(Material.WHITE_WOOL)
         val resetMeta: ItemMeta = reset.itemMeta
-        resetMeta.displayName(text("リセットする").color(TextColor.fromHexString("#ffffff")))
+        resetMeta.displayName(Lang.getComponent("gui-reset", locale))
         reset.itemMeta = resetMeta
         return reset
     }
 
-    fun noBet(): ItemStack {
+    fun noBet(locale: Locale): ItemStack {
         val noBet = ItemStack(Material.BARRIER)
         val noBetMeta: ItemMeta = noBet.itemMeta
-        noBetMeta.displayName(text("誰にも賭けられていません").color(TextColor.fromHexString("#ff0000")))
+        noBetMeta.displayName(Lang.getComponent("gui-no-one-betting", locale))
         noBet.itemMeta = noBetMeta
         return noBet
     }
 
-    fun noUnderNotice(): ItemStack {
+    fun noUnderNotice(locale: Locale): ItemStack {
         val noUnderNotice = ItemStack(Material.BARRIER)
         val noUnderNoticeMeta: ItemMeta = noUnderNotice.itemMeta
-        noUnderNoticeMeta.displayName(text("これ以上金額を減らすことはできません", TextColor.fromHexString("#ff0000")))
+        noUnderNoticeMeta.displayName(Lang.getComponent("cannot-decrease-more-money", locale))
         noUnderNotice.itemMeta = noUnderNoticeMeta
         return noUnderNotice
     }
 
-    fun noHaveMoney(): ItemStack {
+    fun noHaveMoney(locale: Locale): ItemStack {
         val noHaveMoney = ItemStack(Material.BARRIER)
         val noHaveMoneyMeta: ItemMeta = noHaveMoney.itemMeta
-        noHaveMoneyMeta.displayName(text("あなたにはお金がありません", TextColor.fromHexString("#ff0000")))
+        noHaveMoneyMeta.displayName(Lang.getComponent("no-have-money", locale))
         noHaveMoney.itemMeta = noHaveMoneyMeta
         return noHaveMoney
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -14,13 +14,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.database
+package dev.nikomaru.raceassist.utils
 
-import org.jetbrains.exposed.sql.Table
+import java.util.*
 
-object TempBetData : Table() {
-    val raceID = varchar("raceID", 30)
-    val playerUUID = varchar("playerUUID", 40)
-    val jockey = varchar("jockey", 40)
-    val bet = integer("bet")
-}
+data class TempBetData(val raceId: String, val uuid: UUID, val jockey: UUID, var bet: Int)

@@ -1,14 +1,5 @@
-SQLSettings:
-  host: 'localhost'
-  port: 3306
-  database: 'raceassist'
-  username: 'root'
-  password: ''
 RaceSetting:
   threshold: 40
   bet: 1000
 NetworkSettings:
   discord:
-Sheets:
-  applicationName:
-  spreadsheetId:

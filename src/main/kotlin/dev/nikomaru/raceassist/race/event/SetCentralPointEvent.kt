@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -17,30 +17,33 @@
 package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.database.RaceList
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
+import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
+import dev.nikomaru.raceassist.utils.Lang
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
 
 class SetCentralPointEvent : Listener {
     @EventHandler
-    fun setCentralPoint(event: PlayerInteractEvent) {
-        if (PlaceCommands.getCanSetCentral()[event.player.uniqueId] == null || PlaceCommands.getCanSetCentral()[event.player.uniqueId] != true) {
+    suspend fun setCentralPoint(event: PlayerInteractEvent) {
+        if (canSetCentral[event.player.uniqueId] != true) {
             return
         }
         if (event.action != Action.LEFT_CLICK_BLOCK) {
             return
         }
-        transaction {
-            RaceList.update({ RaceList.raceID eq (PlaceCommands.getCentralRaceID()[event.player.uniqueId]!!) }) {
+        newSuspendedTransaction(Dispatchers.IO) {
+            RaceList.update({ RaceList.raceId eq (centralRaceId[event.player.uniqueId]!!) }) {
                 it[centralXPoint] = event.clickedBlock?.location?.blockX ?: 0
                 it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0
             }
         }
-        event.player.sendMessage("§a中心を設定しました")
-        PlaceCommands.removeCanSetCentral(event.player.uniqueId)
+        event.player.sendMessage(Lang.getComponent("to-set-this-point-central", event.player.locale()))
+        canSetCentral.remove(event.player.uniqueId)
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -30,24 +30,24 @@ import java.io.*
 import java.security.GeneralSecurityException
 
 object GoogleAuthorizeUtil {
-    private val tokensDirectoryPath = File(plugin!!.dataFolder, "tokens")
-    private val credentialsFilePath = File(plugin!!.dataFolder, "credentials.json")
+
+    private val credentialsFilePath = File(plugin.dataFolder, "credentials.json")
 
     @Throws(IOException::class, GeneralSecurityException::class)
-    fun authorize(): Credential {
+    fun authorize(spreadsheetId: String): Credential? {
+        val tokensDirectoryPath = File(File(plugin.dataFolder, "tokens"), "${spreadsheetId}_tokens")
         if (!tokensDirectoryPath.exists()) {
             tokensDirectoryPath.mkdirs()
         }
+        if (!credentialsFilePath.exists()) {
+            return null
+        }
         val inputStream: InputStream = FileInputStream(credentialsFilePath)
-        val clientSecrets: GoogleClientSecrets = GoogleClientSecrets
-            .load(GsonFactory.getDefaultInstance(), InputStreamReader(inputStream))
+        val clientSecrets: GoogleClientSecrets = GoogleClientSecrets.load(GsonFactory.getDefaultInstance(), InputStreamReader(inputStream))
         val scopes = listOf(SheetsScopes.SPREADSHEETS)
-        val flow: GoogleAuthorizationCodeFlow = GoogleAuthorizationCodeFlow.Builder(
-            GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), clientSecrets,
-            scopes
-        ).setDataStoreFactory(FileDataStoreFactory(tokensDirectoryPath))
-            .setAccessType("offline")
-            .build()
+        val flow: GoogleAuthorizationCodeFlow =
+            GoogleAuthorizationCodeFlow.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), clientSecrets, scopes)
+                .setDataStoreFactory(FileDataStoreFactory(tokensDirectoryPath)).setAccessType("offline").build()
         return AuthorizationCodeInstalledApp(flow, LocalServerReceiver.Builder().setPort(8888).build()).authorize("user")
     }
 }

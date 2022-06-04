@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -22,7 +22,7 @@ import org.bukkit.plugin.RegisteredServiceProvider
 
 object VaultAPI {
 
-    private var econ: Economy? = null
+    private lateinit var econ: Economy
 
     fun setupEconomy(): Boolean {
         if (getServer().pluginManager.getPlugin("Vault") == null) {
@@ -33,7 +33,8 @@ object VaultAPI {
         return true
     }
 
-    fun getEconomy(): Economy? {
+    fun getEconomy(): Economy {
         return econ
     }
+
 }

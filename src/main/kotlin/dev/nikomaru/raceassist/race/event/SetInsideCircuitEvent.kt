@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -15,11 +15,10 @@
  */
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.race.commands.PlaceCommands
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
-import net.kyori.adventure.text.format.TextColor
+import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -29,23 +28,20 @@ import java.util.*
 class SetInsideCircuitEvent : Listener {
     @EventHandler
     fun onSetInsideCircuitEvent(event: PlayerInteractEvent) {
-        if (Objects.isNull(PlaceCommands.getCanSetInsideCircuit()[event.player.uniqueId])) {
+        if (canSetInsideCircuit[event.player.uniqueId] != true) {
             return
         }
         val player = event.player
         if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(text("処理を中断しました", TextColor.color(YELLOW)))
-            PlaceCommands.removeCanSetInsideCircuit(player.uniqueId)
+            player.sendMessage(Lang.getComponent("to-suspend-process", player.locale()))
+            canSetInsideCircuit.remove(player.uniqueId)
             return
         }
         if (event.action == Action.LEFT_CLICK_AIR) {
-            event.player.sendMessage(text("ブロックをクリックしてください", TextColor.color(YELLOW)))
+            event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return
         }
-        InsideCircuit.insideCircuit(
-            player, PlaceCommands.getCircuitRaceID()[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x,
-            event.clickedBlock!!.z
-        )
+        InsideCircuit.insideCircuit(player, circuitRaceId[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
     }
 }
 

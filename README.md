@@ -1,79 +1,35 @@
-# RaceAssist
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_shield)
+# RaceAssist-core
+
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_shield)
+[![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
-## Commands
+## Wiki
 
-### Audience
+[Wiki](https://github.com/Nlkomaru/RaceAssist-core/wiki)
 
-/raceassist audience join [RaceID]  観客に自分を追加します<br>
-/raceassist audience leave [RaceID] 観客から自分を削除します<br>
-/raceassist audience list [RaceID]  観客の一覧を表示<br>
+## structure
+atanを使用してθを求めその差により順位決定をするためレース場は一周し交差のない形である必要があります。<br>
+今後、交差させたレース場にも対応させるためベクトルによる算出に置き換える予定です。
 
-### Bet
+## Recommended
 
-/raceassist bet can [RaceID] on/off 対象のレースに対して賭けが可能か変更します /raceassist bet delete [RaceID]        賭けを削除します /raceassist bet list [RaceID]賭けの一覧を表示します
-/raceassist bet open [RaceID]          賭けをすることのできる画面を開くことができます /raceassist bet rate [RaceID]          賭けのレートを変更します
+レースごとに新しい名前のレースを作成することを必ずしてください<br>
+copyコマンドを使用すると賭けられたデータ、sheetId、スタッフ、出場者を除きコピーすることができます
 
-### Place
+命名規則 : `<レースの名前>_<回数>`
 
-/raceassist place reverse [RaceID]  レースの走行方向の向きを反転<br>
-/raceassist place central [RaceID]  レースの中心点を設定<br>
-/raceassist place degree [RaceID]  レースのゴールの角度を設定(立っている場所基準90度刻み)<br>
-/raceassist place lap [RaceID] <lap>  レースのラップ数を指定<br>
-/raceassist place set [RaceID] in|out レース場の内周、外周を指定<br>
-/raceassist place finish 上記の設定の終了<br>
 
-### Player
+## translate 
+plugins/RaceAssist/Lang内に翻訳されたpropertiesファイルを入れるとその言語を使用している場合はその言語が表示されます。 <br>
+標準ではja_JPを使用します。
 
-/raceassist player add [RaceID] [Player]  騎手を追加<br>
-/raceassist player remove [RaceID]  騎手を削除<br>
-/raceassist player delete [RaceID]  騎手をすべて削除<br>
-/raceassist player list [RaceID]  騎手の一覧を表示<br>
-
-### Race
-
-/raceassist race start [RaceID]  レースを開始<br>
-/raceassist race debug [RaceID]  レースのデバッグ<br>
-/raceassist race stop [RaceID]  レースの停止<br>
-/raceassist race create [RaceID]  レースの作成<br>
-/raceassist race delete [RaceID]  レースの削除<br>
-
-## About Use sheets API
-
-pluginフォルダの中のRaceAssistフォルダに**credentials.json**を入れます 最初の賭けが行われるとコンソールにOAuthの認証画面が開かれるのでスプレッドシートの所有者が認証してください
-
-### Config.ymlの設定
-
-```yaml
-Sheets:
-  applicationName: 'RaceAssist'
-  #applicationNameは好きな名前にしてください
-  spreadsheetId: '******'
-#spreadsheetIdはhttps://docs.google.com/spreadsheets/d/******/edit#gid=0の******の部分
-```
-
-### credentials.jsonの設定
-
-Sheets APIの管理画面からダウンロードしたものにclient_secretを追加してください
-
-```json
-{
-    "installed": {
-        "client_id": "******.apps.googleusercontent.com",
-        "project_id": "******",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_secret": "******",
-        "redirect_uris": [
-            "urn:ietf:wg:oauth:2.0:oob",
-            "http://localhost"
-        ]
-    }
-}
-```
+[crowdin](https://crowdin.com/project/raceassist)<br>
 
 
 ## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FNlkomaru%2FRaceAssist?ref=badge_large)
+
+[GPLv3ライセンス](https://github.com/Nlkomaru/RaceAssist-core/blob/master/LICENSE)での公開です。ソースコードの使用規約等はGPLv3ライセンスに従います。
+
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-core.svg?type=large)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-core?ref=badge_large)

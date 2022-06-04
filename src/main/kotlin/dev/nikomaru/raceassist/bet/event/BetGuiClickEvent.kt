@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -21,18 +21,17 @@ import com.google.api.services.sheets.v4.model.ValueRange
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.bet.GuiComponent
+import dev.nikomaru.raceassist.bet.commands.BetOpenCommand.Companion.TempBetDatas
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.database.BetList
+import dev.nikomaru.raceassist.database.BetList.rowNum
 import dev.nikomaru.raceassist.database.BetSetting
-import dev.nikomaru.raceassist.database.TempBetData
-import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
@@ -44,9 +43,9 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 
@@ -71,7 +70,7 @@ class BetGuiClickEvent : Listener {
         if (clicked[player.uniqueId] == true) {
             return
         }
-        val raceID: String = PlainTextComponentSerializer.plainText().serialize(event.inventory.getItem(8)?.itemMeta?.displayName()!!)
+        val raceId: String = PlainTextComponentSerializer.plainText().serialize(event.inventory.getItem(8)?.itemMeta?.displayName()!!)
 
 
         if (event.slot == 35) {
@@ -86,25 +85,21 @@ class BetGuiClickEvent : Listener {
                     return
                 }
 
-                val selectedNowBet: Int = getNowBet(raceID, player, slot)
+                val selectedNowBet: Int = getNowBet(raceId, player, slot)
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1.0f)
 
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.update({
-                            (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
-                                slot
-                            ).toString())
-                        }) {
-                            it[bet] = selectedNowBet + 10
-                        }
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId && it.jockey == AllPlayers[raceId]?.get(slot)) {
+                        it.bet = selectedNowBet + 10
                     }
                 }
 
-                val selectedAfterBet: Int = getNowBet(raceID, player, (slot))
+                val selectedAfterBet: Int = getNowBet(raceId, player, (slot))
                 val item = event.inventory.getItem(slot + 18)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(Lang.getComponent("now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit))
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -116,24 +111,21 @@ class BetGuiClickEvent : Listener {
                 if (slot > (limit + 9)) {
                     return
                 }
-                val selectedNowBet: Int = getNowBet(raceID, player, (slot - 9))
+                val selectedNowBet: Int = getNowBet(raceId, player, (slot - 9))
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
 
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.update({
-                            (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
-                                slot - 9
-                            ).toString())
-                        }) {
-                            it[bet] = selectedNowBet + 1
-                        }
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId && it.jockey == AllPlayers[raceId]?.get(slot - 9)) {
+                        it.bet = selectedNowBet + 1
                     }
                 }
-                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 9))
+
+                val selectedAfterBet: Int = getNowBet(raceId, player, (slot - 9))
                 val item = event.inventory.getItem(slot + 9)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(Lang.getComponent("now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit))
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -146,32 +138,28 @@ class BetGuiClickEvent : Listener {
                 if (slot > (limit + 27)) {
                     return
                 }
-                val selectedNowBet: Int = getNowBet(raceID, player, (slot - 27))
+                val selectedNowBet: Int = getNowBet(raceId, player, (slot - 27))
 
                 if (selectedNowBet <= 0) {
-                    event.inventory.setItem(slot, GuiComponent.noUnderNotice())
+                    event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.onceDown())
+                    event.inventory.setItem(slot, GuiComponent.onceDown(player.locale()))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 0.7f)
-                val uuid = player.uniqueId.toString()
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.update({
-                            (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq uuid) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
-                                slot - 27
-                            ).toString())
-                        }) {
-                            it[bet] = selectedNowBet - 1
-                        }
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId && it.jockey == AllPlayers[raceId]?.get(slot - 27)) {
+                        it.bet = selectedNowBet - 1
                     }
                 }
-                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 27))
+
+                val selectedAfterBet: Int = getNowBet(raceId, player, (slot - 27))
                 val item = event.inventory.getItem(slot - 9)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(Lang.getComponent("now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit))
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -183,34 +171,30 @@ class BetGuiClickEvent : Listener {
                 if (slot > (limit + 36)) {
                     return
                 }
-                val selectedNowBet: Int = getNowBet(raceID, player, (slot - 36))
+                val selectedNowBet: Int = getNowBet(raceId, player, (slot - 36))
 
 
                 if (selectedNowBet <= 9) {
-                    event.inventory.setItem(slot, GuiComponent.noUnderNotice())
+                    event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.tenTimesDown())
+                    event.inventory.setItem(slot, GuiComponent.tenTimesDown(player.locale()))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 0.7f)
-                val uuid = player.uniqueId.toString()
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.update({
-                            (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq uuid) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
-                                slot - 36
-                            ).toString())
-                        }) {
-                            it[bet] = selectedNowBet - 10
-                        }
+
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId && it.jockey == AllPlayers[raceId]?.get(slot - 36)) {
+                        it.bet = selectedNowBet - 10
                     }
                 }
 
-                val selectedAfterBet: Int = getNowBet(raceID, player, (slot - 36))
+                val selectedAfterBet: Int = getNowBet(raceId, player, (slot - 36))
                 val item = event.inventory.getItem(slot - 18)!!
                 val itemMeta = item.itemMeta
-                itemMeta.displayName(text("${betUnit}円単位 : ${selectedAfterBet * betUnit}円かけています", TextColor.fromHexString("#00ff7f")))
+                itemMeta.displayName(Lang.getComponent("now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit))
                 item.itemMeta = itemMeta
 
                 clicked[player.uniqueId] = true
@@ -220,24 +204,18 @@ class BetGuiClickEvent : Listener {
             17 -> {
                 //clear
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
-                val uuid = player.uniqueId.toString()
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.deleteWhere { (TempBetData.playerUUID eq uuid) and (TempBetData.raceID eq raceID) }
-                        AllPlayers[raceID]?.forEach { jockey ->
-                            TempBetData.insert {
-                                it[TempBetData.raceID] = raceID
-                                it[playerUUID] = uuid
-                                it[TempBetData.jockey] = jockey.toString()
-                                it[bet] = 0
-                            }
-                        }
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId) {
+                        it.bet = 0
                     }
                 }
+
                 for (i in 0 until limit + 1) {
                     val item = event.inventory.getItem(i + 18)!!
                     val itemMeta = item.itemMeta
-                    itemMeta.displayName(text("${betUnit}円単位 : 0円かけています", TextColor.fromHexString("#00ff7f")))
+                    itemMeta.displayName(Lang.getComponent("betting-zero-money", player.locale(), betUnit))
                     item.itemMeta = itemMeta
                 }
             }
@@ -246,9 +224,11 @@ class BetGuiClickEvent : Listener {
                 player.closeInventory()
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 0.5f, 1f)
 
-                withContext(Dispatchers.IO) {
-                    transaction {
-                        TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
+                val iterator = TempBetDatas.iterator()
+                while (iterator.hasNext()) {
+                    val it = iterator.next()
+                    if (it.raceId == raceId && it.uuid == player.uniqueId) {
+                        iterator.remove()
                     }
                 }
 
@@ -256,11 +236,11 @@ class BetGuiClickEvent : Listener {
             44 -> {
                 //accept
 
-                if (VaultAPI.getEconomy()!!.getBalance(player) < (getAllBet(raceID, player) * betUnit)) {
+                if (VaultAPI.getEconomy().getBalance(player) < (getAllBet(raceId, player) * betUnit)) {
                     noticeNoMoney(event, slot, player)
                     return
                 }
-                if (getAllBet(raceID, player) == 0) {
+                if (getAllBet(raceId, player) == 0) {
                     noticeNoBet(event, slot, player)
                     return
                 }
@@ -268,140 +248,152 @@ class BetGuiClickEvent : Listener {
                 player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1f)
                 player.closeInventory()
 
-                val eco: Economy = VaultAPI.getEconomy()!!
-                val owner = Bukkit.getOfflinePlayer(UUID.fromString(newSuspendedTransaction(Dispatchers.IO) {
-                    BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.creator]
-                }))
+                val eco: Economy = VaultAPI.getEconomy()
+                val owner = getBetOwner(raceId)
 
-                withContext(Dispatchers.Default) {
-                    transaction {
-                        var row = BetList.selectAll().count().toInt()
-                        TempBetData.select { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
-                            .forEach { temp ->
-                                if (temp[TempBetData.bet] != 0) {
-                                    BetList.insert { bet ->
-                                        bet[BetList.raceID] = raceID
-                                        bet[playerName] = player.name
-                                        bet[jockey] = Bukkit.getOfflinePlayer(UUID.fromString(temp[TempBetData.jockey])).name.toString()
-                                        bet[betting] = temp[TempBetData.bet] * betUnit
-                                        bet[timeStamp] = LocalDateTime.now()
-                                        bet[rowNum] = row + 1
-                                    }
-                                    betProcess(player, row, temp, eco, owner)
-                                    row++
-                                }
+                newSuspendedTransaction(Dispatchers.Default) {
+                    var row = getMaxRow(raceId)
+                    val iterator = TempBetDatas.iterator()
+                    while (iterator.hasNext()) {
+                        val temp = iterator.next()
+                        if (temp.raceId == raceId && temp.uuid == player.uniqueId && temp.bet != 0) {
+                            BetList.insert { bet ->
+                                bet[BetList.raceId] = raceId
+                                bet[playerName] = player.name
+                                bet[playerUUID] = player.uniqueId.toString()
+                                bet[jockey] = Bukkit.getOfflinePlayer(temp.jockey).name.toString()
+                                bet[betting] = temp.bet * betUnit
+                                bet[timeStamp] = LocalDateTime.now()
+                                bet[rowNum] = row + 1
                             }
-                        TempBetData.deleteWhere { (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.raceID eq raceID) }
+                            betProcess(player, row, temp.bet, temp.jockey, eco, owner)
+                            row++
+                        }
+                    }
+                    while (iterator.hasNext()) {
+                        val it = iterator.next()
+                        if (it.raceId == raceId && it.uuid == player.uniqueId) {
+                            iterator.remove()
+                        }
                     }
                 }
-                withContext(Dispatchers.IO) {
-                    putSheetsData(raceID)
-                }
+                putSheetsData(raceId)
             }
         }
 
         val accept = event.inventory.getItem(44)!!
         val acceptMeta = accept.itemMeta
         val acceptLore: ArrayList<Component> = ArrayList<Component>()
-        acceptLore.add(text("${getAllBet(raceID, player) * betUnit}円必要です"))
+        acceptLore.add(Lang.getComponent("gui-need-money", player.locale(), getAllBet(raceId, player) * betUnit))
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
         event.inventory.setItem(44, accept)
     }
 
-    private fun betProcess(player: Player, row: Int, temp: ResultRow, eco: Economy, owner: OfflinePlayer) {
-        player.sendMessage(
-            "番号${row + 1} : ${Bukkit.getOfflinePlayer(UUID.fromString(temp[TempBetData.jockey])).name.toString()} に" +
-                    " ${temp[TempBetData.bet] * betUnit}円"
-        )
-        eco.withdrawPlayer(player, temp[TempBetData.bet] * betUnit.toDouble())
+    private suspend fun getMaxRow(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        var maxRow = 0
+        BetList.select { BetList.raceId eq raceId }.forEach {
+            if (it[rowNum] > maxRow) {
+                maxRow = it[rowNum]
+            }
+        }
+        maxRow
+    }
+
+    private fun betProcess(player: Player, row: Int, bet: Int, jockey: UUID, eco: Economy, owner: OfflinePlayer) {
+        player.sendMessage(Lang.getComponent("bet-complete-message-player",
+            player.locale(),
+            row + 1,
+            Bukkit.getOfflinePlayer(jockey).name.toString(),
+            bet * betUnit))
+        eco.withdrawPlayer(player, bet * betUnit.toDouble())
 
         if (owner.isOnline) {
-            (owner as Player).sendMessage("${player.name} が ${temp[TempBetData.bet] * betUnit}円 を賭けました")
+            (owner as Player).sendMessage(Lang.getComponent("bet-complete-message-owner", player.locale(), player.name, bet * betUnit))
         }
-        eco.depositPlayer(owner, temp[TempBetData.bet] * betUnit.toDouble())
+        eco.depositPlayer(owner, bet * betUnit.toDouble())
     }
 
     private suspend fun noticeNoBet(event: InventoryClickEvent, slot: Int, player: Player) {
-        event.inventory.setItem(slot, GuiComponent.noBet())
+        event.inventory.setItem(slot, GuiComponent.noBet(player.locale()))
         player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
         delay(1000)
-        event.inventory.setItem(slot, GuiComponent.accept())
+        event.inventory.setItem(slot, GuiComponent.accept(player.locale()))
     }
 
     private suspend fun noticeNoMoney(event: InventoryClickEvent, slot: Int, player: Player) {
-        event.inventory.setItem(slot, GuiComponent.noHaveMoney())
+        event.inventory.setItem(slot, GuiComponent.noHaveMoney(player.locale()))
         player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
         delay(1000)
-        event.inventory.setItem(slot, GuiComponent.accept())
+        event.inventory.setItem(slot, GuiComponent.accept(player.locale()))
     }
 
-    private suspend fun getNowBet(raceID: String, player: Player, slot: Int) = newSuspendedTransaction {
-        TempBetData.select {
-            (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) and (TempBetData.jockey eq AllPlayers[raceID]?.get(
-                slot
-            ).toString())
-        }.first()[TempBetData.bet]
-    }
-
-    private suspend fun getAllBet(raceID: String, player: Player) = newSuspendedTransaction {
-        TempBetData.select { (TempBetData.raceID eq raceID) and (TempBetData.playerUUID eq player.uniqueId.toString()) }.sumOf { it[TempBetData.bet] }
-    }
-
-    private suspend fun putSheetsData(raceID: String) {
-        if (Config.applicationName == null || Config.spreadsheetId == null) {
-            return
+    private fun getNowBet(raceId: String, player: Player, slot: Int): Int {
+        var bet = 0
+        val iterator = TempBetDatas.iterator()
+        while (iterator.hasNext()) {
+            val it = iterator.next()
+            if (it.raceId == raceId && it.uuid == player.uniqueId && it.jockey == AllPlayers[raceId]?.get(slot)) {
+                bet = it.bet
+            }
         }
-        val sheetsService = getSheetsService()
+        return bet
+    }
+
+    private fun getAllBet(raceId: String, player: Player): Int {
+        var sum = 0
+        TempBetDatas.forEach {
+            if (it.raceId == raceId && it.uuid == player.uniqueId) {
+                sum += it.bet
+            }
+        }
+        return sum
+    }
+
+    private suspend fun putSheetsData(raceId: String) = withContext(Dispatchers.Default) {
+        val spreadsheetId = getSheetID(raceId) ?: return@withContext
+        val sheetsService = getSheetsService(spreadsheetId) ?: return@withContext
 
         var i = 1
         val data: ArrayList<ValueRange> = ArrayList()
-        data.add(
-            ValueRange().setRange("${raceID}_RaceAssist!A${i}").setValues(
-                listOf(
-                    listOf(
-                        "タイムスタンプ", "マイクラネーム", "対象プレイヤー", "賭け金", "ベッド倍率 (%)->",
-                        getBetPercent(raceID)
-                    )
-                )
-            )
-        )
+        data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}").setValues(listOf(listOf(Lang.getText("sheet-timestamp", Locale.getDefault()),
+            Lang.getText("sheet-minecraft-name", Locale.getDefault()),
+            Lang.getText("sheet-jockey", Locale.getDefault()),
+            Lang.getText("sheet-bet-price", Locale.getDefault()),
+            Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
+            getBetPercent(raceId)))))
 
         newSuspendedTransaction(Dispatchers.Default) {
-            BetList.select { BetList.raceID eq raceID }.forEach {
-
+            BetList.select { BetList.raceId eq raceId }.forEach {
+                i++
                 val player = it[BetList.playerName]
                 val jockey = it[BetList.jockey]
                 val betting = it[BetList.betting]
                 val timeStamp = it[BetList.timeStamp]
-                data.add(
-                    ValueRange().setRange("${raceID}_RaceAssist!A${i + 1}").setValues(
-                        listOf(
-                            listOf(
-                                timeStamp.toString(), player, jockey,
-                                betting
-                            )
-                        )
-                    )
-                )
-                i++
+                data.add(ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}")
+                    .setValues(listOf(listOf(timeStamp.toString(), player, jockey, betting))))
             }
-            val batchBody = BatchUpdateValuesRequest()
-                .setValueInputOption("USER_ENTERED")
-                .setData(data)
+            val batchBody = BatchUpdateValuesRequest().setValueInputOption("USER_ENTERED").setData(data)
 
-            sheetsService?.spreadsheets()?.values()?.batchUpdate(Config.spreadsheetId, batchBody)?.execute()
+            sheetsService.spreadsheets()?.values()?.batchUpdate(spreadsheetId, batchBody)?.execute()
         }
 
     }
 
-    private fun getBetPercent(raceID: String): Int =
-        transaction {
-            BetSetting.select { BetSetting.raceID eq raceID }.first()[BetSetting.returnPercent]
-        }
+    private suspend fun getSheetID(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceId eq raceId }.firstOrNull()?.get(BetSetting.spreadsheetId)
+    }
+
+    private suspend fun getBetPercent(raceId: String): Int = newSuspendedTransaction(Dispatchers.IO) {
+        BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.returnPercent]
+    }
 
     companion object {
         //Prevention of chattering-like phenomena
         private val clicked = HashMap<UUID, Boolean>()
+
+        suspend fun getBetOwner(raceId: String) = Bukkit.getOfflinePlayer(UUID.fromString(newSuspendedTransaction(Dispatchers.IO) {
+            BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.creator]
+        }))
     }
 }

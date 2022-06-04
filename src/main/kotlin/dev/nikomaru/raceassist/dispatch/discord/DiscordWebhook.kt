@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
  * This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 
 package dev.nikomaru.raceassist.dispatch.discord
 
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.files.Config
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -43,7 +44,7 @@ class DiscordWebhook {
 
             val status: Int = con.responseCode
             if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_NO_CONTENT) {
-                println("error:$status")
+                plugin.logger.warning("error:$status")
             }
             con.disconnect()
 
