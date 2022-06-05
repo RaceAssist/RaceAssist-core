@@ -1,7 +1,7 @@
 # RaceAssist-core
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance.svg?type=shield)](https://app.fossa.com/projects/custom%2B27464%2Fgithub.com%2FNlkomaru%2FRaceAssist-advance?ref=badge_shield)
-[![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml/badge.svg)](https://github.com/Nlkomaru/RaceAssist-advance/actions/workflows/blank.yml)
+[![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml/badge.svg?branch=master)](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
