@@ -133,7 +133,12 @@ class BetReturnCommand {
                         eco.withdrawPlayer(getBetOwner(raceId), returnAmount)
                     }
                     sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
-                    retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player", locale, player.name, returnAmount))
+                    retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player",
+                        locale,
+                        raceId,
+                        retunrPlayer.name,
+                        player.name,
+                        returnAmount))
                 }
                 BetList.deleteWhere { BetList.raceId eq raceId }
             }

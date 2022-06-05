@@ -44,7 +44,7 @@ class BetListCommand {
                         locale,
                         it[BetList.rowNum],
                         it[BetList.timeStamp],
-                        a it [BetList.playerName],
+                        it[BetList.playerName],
                         it[BetList.jockey],
                         it[BetList.betting]))
                 }

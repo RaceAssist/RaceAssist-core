@@ -16,7 +16,6 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
-import com.google.common.collect.ImmutableList
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.database.*
 import dev.nikomaru.raceassist.files.Config.betUnit
@@ -30,6 +29,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.SkullMeta
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -40,16 +40,6 @@ class BetChestGui {
 
     suspend fun getGUI(player: Player, raceId: String): Inventory {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
-        val playerWools = ImmutableList.of(
-            Material.RED_WOOL,
-            Material.BLUE_WOOL,
-            Material.YELLOW_WOOL,
-            Material.GREEN_WOOL,
-            Material.BROWN_WOOL,
-            Material.PINK_WOOL,
-            Material.WHITE_WOOL,
-            Material.ORANGE_WOOL,
-        )
         val players: ArrayList<UUID> = ArrayList()
         val odds: HashMap<UUID, Double> = HashMap()
         var sum = 0
@@ -85,14 +75,15 @@ class BetChestGui {
             gui.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         }
         for (i in 0 until players.size) {
-            val item = ItemStack(playerWools[i])
-            val prevMeta = item.itemMeta
-            prevMeta.displayName(Lang.getComponent("betting-zero-money", player.locale(), betUnit))
+            val item = ItemStack(Material.PLAYER_HEAD, 1)
+            val meta: SkullMeta = item.itemMeta as SkullMeta
+            meta.owningPlayer = Bukkit.getOfflinePlayer(players[i])
+            meta.displayName(Lang.getComponent("betting-zero-money", player.locale(), betUnit))
             val lore: ArrayList<Component> = ArrayList<Component>()
             lore.add(Lang.getComponent("gui-jockey-name", player.locale(), Bukkit.getOfflinePlayer(players[i]).name))
             lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[players[i]]))
-            prevMeta.lore(lore)
-            item.itemMeta = prevMeta
+            meta.lore(lore)
+            item.itemMeta = meta
 
             gui.setItem(i, GuiComponent.tenTimesUp(player.locale()))
             gui.setItem(i + 9, GuiComponent.onceUp(player.locale()))
