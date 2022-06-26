@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -18,11 +19,10 @@ package dev.nikomaru.raceassist.utils
 
 import cloud.commandframework.annotations.suggestions.Suggestions
 import cloud.commandframework.context.CommandContext
-import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.RaceAssist
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 
 open class CommandSuggestions {
 
@@ -38,10 +38,8 @@ open class CommandSuggestions {
     @Suggestions("raceId")
     fun suggestRaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = ArrayList<String>()
-        transaction {
-            RaceList.selectAll().forEach {
-                list.add(it[RaceList.raceId])
-            }
+        File(RaceAssist.plugin.dataFolder, "RaceData").listFiles()?.forEach {
+            list.add(it.nameWithoutExtension)
         }
         return list
     }

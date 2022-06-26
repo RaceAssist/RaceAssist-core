@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -26,7 +27,7 @@ import org.bukkit.entity.Player
 class AudienceLeaveCommand {
     @CommandPermission("RaceAssist.commands.audience.leave")
     @CommandMethod("leave <raceId>")
-    private fun leave(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun leave(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

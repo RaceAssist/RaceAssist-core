@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -20,35 +21,29 @@ import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.bet.commands.BetReturnCommand
+import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.RaceData
 import dev.nikomaru.raceassist.dispatch.discord.DiscordWebhook
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.*
-import dev.nikomaru.raceassist.utils.CommandUtils.decideRanking
 import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
-import dev.nikomaru.raceassist.utils.CommandUtils.getAllJockeys
-import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
-import dev.nikomaru.raceassist.utils.CommandUtils.getCircuitExist
-import dev.nikomaru.raceassist.utils.CommandUtils.getGoalDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.getLapCount
-import dev.nikomaru.raceassist.utils.CommandUtils.getOwner
-import dev.nikomaru.raceassist.utils.CommandUtils.getPolygon
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
 import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
+import dev.nikomaru.raceassist.utils.Lang.mm
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.*
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
-import java.awt.Polygon
 import java.util.*
 import kotlin.math.*
 
@@ -57,60 +52,48 @@ class RaceStartCommand {
 
     @CommandPermission("RaceAssist.commands.race.start")
     @CommandMethod("start <raceId>")
-    fun start(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        plugin.launch {
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+    suspend fun start(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
 
-            if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
-                sender.sendMessage(Lang.getComponent("no-exist-race", locale))
-                return@launch
+        if (PlaceData.getInsidePolygon(raceId).npoints == 0 || PlaceData.getOutsidePolygon(raceId).npoints == 0) {
+            sender.sendMessage(Lang.getComponent("no-exist-race", locale))
+            return
+        }
+        val jockeys: ArrayList<Player> = ArrayList()
+        RaceData.getJockeys(raceId).forEach { jockey ->
+            if (jockey.isOnline) {
+                jockeys.add(jockey as Player)
+                sender.sendMessage(Lang.getComponent("player-join", locale, jockey.name))
+            } else {
+                sender.sendMessage(Lang.getComponent("player-is-offline", locale, jockey.name))
             }
-            val jockeys: ArrayList<Player> = ArrayList()
-            getAllJockeys(raceId).forEach { jockey ->
-                if (jockey.isOnline) {
-                    jockeys.add(jockey as Player)
-                    sender.sendMessage(Lang.getComponent("player-join", locale, jockey.name))
-                } else {
-                    sender.sendMessage(Lang.getComponent("player-is-offline", locale, jockey.name))
-                }
-            }
-            if (jockeys.size < 2) {
-                sender.sendMessage(Lang.getComponent("over-two-users-need", locale))
-                return@launch
-            }
+        }
+        if (jockeys.size < 2) {
+            sender.sendMessage(Lang.getComponent("over-two-users-need", locale))
+            return
+        }
 
-            val centralXPoint: Int =
-                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val centralYPoint: Int =
-                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", locale))
+        val centralXPoint: Int = PlaceData.getCentralXPoint(raceId) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+        val centralYPoint: Int = PlaceData.getCentralYPoint(raceId) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+        val goalDegree: Int = PlaceData.getGoalDegree(raceId)
 
-            if (goalDegree % 90 != 0) {
-                sender.sendMessage(Lang.getComponent("goal-degree-must-multiple-90", locale))
-                return@launch
-            }
+        val jockeyCount = jockeys.size
+        val finishJockey: ArrayList<UUID> = ArrayList<UUID>()
+        val totalDegree: HashMap<UUID, Int> = HashMap()
+        val beforeDegree: HashMap<UUID, Int> = HashMap()
+        val currentLap: HashMap<UUID, Int> = HashMap()
+        val threshold = Config.threshold!!
+        val raceAudience: TreeSet<UUID> = TreeSet()
+        var suspend = false
 
-            val jockeyCount = jockeys.size
-            val finishJockey: ArrayList<UUID> = ArrayList<UUID>()
-            val totalDegree: HashMap<UUID, Int> = HashMap()
-            val beforeDegree: HashMap<UUID, Int> = HashMap()
-            val currentLap: HashMap<UUID, Int> = HashMap()
-            val threshold = Config.threshold!!
-            val raceAudience: TreeSet<UUID> = TreeSet()
-            var suspend = false
+        val passBorders: HashMap<UUID, Int> = HashMap()
+        val time: HashMap<UUID, Int> = HashMap()
 
-            val passBorders: HashMap<UUID, Int> = HashMap()
-            val time: HashMap<UUID, Int> = HashMap()
+        val insidePolygon = PlaceData.getInsidePolygon(raceId)
 
-            var insidePolygon = Polygon()
-            val setInsidePolygon = async(Dispatchers.IO) {
-                insidePolygon = getPolygon(raceId, true)
+        //観客(スコアボードを表示する人)の設定
 
-            }
-
-            //観客(スコアボードを表示する人)の設定
-
-            val audiences = RaceAudience()
+        val audiences = RaceAudience()
 
 
             CommandUtils.audience[raceId]?.forEach {
@@ -134,16 +117,12 @@ class RaceStartCommand {
                 timer1++
             }
 
-            val lap = withContext(Dispatchers.IO) {
-                getLapCount(raceId)
-            }
+        val lap = PlaceData.getLap(raceId)
 
-            val outsidePolygon = withContext(Dispatchers.IO) {
-                getPolygon(raceId, false)
-            }
+        val outsidePolygon = PlaceData.getOutsidePolygon(raceId)
 
             val reverse = withContext(Dispatchers.IO) {
-                getReverse(raceId) ?: false
+                getReverse(raceId)
             }
 
             val innerCircumference = withContext(Dispatchers.Default) {
@@ -151,7 +130,6 @@ class RaceStartCommand {
                 var total = 0.0
                 val insideX = insidePolygon.xpoints
                 val insideY = insidePolygon.ypoints
-                setInsidePolygon.await()
                 for (i in 0 until insidePolygon.npoints) {
                     total += if (i <= insidePolygon.npoints - 2) {
                         hypot((insideX[i] - insideX[i + 1]).toDouble(), (insideY[i] - insideY[i + 1]).toDouble())
@@ -211,7 +189,7 @@ class RaceStartCommand {
 
                     val beforeLap = currentLap[uuid]
                     //ラップの計算
-                    val calculateLap = async(Dispatchers.Default) {
+                    withContext(Dispatchers.Default) {
                         currentLap[uuid] = currentLap[uuid]!! + judgeLap(goalDegree, beforeDegree[uuid], currentDegree, threshold)
                         passBorders[uuid] = passBorders[uuid]!! + judgeLap(0, beforeDegree[uuid], currentDegree, threshold)
                         displayLap(currentLap[uuid], beforeLap, player, lap)
@@ -223,8 +201,6 @@ class RaceStartCommand {
                     if (insidePolygon.contains(nowX, nowY) || !outsidePolygon.contains(nowX, nowY)) {
                         player.sendActionBar(Lang.getComponent("outside-the-racetrack", player.locale()))
                     }
-
-                    calculateLap.await()
 
                     //ゴールした時の処理
                     if (currentLap[uuid]!! >= lap) {
@@ -239,18 +215,20 @@ class RaceStartCommand {
                     }
                 }
                 //順位の表示
-                val displayRanking = async(minecraft) {
+                plugin.launch {
+                    val displayRanking = async(minecraft) {
 
-                    displayScoreboard(finishJockey.plus(decideRanking(totalDegree)),
-                        totalDegree,
-                        raceAudience,
-                        innerCircumference.roundToInt(),
-                        startDegree,
-                        goalDegree,
-                        lap)
-                }
-                delay(200)
-                displayRanking.await()
+                        displayScoreboard(finishJockey.plus(decideRanking(totalDegree)),
+                            totalDegree,
+                            raceAudience,
+                            innerCircumference.roundToInt(),
+                            startDegree,
+                            goalDegree,
+                            lap)
+                    }
+                    delay(200)
+                    displayRanking.await()
+                }.join()
             }
             //終了時の処理
             audiences.showTitleI18n("finish-race")
@@ -262,17 +240,17 @@ class RaceStartCommand {
 
             withContext(Dispatchers.IO) {
                 if (Config.discordWebHook != null) {
-                    sendWebHook(finishJockey, time, getOwner(raceId)!!, raceId, suspend)
+                    sendWebHook(finishJockey, time, RaceData.getOwner(raceId), raceId, suspend)
                 }
             }
             Bukkit.getOnlinePlayers().forEach {
                 it.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
             }
 
-        }
+
     }
 
-    private fun sendWebHook(finishJockey: ArrayList<UUID>, time: HashMap<UUID, Int>, starter: UUID, raceId: String, suspend: Boolean) {
+    private fun sendWebHook(finishJockey: ArrayList<UUID>, time: HashMap<UUID, Int>, starter: OfflinePlayer, raceId: String, suspend: Boolean) {
         val json = JSONObject()
         json["username"] = "RaceAssist"
         json["avatar_url"] = "https://3.bp.blogspot.com/-Y3AVYVjLcPs/UYiNxIliDxI/AAAAAAAARSg/nZLIqBRUta8/s800/animal_uma.png"
@@ -281,7 +259,7 @@ class RaceStartCommand {
         val author = JSONObject()
         val embedsObject = JSONObject()
         embedsObject["title"] = if (suspend) "RaceAssist_suspend" else "RaceAssist"
-        author["name"] = Lang.getText("discord-webhook-name", Locale.getDefault(), Bukkit.getOfflinePlayer(starter).name, raceId)
+        author["name"] = Lang.getText("discord-webhook-name", Locale.getDefault(), starter.name, raceId)
         author["icon_url"] = "https://crafthead.net/avatar/$starter"
         embedsObject["author"] = author
         for (i in 0 until finishJockey.size) {
@@ -338,7 +316,7 @@ class RaceStartCommand {
                             ((currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId]!!.toDouble() - startDegree.toDouble()) / 360.0 * innerCircumference.toDouble()).toInt()
 
                         Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)
-                            .append(MiniMessage.miniMessage().deserialize("${currentDistance}m/${goalDistance}m "))
+                            .append(mm.deserialize("${currentDistance}m/${goalDistance}m "))
                     }
 
                     val displayDegree = objective.getScore(LegacyComponentSerializer.legacySection().serialize(component))
@@ -347,6 +325,16 @@ class RaceStartCommand {
                 player.scoreboard = scoreboard
             }
         }
+    }
+
+    private fun decideRanking(totalDegree: HashMap<UUID, Int>): ArrayList<UUID> {
+        val ranking = ArrayList<UUID>()
+        val sorted = totalDegree.toList().sortedBy { (_, value) -> value }
+        sorted.forEach {
+            ranking.add(it.first)
+        }
+        ranking.reverse()
+        return ranking
     }
 
 }

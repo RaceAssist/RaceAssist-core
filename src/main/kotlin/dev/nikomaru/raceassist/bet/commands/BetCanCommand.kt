@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -19,14 +20,11 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.data.files.BetData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.update
 import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
@@ -47,22 +45,14 @@ class BetCanCommand {
     }
 
     private suspend fun setCanBet(raceId: String, sender: CommandSender) {
-        newSuspendedTransaction(Dispatchers.IO) {
-            BetSetting.update({ BetSetting.raceId eq raceId }) {
-                it[canBet] = true
-            }
-        }
+        BetData.setAvailable(raceId, true)
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
         sender.sendMessage(Lang.getComponent("can-bet-this-raceid", locale, raceId))
     }
 
     companion object {
         suspend fun setCannotBet(raceId: String, sender: CommandSender) {
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.update({ BetSetting.raceId eq raceId }) {
-                    it[canBet] = false
-                }
-            }
+            BetData.setAvailable(raceId, false)
 
             val locale = if (sender is Player) sender.locale() else Locale.getDefault()
             sender.sendMessage(Lang.getComponent("cannot-bet-this-raceid", locale, raceId))

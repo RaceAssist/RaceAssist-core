@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -19,23 +20,19 @@ package dev.nikomaru.raceassist.race.commands.player
 import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.data.files.RaceData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerRemoveCommand {
     @CommandPermission("RaceAssist.commands.player.remove")
     @CommandMethod("remove <raceId> <playerName>")
-    private fun removePlayer(sender: CommandSender,
+    fun removePlayer(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         val player = Bukkit.getOfflinePlayer(playerName)
@@ -47,9 +44,7 @@ class PlayerRemoveCommand {
 
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.deleteWhere { (PlayerList.raceId eq raceId) and (PlayerList.playerUUID eq player.uniqueId.toString()) }
-            }
+            RaceData.removeJockey(raceId, player)
             sender.sendMessage(Lang.getComponent("to-delete-player-from-race-group", locale, raceId))
         }
     }

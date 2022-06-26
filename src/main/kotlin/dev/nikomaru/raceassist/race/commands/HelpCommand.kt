@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands
 
 import cloud.commandframework.annotations.*
-import net.kyori.adventure.text.minimessage.MiniMessage
+import dev.nikomaru.raceassist.utils.Lang.mm
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|raceassist")
@@ -42,7 +43,7 @@ class HelpCommand {
             <color:yellow><click:suggest_command:'/ra bet open'><color:#92fe9d>/ra bet open <raceId></click> 賭け画面を開く
             """.trimIndent()
         }
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(message))
+        sender.sendMessage(mm.deserialize(message))
     }
 
     @CommandMethod("help <tag>")
@@ -117,7 +118,7 @@ class HelpCommand {
                 ""
             }
         }
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(message))
+        sender.sendMessage(mm.deserialize(message))
 
     }
 }

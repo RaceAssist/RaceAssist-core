@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -16,17 +17,14 @@
 
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.database.RaceList
+import dev.nikomaru.raceassist.data.files.PlaceData
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
 import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.update
 
 class SetCentralPointEvent : Listener {
     @EventHandler
@@ -37,12 +35,10 @@ class SetCentralPointEvent : Listener {
         if (event.action != Action.LEFT_CLICK_BLOCK) {
             return
         }
-        newSuspendedTransaction(Dispatchers.IO) {
-            RaceList.update({ RaceList.raceId eq (centralRaceId[event.player.uniqueId]!!) }) {
-                it[centralXPoint] = event.clickedBlock?.location?.blockX ?: 0
-                it[centralYPoint] = event.clickedBlock?.location?.blockZ ?: 0
-            }
-        }
+
+        PlaceData.setCentralXPoint(centralRaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockX ?: 0)
+        PlaceData.setCentralYPoint(centralRaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockZ ?: 0)
+
         event.player.sendMessage(Lang.getComponent("to-set-this-point-central", event.player.locale()))
         canSetCentral.remove(event.player.uniqueId)
     }

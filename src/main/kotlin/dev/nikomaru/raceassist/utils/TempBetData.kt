@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -16,6 +17,6 @@
 
 package dev.nikomaru.raceassist.utils
 
-import java.util.*
+import org.bukkit.OfflinePlayer
 
-data class TempBetData(val raceId: String, val uuid: UUID, val jockey: UUID, var bet: Int)
+data class TempBetData(val raceId: String, val player: OfflinePlayer, val jockey: OfflinePlayer, var bet: Int)
