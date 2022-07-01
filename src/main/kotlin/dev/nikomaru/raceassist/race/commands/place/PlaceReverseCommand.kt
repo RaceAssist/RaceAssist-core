@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -35,7 +35,7 @@ class PlaceReverseCommand {
         }
         if (returnRaceSetting(raceId, sender)) return
 
-        PlaceData.setReverse(raceId, !PlaceData.getReverse(raceId))
+        PlaceSettingData.setReverse(raceId, !PlaceSettingData.getReverse(raceId))
 
         sender.sendMessage(Lang.getComponent("to-change-race-orientation", sender.locale()))
 

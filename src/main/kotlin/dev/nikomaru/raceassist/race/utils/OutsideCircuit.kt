@@ -17,7 +17,7 @@
 package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
@@ -30,7 +30,7 @@ object OutsideCircuit {
     private var insidePolygonMap = HashMap<String, Polygon>()
     suspend fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(raceId, Polygon())
-        insidePolygonMap.putIfAbsent(raceId, PlaceData.getInsidePolygon(raceId))
+        insidePolygonMap.putIfAbsent(raceId, PlaceSettingData.getInsidePolygon(raceId))
 
 
 
@@ -47,7 +47,7 @@ object OutsideCircuit {
     }
 
     suspend fun finish(player: Player) {
-        PlaceData.setOutsidePolygon(circuitRaceId[player.uniqueId]!!, outsidePolygonMap[circuitRaceId[player.uniqueId]]!!)
+        PlaceSettingData.setOutsidePolygon(circuitRaceId[player.uniqueId]!!, outsidePolygonMap[circuitRaceId[player.uniqueId]]!!)
         outsidePolygonMap.remove(circuitRaceId[player.uniqueId])
     }
 }

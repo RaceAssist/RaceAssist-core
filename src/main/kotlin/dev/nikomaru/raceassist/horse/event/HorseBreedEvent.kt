@@ -15,26 +15,30 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands.setting
+package dev.nikomaru.raceassist.horse.event
 
-import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Horse
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityBreedEvent
 
-@CommandMethod("ra|RaceAssist setting")
-class SettingDeleteCommand {
-    @CommandPermission("RaceAssist.commands.setting.delete")
-    @CommandMethod("delete <raceId>")
-    @Confirmation
-    suspend fun delete(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (sender !is Player) {
-            sender.sendMessage("Only the player can do this.")
+class HorseBreedEvent : Listener {
+    @EventHandler
+    suspend fun onHorseBreed(event: EntityBreedEvent) {
+        if (event.entity.type != EntityType.HORSE) {
             return
         }
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
-        RaceSettingData.deleteRace(raceId)
+        val horse = event.entity as Horse
+
+        if (horse.getCalcSpeed() < 13.7 && horse.getCalcJump() < 4.0) {
+            return
+        }
+        val mother = event.mother as Horse
+        val father = event.father as Horse
 
     }
+
 }

@@ -19,9 +19,8 @@ package dev.nikomaru.raceassist.bet.gui
 
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.data.files.BetData
-import dev.nikomaru.raceassist.data.files.RaceData
-import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component
@@ -44,10 +43,10 @@ class BetChestGui {
         val players: ArrayList<OfflinePlayer> = ArrayList()
         val odds: HashMap<OfflinePlayer, Double> = HashMap()
         var sum = 0
-        val rate: Int = BetData.getReturnPercent(raceId)
+        val rate: Int = BetSettingData.getReturnPercent(raceId)
 
         AllPlayers[raceId] = arrayListOf()
-        RaceData.getJockeys(raceId).forEach {
+        RaceSettingData.getJockeys(raceId).forEach {
             players.add(it)
             AllPlayers[raceId]!!.add(it)
         }
@@ -76,18 +75,18 @@ class BetChestGui {
             val item = ItemStack(Material.PLAYER_HEAD, 1)
             val meta: SkullMeta = item.itemMeta as SkullMeta
             meta.owningPlayer = players[i]
-            meta.displayName(Lang.getComponent("betting-zero-money", player.locale(), betUnit))
+            meta.displayName(Lang.getComponent("betting-zero-money", player.locale(), BetSettingData.getBetUnit(raceId)))
             val lore: ArrayList<Component> = arrayListOf()
             lore.add(Lang.getComponent("gui-jockey-name", player.locale(), players[i].name))
             lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[players[i]]))
             meta.lore(lore)
             item.itemMeta = meta
 
-            gui.setItem(i, GuiComponent.tenTimesUp(player.locale()))
-            gui.setItem(i + 9, GuiComponent.onceUp(player.locale()))
+            gui.setItem(i, GuiComponent.tenTimesUp(player.locale(), raceId))
+            gui.setItem(i + 9, GuiComponent.onceUp(player.locale(), raceId))
             gui.setItem(i + 18, item)
-            gui.setItem(i + 27, GuiComponent.onceDown(player.locale()))
-            gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale()))
+            gui.setItem(i + 27, GuiComponent.onceDown(player.locale(), raceId))
+            gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale(), raceId))
         }
 
         val raceIdItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)

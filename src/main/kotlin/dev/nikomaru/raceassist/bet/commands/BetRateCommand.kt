@@ -19,9 +19,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.BetData
+import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
@@ -34,20 +32,20 @@ import java.util.*
 class BetRateCommand {
     @CommandPermission("RaceAssist.commands.bet.rate")
     @CommandMethod("rate <raceId> <rate>")
-    fun setRate(sender: CommandSender,
+    suspend fun setRate(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        plugin.launch {
-            if (returnRaceSetting(raceId, sender)) return@launch
-            if (rate !in 1..100) {
-                sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", locale))
-                return@launch
-            }
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetData.setReturnPercent(raceId, rate)
-            }
+
+        if (returnRaceSetting(raceId, sender)) return
+        if (rate !in 1..100) {
+            sender.sendMessage(Lang.getComponent("set-rate-message-in1-100", locale))
+            return
         }
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetSettingData.setReturnPercent(raceId, rate)
+        }
+
         sender.sendMessage(Lang.getComponent("change-bet-rate-message", locale, raceId, rate))
     }
 

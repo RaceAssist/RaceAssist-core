@@ -15,16 +15,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.files
+package dev.nikomaru.raceassist.horse.utlis
 
-import kotlinx.serialization.Serializable
+import org.bukkit.attribute.Attribute
+import org.bukkit.entity.Horse
+import kotlin.math.pow
 
-//TODO(change to hocon to use kotlinx.serialization)
-@Serializable
-data class ConfigData(val version: String, val threshold: Int, val delay: Long, val discordWebHook: DiscordWebHook, val spreadSheet: SpreadSheet)
+object HorseUtils {
 
-@Serializable
-data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
+    fun Horse.getCalcSpeed(): Double {
+        return this.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)!!.value * 42.162962963
+    }
 
-@Serializable
-data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
+    fun Horse.getCalcJump(): Double {
+        return this.jumpStrength.pow(1.7) * 5.293;
+    }
+
+    fun Horse.getCalcMaxHealth(): Double {
+        return this.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value
+    }
+}

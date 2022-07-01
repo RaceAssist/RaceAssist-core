@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.Polygon
 
-object PlaceData {
+object PlaceSettingData {
 
     suspend fun getLap(raceId: String) = withContext(Dispatchers.IO) {
         getRaceConfig(raceId).place.lap

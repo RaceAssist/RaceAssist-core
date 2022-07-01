@@ -18,10 +18,8 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.RaceData
-import dev.nikomaru.raceassist.data.files.StaffData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.StaffSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.Bukkit
@@ -35,53 +33,50 @@ import java.util.*
 class SettingStaffCommand {
 
     @CommandMethod("staff add <raceId> <playerName>")
-    fun addStaff(sender: CommandSender,
+    suspend fun addStaff(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            val target = Bukkit.getOfflinePlayer(playerName)
-            if (returnCanSetPlayer(target, sender, playerName)) return@launch
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
 
-            if (StaffData.addStaff(raceId, target)) {
-                sender.sendMessage(Lang.getComponent("add-staff", locale))
-            } else {
-                sender.sendMessage(Lang.getComponent("already-added-staff", locale))
-            }
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+
+        if (StaffSettingData.addStaff(raceId, target)) {
+            sender.sendMessage(Lang.getComponent("add-staff", locale))
+        } else {
+            sender.sendMessage(Lang.getComponent("already-added-staff", locale))
         }
+
     }
 
     @CommandMethod("staff remove <raceId> <playerName>")
-    fun removeStaff(sender: CommandSender,
+    suspend fun removeStaff(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            val target = Bukkit.getOfflinePlayer(playerName)
-            if (returnCanSetPlayer(target, sender, playerName)) return@launch
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
 
-            if (RaceData.getOwner(raceId) == target) {
-                return@launch sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
-            }
-
-            if (StaffData.removeStaff(raceId, target)) {
-                sender.sendMessage(Lang.getComponent("delete-staff", locale))
-            } else {
-                sender.sendMessage(Lang.getComponent("not-find-staff", locale))
-            }
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        if (RaceSettingData.getOwner(raceId) == target) {
+            return sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
         }
+
+        if (StaffSettingData.removeStaff(raceId, target)) {
+            sender.sendMessage(Lang.getComponent("delete-staff", locale))
+        } else {
+            sender.sendMessage(Lang.getComponent("not-find-staff", locale))
+        }
+
     }
 
     @CommandMethod("staff list <raceId>")
-    fun listStaff(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            StaffData.getStaffs(raceId).forEach {
-                sender.sendMessage(it.name.toString())
-            }
+    suspend fun listStaff(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        StaffSettingData.getStaffs(raceId).forEach {
+            sender.sendMessage(it.name.toString())
         }
+
     }
 
     private fun returnCanSetPlayer(target: OfflinePlayer, sender: CommandSender, playerName: String): Boolean {

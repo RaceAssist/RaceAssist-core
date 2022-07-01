@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.OfflinePlayer
 
-object StaffData {
+object StaffSettingData {
 
     suspend fun getStaffs(raceId: String) = withContext(Dispatchers.IO) {
         getRaceConfig(raceId).staff
@@ -38,7 +38,7 @@ object StaffData {
     }
 
     suspend fun removeStaff(raceId: String, player: OfflinePlayer) = withContext(Dispatchers.IO) {
-        if (RaceData.getOwner(raceId) == player || !existStaff(raceId, player)) {
+        if (RaceSettingData.getOwner(raceId) == player || !existStaff(raceId, player)) {
             return@withContext false //Owner can't be removed or staff can't be removed if they aren't in the list
         }
         val data = getRaceConfig(raceId)

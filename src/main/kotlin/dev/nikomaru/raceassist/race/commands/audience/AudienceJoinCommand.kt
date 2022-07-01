@@ -18,8 +18,8 @@
 package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.audience
-import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -28,13 +28,13 @@ import org.bukkit.entity.Player
 class AudienceJoinCommand {
     @CommandPermission("RaceAssist.commands.audience.join")
     @CommandMethod("join <raceId>")
-    suspend fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (!getRaceExist(raceId)) {
+        if (!RaceSettingData.existsRace(raceId)) {
             sender.sendMessage(Lang.getComponent("not-found-this-race", sender.locale()))
             return
         }

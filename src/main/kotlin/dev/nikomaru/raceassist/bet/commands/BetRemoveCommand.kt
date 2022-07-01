@@ -18,8 +18,6 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
@@ -39,44 +37,45 @@ import java.util.*
 class BetRemoveCommand {
     @CommandPermission("RaceAssist.commands.bet.revert")
     @CommandMethod("remove <raceId> <betId>")
-    fun remove(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "betId") betId: Int) {
+    suspend fun remove(sender: CommandSender,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "betId") betId: Int) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
         val eco: Economy = VaultAPI.getEconomy()
-        plugin.launch {
-            withContext(Dispatchers.IO) {
-                if (returnRaceSetting(raceId, sender)) return@withContext
-                if (eco.getBalance(sender) < getBetSum(raceId)) {
-                    sender.sendMessage(Lang.getComponent("no-have-money", sender.locale()))
-                    return@withContext
-                }
+
+        withContext(Dispatchers.IO) {
+            if (returnRaceSetting(raceId, sender)) return@withContext
+            if (eco.getBalance(sender) < getBetSum(raceId)) {
+                sender.sendMessage(Lang.getComponent("no-have-money", sender.locale()))
+                return@withContext
             }
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }.forEach {
-                    val receiver = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID].toString()))
-                    withContext(minecraft) {
-                        eco.withdrawPlayer(sender, it[BetList.betting].toDouble())
-                        eco.depositPlayer(receiver, it[BetList.betting].toDouble())
-                    }
-                    sender.sendMessage(Lang.getComponent("bet-revert-return-message-owner", sender.locale(), receiver.name, it[BetList.betting]))
-
-                    if (receiver.isOnline) {
-                        (receiver as Player).sendMessage(Lang.getComponent("bet-revert-return-message-player",
-                            receiver.locale(),
-                            sender.name,
-                            it[BetList.raceId],
-                            it[BetList.jockey],
-                            it[BetList.betting]))
-                    }
-
-                }
-
-                BetList.deleteWhere { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }
-            }
-
         }
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }.forEach {
+                val receiver = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID].toString()))
+                withContext(minecraft) {
+                    eco.withdrawPlayer(sender, it[BetList.betting].toDouble())
+                    eco.depositPlayer(receiver, it[BetList.betting].toDouble())
+                }
+                sender.sendMessage(Lang.getComponent("bet-revert-return-message-owner", sender.locale(), receiver.name, it[BetList.betting]))
+
+                if (receiver.isOnline) {
+                    (receiver as Player).sendMessage(Lang.getComponent("bet-revert-return-message-player",
+                        receiver.locale(),
+                        sender.name,
+                        it[BetList.raceId],
+                        it[BetList.jockey],
+                        it[BetList.betting]))
+                }
+
+            }
+
+            BetList.deleteWhere { (BetList.rowNum eq betId) and (BetList.raceId eq raceId) }
+        }
+
     }
 
     private suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {

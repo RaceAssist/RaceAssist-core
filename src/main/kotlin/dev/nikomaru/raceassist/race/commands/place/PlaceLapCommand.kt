@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -43,7 +43,7 @@ class PlaceLapCommand {
             sender.sendMessage(Lang.getComponent("to-need-enter-over-1", sender.locale()))
             return
         }
-        PlaceData.setLap(raceId, lap)
+        PlaceSettingData.setLap(raceId, lap)
         sender.sendMessage(Lang.getComponent("to-set-lap", sender.locale()))
 
     }

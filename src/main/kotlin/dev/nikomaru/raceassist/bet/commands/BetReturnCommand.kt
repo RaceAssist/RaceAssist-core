@@ -21,8 +21,8 @@ import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.BetList.jockey
-import dev.nikomaru.raceassist.data.files.BetData
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
@@ -42,12 +42,10 @@ class BetReturnCommand {
     suspend fun returnBet(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        val player = Bukkit.getOfflinePlayer(playerName)
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        if (!player.hasPlayedBefore()) {
-            sender.sendMessage(Lang.getComponent("player-not-exist", locale, player.name))
-            return
-        }
+        val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+
+
         if (!existPlayer(raceId, player)) {
             sender.sendMessage(Lang.getComponent("player-not-jockey", locale, player.name))
             return
@@ -58,7 +56,7 @@ class BetReturnCommand {
                 sum += it[BetList.betting]
             }
         }
-        val rate: Int = BetData.getReturnPercent(raceId)
+        val rate: Int = BetSettingData.getReturnPercent(raceId)
         var jockeySum = 0
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.select { (BetList.jockeyUUID eq player.uniqueId.toString()) and (BetList.raceId eq raceId) }.forEach {
@@ -70,20 +68,20 @@ class BetReturnCommand {
 
         if (canReturn[raceId] == true) {
             payRefund(player, raceId, sender, locale)
-            } else {
-                canReturn[raceId] = true
-                newSuspendedTransaction(Dispatchers.IO) {
-                    BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
-                        val returnAmount = it[BetList.betting] * odds
-                        val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
-                        sender.sendMessage(Lang.getComponent("pay-confirm-bet-player",
-                            locale,
-                            retunrPlayer.name,
-                            player.name,
-                            it[BetList.betting],
-                            returnAmount))
-                    }
+        } else {
+            canReturn[raceId] = true
+            newSuspendedTransaction(Dispatchers.IO) {
+                BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
+                    val returnAmount = it[BetList.betting] * odds
+                    val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
+                    sender.sendMessage(Lang.getComponent("pay-confirm-bet-player",
+                        locale,
+                        retunrPlayer.name,
+                        player.name,
+                        it[BetList.betting],
+                        returnAmount))
                 }
+            }
             sender.sendMessage(Lang.getComponent("return-confirm-message", locale))
             delay(5000)
             canReturn.remove(raceId)
@@ -92,7 +90,7 @@ class BetReturnCommand {
     }
 
     private suspend fun existPlayer(raceId: String, player: OfflinePlayer): Boolean {
-        return RaceData.getJockeys(raceId).contains(player)
+        return RaceSettingData.getJockeys(raceId).contains(player)
     }
 
     companion object {
@@ -106,7 +104,7 @@ class BetReturnCommand {
                 }
             }
 
-            val rate: Int = BetData.getReturnPercent(raceId)
+            val rate: Int = BetSettingData.getReturnPercent(raceId)
             var jockeySum = 0
             newSuspendedTransaction(Dispatchers.IO) {
                 BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
@@ -123,7 +121,7 @@ class BetReturnCommand {
                     withContext(minecraft) {
                         val eco = VaultAPI.getEconomy()
                         eco.depositPlayer(retunrPlayer, returnAmount)
-                        eco.withdrawPlayer(RaceData.getOwner(raceId), returnAmount)
+                        eco.withdrawPlayer(RaceSettingData.getOwner(raceId), returnAmount)
                     }
                     sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
                     retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player",

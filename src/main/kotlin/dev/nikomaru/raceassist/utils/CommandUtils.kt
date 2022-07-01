@@ -17,15 +17,11 @@
 
 package dev.nikomaru.raceassist.utils
 
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceData
-import dev.nikomaru.raceassist.data.files.RaceData
-import dev.nikomaru.raceassist.data.files.StaffData.existStaff
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
+import kotlinx.coroutines.*
 import net.kyori.adventure.title.Title.title
-import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
@@ -43,15 +39,12 @@ object CommandUtils {
     val centralRaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
 
-    suspend fun getRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceData.existsRace(raceId)
-    }
 
     suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        PlaceData.getInsidePolygon(raceId).npoints > 0
+        PlaceSettingData.getInsidePolygon(raceId).npoints > 0
     }
 
-    fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
+    suspend fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
         if (currentLap == null || beforeLap == null) {
             return
         }
@@ -62,15 +55,14 @@ object CommandUtils {
                 player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
                     Lang.getComponent("one-step-forward-lap", player.locale())))
             }
-            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                player.clearTitle()
-            }, 40)
+            delay(40)
+            player.clearTitle()
         } else if (currentLap < beforeLap) {
             player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
                 Lang.getComponent("one-step-backwards-lap", player.locale())))
-            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                player.clearTitle()
-            }, 40)
+            delay(40)
+            player.clearTitle()
+
         }
     }
 
@@ -79,7 +71,7 @@ object CommandUtils {
             return@withContext true
         }
         (player as Player)
-        if (!RaceData.existsRace(raceId)) {
+        if (!RaceSettingData.existsRace(raceId)) {
             player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale(), raceId))
             return@withContext true
         }
@@ -89,7 +81,6 @@ object CommandUtils {
         }
         return@withContext false
     }
-
 
     fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
         if (currentDegree == null) return 0
@@ -141,25 +132,18 @@ object CommandUtils {
 
     suspend fun getPolygon(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
         if (inside) {
-            PlaceData.getInsidePolygon(raceId)
+            PlaceSettingData.getInsidePolygon(raceId)
         } else {
-            PlaceData.getOutsidePolygon(raceId)
+            PlaceSettingData.getOutsidePolygon(raceId)
         }
     }
 
     suspend fun getCentralPoint(raceId: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
         if (xPoint) {
-            PlaceData.getCentralXPoint(raceId)
+            PlaceSettingData.getCentralXPoint(raceId)
         } else {
-            PlaceData.getCentralYPoint(raceId)
+            PlaceSettingData.getCentralYPoint(raceId)
         }
     }
 
-    suspend fun getReverse(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        PlaceData.getReverse(raceId)
-    }
-
-    suspend fun getRacePlayerExist(raceId: String, player: OfflinePlayer) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceData.getJockeys(raceId).contains(player)
-    }
 }

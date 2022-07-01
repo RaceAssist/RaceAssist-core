@@ -30,7 +30,7 @@ import java.awt.Polygon
 import java.io.*
 import java.util.*
 
-object RaceData {
+object RaceSettingData {
 
     fun existsRace(raceId: String): Boolean {
         val file = File(File(RaceAssist.plugin.dataFolder, "RaceData"), "$raceId.json")
@@ -48,7 +48,7 @@ object RaceData {
         val raceName = raceId.split("-")[0]
 
         val place = Place(1, null, null, 0, false, Polygon(), Polygon())
-        val bet = Bet(false, 75, null)
+        val bet = Bet(false, 75, null, 100)
         val raceConfig = RaceConfig(raceId, raceName, owner, arrayListOf(owner), arrayListOf(), place, bet, hashMapOf())
         val json = json.encodeToJsonElement(raceConfig)
         val string = json.toString()
@@ -95,7 +95,7 @@ object RaceData {
         data.save(raceId)
     }
 
-    suspend fun addReplacement(raceId: String, uuid: UUID, name: String) = withContext(Dispatchers.IO) {
+    suspend fun setReplacement(raceId: String, uuid: UUID, name: String) = withContext(Dispatchers.IO) {
         val data = getRaceConfig(raceId)
         data.replacement[uuid] = name
         data.save(raceId)
@@ -110,6 +110,12 @@ object RaceData {
     suspend fun removeReplacement(raceId: String, uuid: UUID) = withContext(Dispatchers.IO) {
         val data = getRaceConfig(raceId)
         data.replacement.remove(uuid)
+        data.save(raceId)
+    }
+
+    suspend fun deleteReplacement(raceId: String) = withContext(Dispatchers.IO) {
+        val data = getRaceConfig(raceId)
+        data.replacement.clear()
         data.save(raceId)
     }
 

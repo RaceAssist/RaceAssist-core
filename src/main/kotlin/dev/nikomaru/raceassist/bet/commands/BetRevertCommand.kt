@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -41,7 +41,7 @@ class BetRevertCommand {
     @CommandMethod("revert <raceId>")
     suspend fun revert(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         val eco: Economy = VaultAPI.getEconomy()
-        val owner = RaceData.getOwner(raceId)
+        val owner = RaceSettingData.getOwner(raceId)
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
         withContext(Dispatchers.IO) {
             if (returnRaceSetting(raceId, sender)) return@withContext

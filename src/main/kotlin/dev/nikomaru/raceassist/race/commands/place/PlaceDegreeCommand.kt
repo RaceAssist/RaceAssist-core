@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -67,7 +67,7 @@ class PlaceDegreeCommand {
             }
         }
         sender.sendMessage(Lang.getComponent("to-set-degree", sender.locale(), degree))
-        PlaceData.setGoalDegree(raceId, degree)
+        PlaceSettingData.setGoalDegree(raceId, degree)
 
     }
 }

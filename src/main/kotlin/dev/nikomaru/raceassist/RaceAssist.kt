@@ -29,6 +29,7 @@ import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.horse.event.HorseBreedEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.audience.*
 import dev.nikomaru.raceassist.race.commands.place.*
@@ -40,20 +41,19 @@ import dev.nikomaru.raceassist.utils.CommandSuggestions
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.command.CommandSender
-import org.bukkit.configuration.file.YamlConfiguration
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
 class RaceAssist : SuspendingJavaPlugin() {
 
+    @OptIn(ExperimentalSerializationApi::class)
     override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
         Lang.load()
-        saveDefaultConfig()
-        Config.config = YamlConfiguration.loadConfiguration(File(dataFolder, "config.yml"))
         Config.load()
         settingDatabase()
         setCommand()
@@ -135,6 +135,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         server.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), this)
         server.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), this)
         server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
+        server.pluginManager.registerSuspendingEvents(HorseBreedEvent(), this)
     }
 
     companion object {

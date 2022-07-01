@@ -18,9 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -32,16 +30,15 @@ class PlayerDeleteCommand {
 
     @CommandPermission("RaceAssist.commands.player.delete")
     @CommandMethod("delete <raceId>")
-    fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
 
-            RaceData.getJockeys(raceId).forEach {
-                RaceData.removeJockey(raceId, it)
-            }
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            sender.sendMessage(Lang.getComponent("to-delete-all-player-from-race-group", locale, raceId))
+        RaceSettingData.getJockeys(raceId).forEach {
+            RaceSettingData.removeJockey(raceId, it)
         }
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        sender.sendMessage(Lang.getComponent("to-delete-all-player-from-race-group", locale, raceId))
+
     }
 }

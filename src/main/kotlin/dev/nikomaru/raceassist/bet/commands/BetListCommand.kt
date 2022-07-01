@@ -18,8 +18,6 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
@@ -34,23 +32,23 @@ import java.util.*
 class BetListCommand {
     @CommandPermission("RaceAssist.commands.bet.list")
     @CommandMethod("list <raceId>")
-    fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { BetList.raceId eq raceId }.forEach {
-                    sender.sendMessage(Lang.getComponent("bet-list-detail-message",
-                        locale,
-                        it[BetList.rowNum],
-                        it[BetList.timeStamp],
-                        it[BetList.playerName],
-                        it[BetList.jockey],
-                        it[BetList.betting]))
-                }
+
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { BetList.raceId eq raceId }.forEach {
+                sender.sendMessage(Lang.getComponent("bet-list-detail-message",
+                    locale,
+                    it[BetList.rowNum],
+                    it[BetList.timeStamp],
+                    it[BetList.playerName],
+                    it[BetList.jockey],
+                    it[BetList.betting]))
             }
         }
+
     }
 
 }

@@ -15,16 +15,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.files
+package dev.nikomaru.raceassist.bet
 
-import kotlinx.serialization.Serializable
-
-//TODO(change to hocon to use kotlinx.serialization)
-@Serializable
-data class ConfigData(val version: String, val threshold: Int, val delay: Long, val discordWebHook: DiscordWebHook, val spreadSheet: SpreadSheet)
-
-@Serializable
-data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
-
-@Serializable
-data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
+object BetUtils {}

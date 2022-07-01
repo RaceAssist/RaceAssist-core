@@ -18,9 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import org.bukkit.command.CommandSender
 
@@ -29,17 +27,16 @@ class PlayerListCommand {
 
     @CommandPermission("RaceAssist.commands.player.list")
     @CommandMethod("list <raceId>")
-    fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            if (RaceData.getJockeys(raceId).isEmpty()) {
-                sender.sendMessage("<color:red>プレイヤーはいません")
-            }
+    suspend fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
-            RaceData.getJockeys(raceId).forEach {
-                sender.sendMessage(it.name.toString())
-            }
-
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (RaceSettingData.getJockeys(raceId).isEmpty()) {
+            sender.sendMessage("<color:red>プレイヤーはいません")
         }
+
+        RaceSettingData.getJockeys(raceId).forEach {
+            sender.sendMessage(it.name.toString())
+        }
+
     }
 }

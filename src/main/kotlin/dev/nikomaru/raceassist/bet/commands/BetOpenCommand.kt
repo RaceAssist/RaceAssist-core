@@ -18,13 +18,11 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.bet.data.TempBetData
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
-import dev.nikomaru.raceassist.data.files.BetData
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.TempBetData
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
@@ -34,39 +32,37 @@ import org.bukkit.entity.Player
 class BetOpenCommand {
     @CommandPermission("RaceAssist.commands.bet.open")
     @CommandMethod("open <raceId>")
-    fun openVending(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun openVending(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        plugin.launch {
-            if (!RaceData.existsRace(raceId)) {
-                sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
-                return@launch
-            }
-            val vending = BetChestGui()
-            val canBet = BetData.getAvailable(raceId)
-            if (!canBet) {
-                sender.sendMessage(Lang.getComponent("now-cannot-bet-race", sender.locale()))
-                return@launch
-            }
 
-            val iterator = TempBetDatas.iterator()
-            while (iterator.hasNext()) {
-                val it = iterator.next()
-                if (it.player == sender) {
-                    iterator.remove()
-                }
+        if (!RaceSettingData.existsRace(raceId)) {
+            sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+            return
+        }
+        val vending = BetChestGui()
+        val canBet = BetSettingData.getAvailable(raceId)
+        if (!canBet) {
+            sender.sendMessage(Lang.getComponent("now-cannot-bet-race", sender.locale()))
+            return
+        }
+
+        val iterator = TempBetDatas.iterator()
+        while (iterator.hasNext()) {
+            val it = iterator.next()
+            if (it.player == sender) {
+                iterator.remove()
             }
-            withContext(minecraft) {
-                sender.openInventory(vending.getGUI(sender, raceId))
-            }
+        }
+        withContext(minecraft) {
+            sender.openInventory(vending.getGUI(sender, raceId))
+        }
 
 
-            BetChestGui.AllPlayers[raceId]?.forEach { jockey ->
-                TempBetDatas.add(TempBetData(raceId, sender, jockey, 0))
-            }
-
+        BetChestGui.AllPlayers[raceId]?.forEach { jockey ->
+            TempBetDatas.add(TempBetData(raceId, sender, jockey, 0))
         }
 
     }

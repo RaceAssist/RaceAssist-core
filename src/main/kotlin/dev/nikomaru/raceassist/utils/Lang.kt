@@ -17,7 +17,6 @@
 
 package dev.nikomaru.raceassist.utils
 
-import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,42 +32,41 @@ object Lang {
 
     val mm = MiniMessage.miniMessage()
 
-    fun load() {
-        plugin.launch {
+    suspend fun load() {
+        withContext(Dispatchers.IO) {
+            val lang = listOf("ja_JP", "de_DE", "en_US", "fr_FR", "ko_KR", "zh_CN", "zh_TW")
+
+            lang.forEach { locale ->
+                val conf = Properties()
+                conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!, "UTF-8"))
+                langList[locale] = conf
+            }
+
+            if (!plugin.dataFolder.exists()) {
+                plugin.dataFolder.mkdir()
+            }
+            val langDir = File(plugin.dataFolder, "lang")
+            if (!langDir.exists()) {
+                langDir.mkdir()
+            }
+            lang.forEach { locale ->
+                val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
+                plugin.logger.info("Loading resource lang file for $locale")
+                val file = File(langDir, "$locale.properties")
+                if (!file.exists()) {
+                    Files.copy(input, file.toPath())
+                }
+            }
             withContext(Dispatchers.IO) {
-                val lang = listOf("ja_JP", "de_DE", "en_US", "fr_FR", "ko_KR", "zh_CN", "zh_TW")
-
-                lang.forEach { locale ->
-                    val conf = Properties()
-                    conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!, "UTF-8"))
-                    langList[locale] = conf
-                }
-
-                if (!plugin.dataFolder.exists()) {
-                    plugin.dataFolder.mkdir()
-                }
-                val langDir = File(plugin.dataFolder, "lang")
-                if (!langDir.exists()) {
-                    langDir.mkdir()
-                }
-                lang.forEach { locale ->
-                    val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
-                    plugin.logger.info("Loading resource lang file for $locale")
-                    val file = File(langDir, "$locale.properties")
-                    if (!file.exists()) {
-                        Files.copy(input, file.toPath())
-                    }
-                }
-                withContext(Dispatchers.IO) {
-                    langDir.listFiles()?.forEach {
-                        plugin.logger.info("Loading local lang file for ${it.nameWithoutExtension}")
-                        langList[it.nameWithoutExtension] = Properties().apply {
-                            load(InputStreamReader(it.inputStream(), "UTF-8"))
-                        }
+                langDir.listFiles()?.forEach {
+                    plugin.logger.info("Loading local lang file for ${it.nameWithoutExtension}")
+                    langList[it.nameWithoutExtension] = Properties().apply {
+                        load(InputStreamReader(it.inputStream(), "UTF-8"))
                     }
                 }
             }
         }
+
     }
 
     fun getComponent(key: String, locale: Locale, vararg args: Any?): Component {

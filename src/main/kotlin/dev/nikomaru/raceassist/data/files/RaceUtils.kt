@@ -40,6 +40,7 @@ object RaceUtils {
         val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
+        raceConfigCache[raceId] = this
         withContext(Dispatchers.IO) {
             file.createNewFile()
             val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
@@ -49,15 +50,20 @@ object RaceUtils {
     }
 
     suspend fun getRaceConfig(raceId: String) = withContext(Dispatchers.IO) {
+        if (raceConfigCache.containsKey(raceId)) {
+            return@withContext raceConfigCache[raceId]!!
+        }
 
         val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
-        return@withContext json.decodeFromString<RaceConfig>(Files.readString(file.toPath()))
+        val raceConfig = json.decodeFromString<RaceConfig>(Files.readString(file.toPath()))
+        raceConfigCache[raceId] = raceConfig
+        return@withContext raceConfig
     }
 
-}
-// buckup spreadsheet
+    private val raceConfigCache: HashMap<String, RaceConfig> = HashMap<String, RaceConfig>()
 
-//Regex [a-zA-Z]+-\d+$
+}
+
 @Serializable
 data class RaceConfig(var raceId: String,
     var raceName: String,
@@ -78,7 +84,7 @@ data class Place(var lap: Int,
     var outside: @Serializable(with = PolygonSerializer::class) Polygon)
 
 @Serializable
-data class Bet(var available: Boolean, var returnPercent: Int, var spreadSheetId: String?)
+data class Bet(var available: Boolean, var returnPercent: Int, var spreadSheetId: String?, var betUnit: Int)
 
 // UUID <==> String
 object UUIDSerializer : KSerializer<UUID> {

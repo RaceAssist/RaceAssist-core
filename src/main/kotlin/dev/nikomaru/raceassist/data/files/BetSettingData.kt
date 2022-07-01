@@ -22,7 +22,7 @@ import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-object BetData {
+object BetSettingData {
 
     suspend fun getAvailable(raceId: String) = withContext(Dispatchers.IO) {
         getRaceConfig(raceId).bet.available
@@ -34,6 +34,10 @@ object BetData {
 
     suspend fun getSpreadSheetId(raceId: String) = withContext(Dispatchers.IO) {
         getRaceConfig(raceId).bet.spreadSheetId
+    }
+
+    suspend fun getBetUnit(raceId: String) = withContext(Dispatchers.IO) {
+        getRaceConfig(raceId).bet.betUnit
     }
 
     suspend fun setAvailable(raceId: String, available: Boolean) = withContext(Dispatchers.IO) {
@@ -51,6 +55,12 @@ object BetData {
     suspend fun setSpreadSheetId(raceId: String, spreadSheetId: String) = withContext(Dispatchers.IO) {
         val data = getRaceConfig(raceId)
         data.bet.spreadSheetId = spreadSheetId
+        data.save(raceId)
+    }
+
+    suspend fun setBetUnit(raceId: String, betUnit: Int) {
+        val data = getRaceConfig(raceId)
+        data.bet.betUnit = betUnit
         data.save(raceId)
     }
 }

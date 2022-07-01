@@ -18,9 +18,8 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
-import dev.nikomaru.raceassist.utils.CommandUtils.getRacePlayerExist
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -44,15 +43,15 @@ class PlayerAddCommand {
             Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
 
 
-        if (getRacePlayerExist(raceId, jockey)) {
+        if (RaceSettingData.getJockeys(raceId).contains(jockey)) {
             sender.sendMessage(Lang.getComponent("already-exist-this-user", locale))
             return
         }
-        if (RaceData.getJockeys(raceId).size > 7) {
+        if (RaceSettingData.getJockeys(raceId).size > 7) {
             sender.sendMessage(Lang.getComponent("max-player-is-eight", locale))
             return
         }
-        RaceData.addJockey(raceId, jockey)
+        RaceSettingData.addJockey(raceId, jockey)
         sender.sendMessage(Lang.getComponent("player-add-to-race-group", locale, jockey.name.toString(), raceId))
 
     }

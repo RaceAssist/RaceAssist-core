@@ -26,9 +26,8 @@ import dev.nikomaru.raceassist.bet.commands.BetOpenCommand.Companion.TempBetData
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.BetList.rowNum
-import dev.nikomaru.raceassist.data.files.BetData
-import dev.nikomaru.raceassist.data.files.RaceData
-import dev.nikomaru.raceassist.files.Config.betUnit
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component
@@ -74,6 +73,7 @@ class BetGuiClickEvent : Listener {
             player.closeInventory()
         }
 
+        val betUnit = BetSettingData.getBetUnit(raceId)
         when (val slot = event.slot) {
 
             in 0..7 -> {
@@ -141,7 +141,7 @@ class BetGuiClickEvent : Listener {
                     event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.onceDown(player.locale()))
+                    event.inventory.setItem(slot, GuiComponent.onceDown(player.locale(), raceId))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 0.7f)
@@ -175,7 +175,7 @@ class BetGuiClickEvent : Listener {
                     event.inventory.setItem(slot, GuiComponent.noUnderNotice(player.locale()))
                     player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f)
                     delay(1000)
-                    event.inventory.setItem(slot, GuiComponent.tenTimesDown(player.locale()))
+                    event.inventory.setItem(slot, GuiComponent.tenTimesDown(player.locale(), raceId))
                     return
                 }
                 player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 0.7f)
@@ -246,7 +246,7 @@ class BetGuiClickEvent : Listener {
                 player.closeInventory()
 
                 val eco: Economy = VaultAPI.getEconomy()
-                val owner = RaceData.getOwner(raceId)
+                val owner = RaceSettingData.getOwner(raceId)
 
                 newSuspendedTransaction(Dispatchers.Default) {
                     var row = getMaxRow(raceId)
@@ -264,7 +264,7 @@ class BetGuiClickEvent : Listener {
                                 bet[timeStamp] = LocalDateTime.now()
                                 bet[rowNum] = row + 1
                             }
-                            betProcess(player, row, temp.bet, temp.jockey, eco, owner)
+                            betProcess(player, row, temp.bet, temp.jockey, eco, owner, raceId)
                             row++
                         }
                     }
@@ -298,14 +298,21 @@ class BetGuiClickEvent : Listener {
         maxRow
     }
 
-    private fun betProcess(player: Player, row: Int, bet: Int, jockey: OfflinePlayer, eco: Economy, owner: OfflinePlayer) {
-        player.sendMessage(Lang.getComponent("bet-complete-message-player", player.locale(), row + 1, jockey.name.toString(), bet * betUnit))
-        eco.withdrawPlayer(player, bet * betUnit.toDouble())
+    private suspend fun betProcess(player: Player, row: Int, bet: Int, jockey: OfflinePlayer, eco: Economy, owner: OfflinePlayer, raceId: String) {
+        player.sendMessage(Lang.getComponent("bet-complete-message-player",
+            player.locale(),
+            row + 1,
+            jockey.name.toString(),
+            bet * BetSettingData.getBetUnit(raceId)))
+        eco.withdrawPlayer(player, bet * BetSettingData.getBetUnit(raceId).toDouble())
 
         if (owner.isOnline) {
-            (owner as Player).sendMessage(Lang.getComponent("bet-complete-message-owner", player.locale(), player.name, bet * betUnit))
+            (owner as Player).sendMessage(Lang.getComponent("bet-complete-message-owner",
+                player.locale(),
+                player.name,
+                bet * BetSettingData.getBetUnit(raceId)))
         }
-        eco.depositPlayer(owner, bet * betUnit.toDouble())
+        eco.depositPlayer(owner, bet * BetSettingData.getBetUnit(raceId).toDouble())
     }
 
     private suspend fun noticeNoBet(event: InventoryClickEvent, slot: Int, player: Player) {
@@ -345,7 +352,7 @@ class BetGuiClickEvent : Listener {
     }
 
     private suspend fun putSheetsData(raceId: String) = withContext(Dispatchers.Default) {
-        val spreadSheetIdList = BetData.getSpreadSheetId(raceId)
+        val spreadSheetIdList = BetSettingData.getSpreadSheetId(raceId)
         spreadSheetIdList?.let { sheetId ->
 
             val sheetsService = getSheetsService(sheetId) ?: return@withContext
@@ -379,7 +386,7 @@ class BetGuiClickEvent : Listener {
     }
 
     private suspend fun getBetPercent(raceId: String): Int = newSuspendedTransaction(Dispatchers.IO) {
-        BetData.getReturnPercent(raceId)
+        BetSettingData.getReturnPercent(raceId)
     }
 
     companion object {

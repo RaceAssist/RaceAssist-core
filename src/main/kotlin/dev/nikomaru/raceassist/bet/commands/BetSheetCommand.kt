@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.*
 import com.google.api.services.sheets.v4.model.*
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
-import dev.nikomaru.raceassist.data.files.BetData
+import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -36,7 +36,7 @@ class BetSheetCommand {
         withContext(Dispatchers.IO) {
             if (returnRaceSetting(raceId, sender)) return@withContext
         }
-        BetData.setSpreadSheetId(raceId, sheetId)
+        BetSettingData.setSpreadSheetId(raceId, sheetId)
         createNewSheets(sheetId, raceId)
     }
 

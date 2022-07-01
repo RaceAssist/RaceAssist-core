@@ -18,11 +18,11 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.CommandUtils.getInsideRaceExist
-import dev.nikomaru.raceassist.utils.CommandUtils.getRaceExist
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -40,7 +40,7 @@ class PlaceSetCommand {
             return
         }
 
-        if (!getRaceExist(raceId)) {
+        if (!RaceSettingData.existsRace(raceId)) {
             sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
             return
         } else if (returnRaceSetting(raceId, sender)) return

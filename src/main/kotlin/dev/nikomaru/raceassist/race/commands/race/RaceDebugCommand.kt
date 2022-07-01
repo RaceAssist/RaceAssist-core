@@ -20,13 +20,12 @@ package dev.nikomaru.raceassist.race.commands.race
 import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
 import dev.nikomaru.raceassist.utils.CommandUtils.getPolygon
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import dev.nikomaru.raceassist.utils.Lang
@@ -48,7 +47,7 @@ class RaceDebugCommand {
 
     @CommandPermission("RaceAssist.commands.race.debug")
     @CommandMethod("debug <raceId>")
-    fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
@@ -67,14 +66,14 @@ class RaceDebugCommand {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
-            val reverse = getReverse(raceId)
-            val lap: Int = PlaceData.getLap(raceId)
+            val reverse = PlaceSettingData.getReverse(raceId)
+            val lap: Int = PlaceSettingData.getLap(raceId)
             val threshold = 40
             val centralXPoint: Int =
                 getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
                 getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val goalDegree: Int = PlaceData.getGoalDegree(raceId)
+            val goalDegree: Int = PlaceSettingData.getGoalDegree(raceId)
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
@@ -150,7 +149,7 @@ class RaceDebugCommand {
 
             sender.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
 
-        }
+        }.join()
     }
 
     private fun calcurateLength(insidePolygon: Polygon): Double {
@@ -168,7 +167,7 @@ class RaceDebugCommand {
     }
 
     private suspend fun getCircuitExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        (PlaceData.getInsidePolygon(raceId).npoints > 0 && PlaceData.getInsidePolygon(raceId).npoints > 0)
+        (PlaceSettingData.getInsidePolygon(raceId).npoints > 0 && PlaceSettingData.getInsidePolygon(raceId).npoints > 0)
     }
 
 }

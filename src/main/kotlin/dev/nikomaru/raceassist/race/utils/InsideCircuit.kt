@@ -17,7 +17,7 @@
 package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceData
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
@@ -39,7 +39,7 @@ object InsideCircuit {
     }
 
     suspend fun finish(player: Player) {
-        PlaceData.setInsidePolygon(circuitRaceId[player.uniqueId]!!, insidePolygonMap[circuitRaceId[player.uniqueId]]!!)
+        PlaceSettingData.setInsidePolygon(circuitRaceId[player.uniqueId]!!, insidePolygonMap[circuitRaceId[player.uniqueId]]!!)
         insidePolygonMap.remove(circuitRaceId[player.uniqueId])
     }
 }

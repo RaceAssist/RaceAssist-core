@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils
+package dev.nikomaru.raceassist.bet.data
 
 import org.bukkit.OfflinePlayer
 
