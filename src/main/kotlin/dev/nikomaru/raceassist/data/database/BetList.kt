@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -14,11 +15,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.database
+package dev.nikomaru.raceassist.data.database
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.datetime
 
-object PlayerList : Table() {
+object BetList : Table() {
+    val rowNum = integer("rowNum")
     val raceId = varchar("raceId", 30)
+    val timeStamp = datetime("timeStamp")
+    val playerName = varchar("playerName", 16)
     val playerUUID = varchar("playerUUID", 40)
+    val jockey = varchar("jockey", 16)
+    val jockeyUUID = varchar("jockeyUUID", 40)
+    val betting = integer("betting")
 }

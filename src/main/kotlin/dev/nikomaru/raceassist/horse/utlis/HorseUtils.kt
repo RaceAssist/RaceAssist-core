@@ -15,22 +15,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.horse.utlis
 
-import kotlinx.coroutines.CoroutineDispatcher
-import org.bukkit.Bukkit
-import org.bukkit.plugin.Plugin
-import kotlin.coroutines.CoroutineContext
+import org.bukkit.attribute.Attribute
+import org.bukkit.entity.Horse
+import kotlin.math.pow
 
-class MinecraftCoroutineDispatcher(private val plugin: Plugin) : CoroutineDispatcher() {
-    /**
-     * Handles dispatching the coroutine on the correct thread.
-     */
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        if (Bukkit.isPrimaryThread()) {
-            block.run()
-        } else {
-            plugin.server.scheduler.runTask(plugin, block)
-        }
+object HorseUtils {
+
+    fun Horse.getCalcSpeed(): Double {
+        return this.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)!!.value * 42.162962963
+    }
+
+    fun Horse.getCalcJump(): Double {
+        return this.jumpStrength.pow(1.7) * 5.293;
+    }
+
+    fun Horse.getCalcMaxHealth(): Double {
+        return this.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value
     }
 }

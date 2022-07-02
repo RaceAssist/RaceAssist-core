@@ -15,22 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.files
 
-import kotlinx.coroutines.CoroutineDispatcher
-import org.bukkit.Bukkit
-import org.bukkit.plugin.Plugin
-import kotlin.coroutines.CoroutineContext
+import kotlinx.serialization.Serializable
 
-class MinecraftCoroutineDispatcher(private val plugin: Plugin) : CoroutineDispatcher() {
-    /**
-     * Handles dispatching the coroutine on the correct thread.
-     */
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        if (Bukkit.isPrimaryThread()) {
-            block.run()
-        } else {
-            plugin.server.scheduler.runTask(plugin, block)
-        }
-    }
-}
+//TODO(change to hocon to use kotlinx.serialization)
+@Serializable
+data class ConfigData(val version: String, val threshold: Int, val delay: Long, val discordWebHook: DiscordWebHook, val spreadSheet: SpreadSheet)
+
+@Serializable
+data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
+
+@Serializable
+data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)

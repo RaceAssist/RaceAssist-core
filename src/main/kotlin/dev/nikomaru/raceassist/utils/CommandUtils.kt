@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -16,21 +17,15 @@
 
 package dev.nikomaru.raceassist.utils
 
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.*
-import dev.nikomaru.raceassist.utils.RaceStaffUtils.existStaff
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
+import kotlinx.coroutines.*
 import net.kyori.adventure.title.Title.title
-import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.awt.Polygon
 import java.util.*
 import kotlin.math.atan2
 
@@ -44,19 +39,12 @@ object CommandUtils {
     val centralRaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
 
-    suspend fun getRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceId eq raceId }.count() > 0
-    }
-
-    suspend fun getDirection(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.reverse) == true
-    }
 
     suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq true) }.count() > 0
+        PlaceSettingData.getInsidePolygon(raceId).npoints > 0
     }
 
-    fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
+    suspend fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
         if (currentLap == null || beforeLap == null) {
             return
         }
@@ -67,15 +55,14 @@ object CommandUtils {
                 player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
                     Lang.getComponent("one-step-forward-lap", player.locale())))
             }
-            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                player.clearTitle()
-            }, 40)
+            delay(40)
+            player.clearTitle()
         } else if (currentLap < beforeLap) {
             player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
                 Lang.getComponent("one-step-backwards-lap", player.locale())))
-            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                player.clearTitle()
-            }, 40)
+            delay(40)
+            player.clearTitle()
+
         }
     }
 
@@ -84,23 +71,15 @@ object CommandUtils {
             return@withContext true
         }
         (player as Player)
-        if (!raceExist(raceId)) {
-            player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale()))
+        if (!RaceSettingData.existsRace(raceId)) {
+            player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale(), raceId))
             return@withContext true
         }
-        if (!existStaff(raceId, player.uniqueId)) {
+        if (!existStaff(raceId, player)) {
             player.sendMessage(Lang.getComponent("only-race-creator-can-setting", player.locale()))
             return@withContext true
         }
         return@withContext false
-    }
-
-    private suspend fun raceExist(raceId: String): Boolean {
-        var exist = false
-        newSuspendedTransaction(Dispatchers.IO) {
-            exist = BetSetting.select { BetSetting.raceId eq raceId }.count() > 0
-        }
-        return exist
     }
 
     fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
@@ -151,78 +130,20 @@ object CommandUtils {
         }
     }
 
-
-
-    fun decideRanking(totalDegree: HashMap<UUID, Int>): ArrayList<UUID> {
-        val ranking = ArrayList<UUID>()
-        val sorted = totalDegree.toList().sortedBy { (_, value) -> value }
-        sorted.forEach {
-            ranking.add(it.first)
-        }
-        ranking.reverse()
-        return ranking
-    }
-
-    suspend fun getLapCount(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceId eq raceId }.first()[RaceList.lap]
-    }
-
-    suspend fun getAllJockeys(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        val jockeys: ArrayList<OfflinePlayer> = ArrayList()
-        PlayerList.select { PlayerList.raceId eq raceId }.forEach {
-            jockeys.add(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])))
-        }
-        jockeys
-    }
-
-    suspend fun getGoalDegree(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.goalDegree)
-    }
-
-    suspend fun getCircuitExist(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
-        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq inside) }.count() > 0
-    }
-
     suspend fun getPolygon(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
-        val polygon = Polygon()
-        CircuitPoint.select { (CircuitPoint.raceId eq raceId) and (CircuitPoint.inside eq inside) }.forEach {
-            polygon.addPoint(it[CircuitPoint.XPoint], it[CircuitPoint.YPoint])
+        if (inside) {
+            PlaceSettingData.getInsidePolygon(raceId)
+        } else {
+            PlaceSettingData.getOutsidePolygon(raceId)
         }
-        polygon
-    }
-
-    suspend fun getOwner(raceId: String): UUID? {
-        var raceCreator: String? = null
-        newSuspendedTransaction(Dispatchers.IO) {
-            raceCreator = RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.creator)
-        }
-        raceCreator ?: return null
-        return UUID.fromString(raceCreator)
     }
 
     suspend fun getCentralPoint(raceId: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
-        var point: Int? = null
-        RaceList.select { RaceList.raceId eq raceId }.forEach {
-            point = if (xPoint) {
-                it.getOrNull(RaceList.centralXPoint)
-            } else {
-                it.getOrNull(RaceList.centralYPoint)
-            }
+        if (xPoint) {
+            PlaceSettingData.getCentralXPoint(raceId)
+        } else {
+            PlaceSettingData.getCentralYPoint(raceId)
         }
-        point
     }
 
-    suspend fun getReverse(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        RaceList.select { RaceList.raceId eq raceId }.firstOrNull()?.get(RaceList.reverse)
-    }
-
-    suspend fun getRacePlayerAmount(raceId: String): Long = newSuspendedTransaction {
-        PlayerList.select {
-            PlayerList.raceId eq raceId
-        }.count()
-    }
-
-    suspend fun getRacePlayerExist(RaceId: String, playerUUID: UUID) = newSuspendedTransaction(Dispatchers.IO) {
-        PlayerList.select { (PlayerList.raceId eq RaceId) and (PlayerList.playerUUID eq playerUUID.toString()) }.count() > 0
-    }
 }

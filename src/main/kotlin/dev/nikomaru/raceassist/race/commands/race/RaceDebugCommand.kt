@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -19,15 +20,12 @@ package dev.nikomaru.raceassist.race.commands.race
 import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
 import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
-import dev.nikomaru.raceassist.utils.CommandUtils.getCircuitExist
-import dev.nikomaru.raceassist.utils.CommandUtils.getGoalDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.getLapCount
 import dev.nikomaru.raceassist.utils.CommandUtils.getPolygon
 import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.getReverse
 import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
 import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import dev.nikomaru.raceassist.utils.Lang
@@ -39,6 +37,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.Polygon
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -48,7 +47,7 @@ class RaceDebugCommand {
 
     @CommandPermission("RaceAssist.commands.race.debug")
     @CommandMethod("debug <raceId>")
-    fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
@@ -56,7 +55,7 @@ class RaceDebugCommand {
         val locale = sender.locale()
         plugin.launch {
             if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
-            if (!getCircuitExist(raceId, true) || !getCircuitExist(raceId, false)) {
+            if (!getCircuitExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
@@ -67,14 +66,14 @@ class RaceDebugCommand {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
-            val reverse = getReverse(raceId) ?: false
-            val lap: Int = getLapCount(raceId)
+            val reverse = PlaceSettingData.getReverse(raceId)
+            val lap: Int = PlaceSettingData.getLap(raceId)
             val threshold = 40
             val centralXPoint: Int =
                 getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
                 getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val goalDegree: Int = getGoalDegree(raceId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-goal-degree", locale))
+            val goalDegree: Int = PlaceSettingData.getGoalDegree(raceId)
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
@@ -150,7 +149,7 @@ class RaceDebugCommand {
 
             sender.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
 
-        }
+        }.join()
     }
 
     private fun calcurateLength(insidePolygon: Polygon): Double {
@@ -165,6 +164,10 @@ class RaceDebugCommand {
             }
         }
         return total
+    }
+
+    private suspend fun getCircuitExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        (PlaceSettingData.getInsidePolygon(raceId).npoints > 0 && PlaceSettingData.getInsidePolygon(raceId).npoints > 0)
     }
 
 }

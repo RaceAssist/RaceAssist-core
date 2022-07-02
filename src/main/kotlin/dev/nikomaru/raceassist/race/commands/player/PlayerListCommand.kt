@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,31 +18,25 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
-import kotlinx.coroutines.Dispatchers
-import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.util.*
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerListCommand {
 
     @CommandPermission("RaceAssist.commands.player.list")
     @CommandMethod("list <raceId>")
-    private fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+    suspend fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
-            newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.select { PlayerList.raceId eq raceId }.forEach {
-                    sender.sendMessage(Bukkit.getOfflinePlayer(UUID.fromString(it[PlayerList.playerUUID])).name.toString())
-                }
-            }
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (RaceSettingData.getJockeys(raceId).isEmpty()) {
+            sender.sendMessage("<color:red>プレイヤーはいません")
         }
+
+        RaceSettingData.getJockeys(raceId).forEach {
+            sender.sendMessage(it.name.toString())
+        }
+
     }
 }

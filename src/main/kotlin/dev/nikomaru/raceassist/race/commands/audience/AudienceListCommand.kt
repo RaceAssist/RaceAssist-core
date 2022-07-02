@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,8 +18,6 @@
 package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
@@ -31,14 +30,14 @@ import java.util.*
 class AudienceListCommand {
     @CommandPermission("RaceAssist.commands.audience.list")
     @CommandMethod("list <raceId>")
-    private fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        plugin.launch {
-            if (returnRaceSetting(raceId, sender)) return@launch
-            sender.sendMessage(Lang.getComponent("participants-list", locale))
-            CommandUtils.audience[raceId]?.forEach {
-                sender.sendMessage(Bukkit.getOfflinePlayer(it).name.toString())
-            }
+
+        if (returnRaceSetting(raceId, sender)) return
+        sender.sendMessage(Lang.getComponent("participants-list", locale))
+        CommandUtils.audience[raceId]?.forEach {
+            sender.sendMessage(Bukkit.getOfflinePlayer(it).name.toString())
         }
+
     }
 }

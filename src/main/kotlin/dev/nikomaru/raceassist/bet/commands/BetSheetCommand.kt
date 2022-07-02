@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,34 +18,26 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.api.services.sheets.v4.model.*
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
-import dev.nikomaru.raceassist.database.BetSetting
+import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.update
 
 @CommandMethod("ra|RaceAssist bet")
 class BetSheetCommand {
     @CommandPermission("RaceAssist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
-    fun sheet(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String, @Argument(value = "sheet") sheetId: String) {
-        plugin.launch {
-            withContext(Dispatchers.IO) {
-                if (returnRaceSetting(raceId, sender)) return@withContext
-            }
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.update({ BetSetting.raceId eq raceId }) {
-                    it[spreadsheetId] = sheetId
-                }
-            }
-            createNewSheets(sheetId, raceId)
+    suspend fun sheet(sender: CommandSender,
+        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "sheet") sheetId: String) {
+        withContext(Dispatchers.IO) {
+            if (returnRaceSetting(raceId, sender)) return@withContext
         }
+        BetSettingData.setSpreadSheetId(raceId, sheetId)
+        createNewSheets(sheetId, raceId)
     }
 
     private suspend fun createNewSheets(sheetId: String, raceId: String) = withContext(Dispatchers.IO) {

@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,16 +18,11 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.database.PlayerList
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
 @CommandMethod("ra|RaceAssist player")
@@ -34,16 +30,15 @@ class PlayerDeleteCommand {
 
     @CommandPermission("RaceAssist.commands.player.delete")
     @CommandMethod("delete <raceId>")
-    private fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
 
-        plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+        if (CommandUtils.returnRaceSetting(raceId, sender)) return
 
-            newSuspendedTransaction(Dispatchers.IO) {
-                PlayerList.deleteWhere { PlayerList.raceId eq raceId }
-            }
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            sender.sendMessage(Lang.getComponent("to-delete-all-player-from-race-group", locale, raceId))
+        RaceSettingData.getJockeys(raceId).forEach {
+            RaceSettingData.removeJockey(raceId, it)
         }
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        sender.sendMessage(Lang.getComponent("to-delete-all-player-from-race-group", locale, raceId))
+
     }
 }

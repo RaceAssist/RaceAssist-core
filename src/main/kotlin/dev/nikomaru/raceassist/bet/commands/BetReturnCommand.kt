@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,12 +18,11 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.VaultAPI
-import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent.Companion.getBetOwner
-import dev.nikomaru.raceassist.database.*
-import dev.nikomaru.raceassist.database.BetList.jockey
+import dev.nikomaru.raceassist.data.database.BetList
+import dev.nikomaru.raceassist.data.database.BetList.jockey
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
@@ -39,65 +39,58 @@ import kotlin.math.floor
 class BetReturnCommand {
     @CommandPermission("RaceAssist.commands.bet.return")
     @CommandMethod("return <raceId> <playerName>")
-    fun returnBet(sender: CommandSender,
+    suspend fun returnBet(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        plugin.launch {
-            val player = Bukkit.getOfflinePlayer(playerName)
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            if (!player.hasPlayedBefore()) {
-                sender.sendMessage(Lang.getComponent("player-not-exist", locale, player.name))
-                return@launch
+        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+
+
+        if (!existPlayer(raceId, player)) {
+            sender.sendMessage(Lang.getComponent("player-not-jockey", locale, player.name))
+            return
+        }
+        var sum = 0
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { BetList.raceId eq raceId }.forEach {
+                sum += it[BetList.betting]
             }
-            if (!existPlayer(player)) {
-                sender.sendMessage(Lang.getComponent("player-not-jockey", locale, player.name))
-                return@launch
+        }
+        val rate: Int = BetSettingData.getReturnPercent(raceId)
+        var jockeySum = 0
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { (BetList.jockeyUUID eq player.uniqueId.toString()) and (BetList.raceId eq raceId) }.forEach {
+                jockeySum += it[BetList.betting]
             }
-            var sum = 0
-            newSuspendedTransaction(Dispatchers.IO) {
-                BetList.select { BetList.raceId eq raceId }.forEach {
-                    sum += it[BetList.betting]
-                }
-            }
-            val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.returnPercent]
-            }
-            var jockeySum = 0
+        }
+
+        val odds = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
+
+        if (canReturn[raceId] == true) {
+            payRefund(player, raceId, sender, locale)
+        } else {
+            canReturn[raceId] = true
             newSuspendedTransaction(Dispatchers.IO) {
                 BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
-                    jockeySum += it[BetList.betting]
+                    val returnAmount = it[BetList.betting] * odds
+                    val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
+                    sender.sendMessage(Lang.getComponent("pay-confirm-bet-player",
+                        locale,
+                        retunrPlayer.name,
+                        player.name,
+                        it[BetList.betting],
+                        returnAmount))
                 }
             }
-
-            val odds = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
-
-            if (canReturn[raceId] == true) {
-                payRefund(player, raceId, sender, locale)
-            } else {
-                canReturn[raceId] = true
-                newSuspendedTransaction(Dispatchers.IO) {
-                    BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
-                        val returnAmount = it[BetList.betting] * odds
-                        val retunrPlayer = Bukkit.getOfflinePlayer(UUID.fromString(it[BetList.playerUUID]))
-                        sender.sendMessage(Lang.getComponent("pay-confirm-bet-player",
-                            locale,
-                            retunrPlayer.name,
-                            player.name,
-                            it[BetList.betting],
-                            returnAmount))
-                    }
-                }
-                sender.sendMessage(Lang.getComponent("return-confirm-message", locale))
-                delay(5000)
-                canReturn.remove(raceId)
-            }
+            sender.sendMessage(Lang.getComponent("return-confirm-message", locale))
+            delay(5000)
+            canReturn.remove(raceId)
         }
+
     }
 
-    private suspend fun existPlayer(player: OfflinePlayer): Boolean {
-        return newSuspendedTransaction(Dispatchers.IO) {
-            PlayerList.select { PlayerList.playerUUID eq player.uniqueId.toString() }.count() > 0
-        }
+    private suspend fun existPlayer(raceId: String, player: OfflinePlayer): Boolean {
+        return RaceSettingData.getJockeys(raceId).contains(player)
     }
 
     companion object {
@@ -111,9 +104,7 @@ class BetReturnCommand {
                 }
             }
 
-            val rate: Int = newSuspendedTransaction(Dispatchers.IO) {
-                BetSetting.select { BetSetting.raceId eq raceId }.first()[BetSetting.returnPercent]
-            }
+            val rate: Int = BetSettingData.getReturnPercent(raceId)
             var jockeySum = 0
             newSuspendedTransaction(Dispatchers.IO) {
                 BetList.select { (jockey eq player.name.toString()) and (BetList.raceId eq raceId) }.forEach {
@@ -130,7 +121,7 @@ class BetReturnCommand {
                     withContext(minecraft) {
                         val eco = VaultAPI.getEconomy()
                         eco.depositPlayer(retunrPlayer, returnAmount)
-                        eco.withdrawPlayer(getBetOwner(raceId), returnAmount)
+                        eco.withdrawPlayer(RaceSettingData.getOwner(raceId), returnAmount)
                     }
                     sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
                     retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player",

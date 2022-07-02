@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -17,8 +18,6 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
 import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
 import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
@@ -30,16 +29,16 @@ import org.bukkit.entity.Player
 class PlaceCentralCommand {
     @CommandPermission("RaceAssist.commands.place.central")
     @CommandMethod("central <raceId>")
-    fun central(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun central(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        plugin.launch {
-            if (returnRaceSetting(raceId, sender)) return@launch
-            canSetCentral[sender.uniqueId] = true
-            centralRaceId[sender.uniqueId] = raceId
-            sender.sendMessage(Lang.getComponent("to-set-central-point", sender.locale()))
-        }
+
+        if (returnRaceSetting(raceId, sender)) return
+        canSetCentral[sender.uniqueId] = true
+        centralRaceId[sender.uniqueId] = raceId
+        sender.sendMessage(Lang.getComponent("to-set-central-point", sender.locale()))
+
     }
 }

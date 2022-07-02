@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -14,16 +15,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.database
+package dev.nikomaru.raceassist.bet
 
-import org.jetbrains.exposed.sql.Table
-
-object RaceList : Table() {
-    val raceId = varchar("raceId", 30)
-    val creator = varchar("creator", 40)
-    val reverse = bool("reverse")
-    val lap = integer("lap")
-    val centralXPoint = integer("centralXPoint").nullable()
-    val centralYPoint = integer("centralYPoint").nullable()
-    val goalDegree = integer("goalDegree").nullable()
-}
+object BetUtils {}

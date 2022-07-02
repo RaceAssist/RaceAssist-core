@@ -1,6 +1,7 @@
 /*
- * Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- * This program is free software: you can redistribute it and/or modify
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
@@ -23,7 +24,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
-import java.util.*
 
 class SetInsideCircuitEvent : Listener {
     @EventHandler
@@ -41,7 +41,7 @@ class SetInsideCircuitEvent : Listener {
             event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return
         }
-        InsideCircuit.insideCircuit(player, circuitRaceId[player.uniqueId]!!, Objects.requireNonNull(event.clickedBlock)!!.x, event.clickedBlock!!.z)
+        InsideCircuit.insideCircuit(player, circuitRaceId[player.uniqueId]!!, event.clickedBlock!!.x, event.clickedBlock!!.z)
     }
 }
 
