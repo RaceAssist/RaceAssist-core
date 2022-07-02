@@ -1,5 +1,11 @@
 name-template: 'v$RESOLVED_VERSION 🌈'
 tag-template: 'v$RESOLVED_VERSION'
+template: |
+  # What's Changed
+  
+  $CHANGES
+  
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 categories:
   - title: '💥 Breaking'
@@ -21,7 +27,7 @@ categories:
     labels:
       - 'type: dependencies'
     collapse-after: 5
-    - title: '👍 Other changes'
+  - title: '👍 Other changes'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 version-resolver:
   major:
@@ -40,9 +46,3 @@ version-resolver:
       - 'type: docs'
       - 'type: dependencies'
   default: patch
-template: |
-  # What's Changed
-
-  $CHANGES
-
-   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
