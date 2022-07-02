@@ -1,0 +1,69 @@
+# Configuration for Release Drafter: https://github.com/toolmantim/release-drafter
+name-template: 'v$RESOLVED_VERSION 🌈'
+tag-template: 'v$RESOLVED_VERSION'
+version-template: $MAJOR.$MINOR.$PATCH
+# Emoji reference: https://gitmoji.carloscuesta.me/
+categories:
+  - title: '💥 Breaking'
+    label:
+      - 'type: breaking'
+  - title: '🎉 Features'
+    labels:
+      - 'type: enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'type: bug'
+  - title: '📝 Documentation updates'
+    labels:
+      - 'type: docs'
+  - title: '✅ Maintenance'
+    labels:
+      - 'type: maintenance'
+  - title: '🆙 Dependency updates'
+    labels:
+      - 'type: dependencies'
+    collapse-after: 5
+    - title: '👍 Other changes'
+exclude-labels:
+  - reverted
+  - no-changelog
+  - skip-changelog
+  - invalid
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'type: breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'type: feature'
+  patch:
+    labels:
+      - 'patch'
+      - 'type: bug'
+      - 'type: maintenance'
+      - 'type: docs'
+      - 'type: dependencies'
+  default: patch
+template: |
+  # What's Changed
+
+  $CHANGES
+
+   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+autolabeler:
+  - label: 'type: docs'
+    files:
+      - '*.md'
+    branch:
+      - '/docs{0,1}\/.+/'
+  - label: 'type: bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/fix/i'
+  - label: 'enhancement'
+    branch:
+      - '/feature\/.+/'
