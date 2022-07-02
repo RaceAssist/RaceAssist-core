@@ -29,7 +29,7 @@ jobs:
 
       - name: change plugin.yml version
         run: |
-          before="${{ fromJson(steps.latest-release.outputs.result).tag_name}}"
+          before="${{ steps.release-drafter.outputs.result.tag_name }}"
           after="${before//v/}"
           sed -i -e "s/miencraft_plugin_version/$after/i" './build.gradle.kts'
 
@@ -59,6 +59,6 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT-all.jar
-          asset_name: RaceAssist_${{ fromJson(steps.latest-release.outputs.result).tag_name}}.jar
+          asset_name: RaceAssist_${{ steps.release-drafter.outputs.result.tag_name }}.jar
           asset_content_type: application/jar
 
