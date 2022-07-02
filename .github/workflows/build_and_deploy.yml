@@ -5,43 +5,52 @@ on:
     branches:
       - master
 
-
 jobs:
   build:
+    permissions:
+      contents: write  # for release-drafter/release-drafter to create a github release
+      pull-requests: write  # for release-drafter/release-drafter to add label to PR
+
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+
+      - uses: release-drafter/release-drafter@v5
+        id: release-drafter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: change plugin.yml version
         run: |
-          before="${{ steps.tag_version.outputs.new_tag }}"
+          before="${{ steps.release-drafter.tag_name }}"
           after="${before//v/}"
           sed -i -e "s/miencraft_plugin_version/$after/i" './build.gradle.kts'
+
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
+
       - name: Build with Gradle
         run: ./gradlew build
-      - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@v1
-        with:
-          fossa-api-key: 703caf22a9edcc7bc3d116912fe3f879
-      - name: Create a GitHub release
+
+      - name: Create Release
         id: create_release
-        uses: ncipollo/release-action@v1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: ${{ steps.release_drafter.outputs.body }}
+          draft: false
+          prerelease: false
+
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -50,5 +59,6 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/libs/RaceAssist-1.0-SNAPSHOT-all.jar
-          asset_name: RaceAssist_${{ steps.tag_version.outputs.new_tag }}.jar
+          asset_name: RaceAssist_${{ steps.release-drafter.tag_name }}.jar
           asset_content_type: application/jar
+
