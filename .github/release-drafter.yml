@@ -24,11 +24,6 @@ categories:
       - 'type: dependencies'
     collapse-after: 5
     - title: '👍 Other changes'
-exclude-labels:
-  - reverted
-  - no-changelog
-  - skip-changelog
-  - invalid
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 version-resolver:
   major:
@@ -53,17 +48,3 @@ template: |
   $CHANGES
 
    **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
-autolabeler:
-  - label: 'type: docs'
-    files:
-      - '*.md'
-    branch:
-      - '/docs{0,1}\/.+/'
-  - label: 'type: bug'
-    branch:
-      - '/fix\/.+/'
-    title:
-      - '/fix/i'
-  - label: 'enhancement'
-    branch:
-      - '/feature\/.+/'
