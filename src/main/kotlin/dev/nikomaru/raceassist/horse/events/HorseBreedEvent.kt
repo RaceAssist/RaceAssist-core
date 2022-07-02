@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.horse.event
+package dev.nikomaru.raceassist.horse.events
 
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed

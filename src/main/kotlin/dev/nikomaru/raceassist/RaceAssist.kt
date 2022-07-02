@@ -29,7 +29,8 @@ import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.horse.event.HorseBreedEvent
+import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
+import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.audience.*
 import dev.nikomaru.raceassist.race.commands.place.*
@@ -128,6 +129,8 @@ class RaceAssist : SuspendingJavaPlugin() {
         annotationParser.parse(SettingStaffCommand())
 
         annotationParser.parse(HelpCommand())
+
+        annotationParser.parse(OwnerDeleteCommand())
     }
 
     private fun registerEvents() {
