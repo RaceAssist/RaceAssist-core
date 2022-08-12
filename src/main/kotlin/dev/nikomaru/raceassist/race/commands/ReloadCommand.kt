@@ -18,17 +18,20 @@
 package dev.nikomaru.raceassist.race.commands
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.Lang.mm
+import dev.nikomaru.raceassist.files.Config
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|raceassist")
-class HelpCommand {
-    @CommandMethod("help")
-    @CommandPermission("raceassist.command.help")
+class ReloadCommand {
+
+    @OptIn(ExperimentalSerializationApi::class)
+    @CommandMethod("reload")
+    @CommandPermission("raceassist.command.reload")
     @CommandDescription("help command")
-    fun help(sender: CommandSender) {
-        val message = "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
-        sender.sendMessage(mm.deserialize(message))
+    fun reload(sender: CommandSender) {
+        Config.load()
+        sender.sendMessage("Reloaded config")
     }
 
 }

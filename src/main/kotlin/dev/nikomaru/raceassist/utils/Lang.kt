@@ -34,7 +34,7 @@ object Lang {
 
     suspend fun load() {
         withContext(Dispatchers.IO) {
-            val lang = listOf("ja_JP", "de_DE", "en_US", "fr_FR", "ko_KR", "zh_CN", "zh_TW")
+            val lang = listOf("ja_JP", "en_US")
 
             lang.forEach { locale ->
                 val conf = Properties()

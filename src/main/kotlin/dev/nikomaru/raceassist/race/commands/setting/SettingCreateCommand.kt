@@ -25,9 +25,9 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist setting")
 class SettingCreateCommand {
-    @CommandPermission("RaceAssist.commands.setting.create")
+    @CommandPermission("raceassist.commands.setting.create")
     @CommandMethod("create <raceId>")
-    suspend fun create(sender: CommandSender, @Argument(value = "raceId") @Regex(value = "[a-zA-Z]+-\\d+$") raceId: String) {
+    suspend fun create(sender: CommandSender, @Argument(value = "raceId") @Regex(value = "[^_]+_\\d+$") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

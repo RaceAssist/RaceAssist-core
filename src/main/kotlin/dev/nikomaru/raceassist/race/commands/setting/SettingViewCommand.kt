@@ -1,0 +1,56 @@
+/*
+ *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.nikomaru.raceassist.race.commands.setting
+
+import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
+import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
+import java.util.*
+
+@CommandMethod("ra|RaceAssist setting")
+class SettingViewCommand {
+
+    @CommandMethod("view <raceId>")
+    @CommandPermission("raceassist.commands.setting.view")
+    suspend fun view(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+        if (!RaceSettingData.existsRace(raceId)) return
+        val raceData = RaceUtils.getRaceConfig(raceId)
+        sender.sendMessage("raceId = ${raceData.raceId}")
+        sender.sendMessage("raceName = ${raceData.raceName}")
+        sender.sendMessage("owner = ${raceData.owner.name}")
+        sender.sendMessage("staff = ${raceData.staff.joinToString { it.name.toString() }}")
+        sender.sendMessage("jockeys = ${raceData.jockeys.joinToString { it.name.toString() }}")
+        sender.sendMessage("replacement = ${raceData.replacement.map { it.key.toName() to it.value }.toMap()}")
+        sender.sendMessage("x = ${raceData.place.centralX}")
+        sender.sendMessage("y = ${raceData.place.centralY}")
+        sender.sendMessage("lap = ${raceData.place.lap}")
+        sender.sendMessage("reverce = ${raceData.place.reverse}")
+        sender.sendMessage("goalDegree = ${raceData.place.goalDegree}")
+        sender.sendMessage("bet-avaiable = ${raceData.bet.available}")
+        sender.sendMessage("bet-returnPercent = ${raceData.bet.returnPercent}")
+        sender.sendMessage("bet-spreadSheetId = ${raceData.bet.spreadSheetId}")
+        sender.sendMessage("bet-betUnit = ${raceData.bet.betUnit}")
+
+    }
+
+    private fun UUID.toName(): String {
+        return Bukkit.getOfflinePlayer(this).name.toString()
+    }
+}

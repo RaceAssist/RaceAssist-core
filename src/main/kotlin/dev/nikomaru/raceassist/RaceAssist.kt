@@ -32,6 +32,7 @@ import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
+import dev.nikomaru.raceassist.race.commands.ReloadCommand
 import dev.nikomaru.raceassist.race.commands.audience.*
 import dev.nikomaru.raceassist.race.commands.place.*
 import dev.nikomaru.raceassist.race.commands.player.*
@@ -91,46 +92,51 @@ class RaceAssist : SuspendingJavaPlugin() {
             SimpleCommandMeta.empty()
         }.installCoroutineSupport()
 
-        annotationParser.parse(CommandSuggestions())
+        with(annotationParser) {
+            parse(CommandSuggestions())
 
-        annotationParser.parse(AudienceJoinCommand())
-        annotationParser.parse(AudienceLeaveCommand())
-        annotationParser.parse(AudienceListCommand())
+            parse(AudienceJoinCommand())
+            parse(AudienceLeaveCommand())
+            parse(AudienceListCommand())
 
-        annotationParser.parse(PlaceCentralCommand())
-        annotationParser.parse(PlaceDegreeCommand())
-        annotationParser.parse(PlaceFinishCommand())
-        annotationParser.parse(PlaceLapCommand())
-        annotationParser.parse(PlaceReverseCommand())
-        annotationParser.parse(PlaceSetCommand())
+            parse(PlaceCentralCommand())
+            parse(PlaceDegreeCommand())
+            parse(PlaceFinishCommand())
+            parse(PlaceLapCommand())
+            parse(PlaceReverseCommand())
+            parse(PlaceSetCommand())
 
-        annotationParser.parse(PlayerAddCommand())
-        annotationParser.parse(PlayerDeleteCommand())
-        annotationParser.parse(PlayerListCommand())
-        annotationParser.parse(PlayerRemoveCommand())
+            parse(PlayerAddCommand())
+            parse(PlayerDeleteCommand())
+            parse(PlayerListCommand())
+            parse(PlayerRemoveCommand())
+            parse(PlayerReplacementCommand())
 
-        annotationParser.parse(RaceStartCommand())
-        annotationParser.parse(RaceStopCommand())
-        annotationParser.parse(RaceDebugCommand())
+            parse(RaceStartCommand())
+            parse(RaceStopCommand())
+            parse(RaceDebugCommand())
 
-        annotationParser.parse(BetCanCommand())
-        annotationParser.parse(BetDeleteCommand())
-        annotationParser.parse(BetListCommand())
-        annotationParser.parse(BetOpenCommand())
-        annotationParser.parse(BetRateCommand())
-        annotationParser.parse(BetRevertCommand())
-        annotationParser.parse(BetSheetCommand())
-        annotationParser.parse(BetRemoveCommand())
-        annotationParser.parse(BetReturnCommand())
+            parse(BetCanCommand())
+            parse(BetDeleteCommand())
+            parse(BetListCommand())
+            parse(BetOpenCommand())
+            parse(BetRateCommand())
+            parse(BetRevertCommand())
+            parse(BetSheetCommand())
+            parse(BetReturnCommand())
+            parse(BetUnitCommand())
 
-        annotationParser.parse(SettingCreateCommand())
-        annotationParser.parse(SettingDeleteCommand())
-        annotationParser.parse(SettingCopyCommand())
-        annotationParser.parse(SettingStaffCommand())
+            parse(SettingCreateCommand())
+            parse(SettingDeleteCommand())
+            parse(SettingCopyCommand())
+            parse(SettingStaffCommand())
+            parse(SettingViewCommand())
 
-        annotationParser.parse(HelpCommand())
+            parse(HelpCommand())
+            parse(ReloadCommand())
 
-        annotationParser.parse(OwnerDeleteCommand())
+            parse(OwnerDeleteCommand())
+        }
     }
 
     private fun registerEvents() {

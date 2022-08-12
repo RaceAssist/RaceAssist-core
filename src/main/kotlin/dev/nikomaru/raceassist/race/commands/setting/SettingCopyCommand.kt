@@ -26,7 +26,7 @@ import org.bukkit.entity.Player
 @CommandMethod("ra|RaceAssist setting")
 class SettingCopyCommand {
 
-    @CommandPermission("RaceAssist.commands.setting.copy")
+    @CommandPermission("raceassist.commands.setting.copy")
     @CommandMethod("copy <raceId_1> <raceId_2>")
     suspend fun copy(sender: CommandSender,
         @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String,

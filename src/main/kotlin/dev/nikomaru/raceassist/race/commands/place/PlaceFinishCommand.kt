@@ -21,15 +21,15 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceFinishCommand {
-    @CommandPermission("RaceAssist.commands.place.finish")
+    @CommandPermission("raceassist.commands.place.finish")
     @CommandMethod("finish")
     suspend fun finish(sender: CommandSender) {
         if (sender !is Player) {

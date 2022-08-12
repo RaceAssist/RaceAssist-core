@@ -19,40 +19,35 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils
+import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
-import java.util.*
 
 @CommandMethod("ra|RaceAssist bet")
 class BetCanCommand {
-    @CommandPermission("RaceAssist.commands.bet.can")
+    @CommandPermission("raceassist.commands.bet.can")
     @CommandMethod("can <raceId> <type>")
+    @CommandDescription("そのレースに対しての賭けることが可能か設定します")
     suspend fun setCanBet(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "type", suggestions = "betType") type: String) {
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
         if (type == "on") {
             setCanBet(raceId, sender)
         } else if (type == "off") {
             setCannotBet(raceId, sender)
         }
-
     }
 
     private suspend fun setCanBet(raceId: String, sender: CommandSender) {
         BetSettingData.setAvailable(raceId, true)
-        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        sender.sendMessage(Lang.getComponent("can-bet-this-raceid", locale, raceId))
+        sender.sendMessage(Lang.getComponent("can-bet-this-raceid", sender.locale(), raceId))
     }
 
-    companion object {
-        suspend fun setCannotBet(raceId: String, sender: CommandSender) {
-            BetSettingData.setAvailable(raceId, false)
-
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            sender.sendMessage(Lang.getComponent("cannot-bet-this-raceid", locale, raceId))
-        }
+    private suspend fun setCannotBet(raceId: String, sender: CommandSender) {
+        BetSettingData.setAvailable(raceId, false)
+        sender.sendMessage(Lang.getComponent("cannot-bet-this-raceid", sender.locale(), raceId))
     }
+
 }

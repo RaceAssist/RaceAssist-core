@@ -19,18 +19,18 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
-import dev.nikomaru.raceassist.utils.CommandUtils.getInsideRaceExist
-import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
+import dev.nikomaru.raceassist.utils.Utils.getInsideRaceExist
+import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceSetCommand {
-    @CommandPermission("RaceAssist.commands.place.set")
+    @CommandPermission("raceassist.commands.place.set")
     @CommandMethod("set <raceId> <type>")
     suspend fun set(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
@@ -43,7 +43,7 @@ class PlaceSetCommand {
         if (!RaceSettingData.existsRace(raceId)) {
             sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
             return
-        } else if (returnRaceSetting(raceId, sender)) return
+        } else if (returnCanRaceSetting(raceId, sender)) return
 
         if (canSetOutsideCircuit[sender.uniqueId] != null || canSetInsideCircuit[sender.uniqueId] != null) {
             sender.sendMessage(Lang.getComponent("already-setting-mode", sender.locale()))

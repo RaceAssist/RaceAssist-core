@@ -20,13 +20,11 @@ package dev.nikomaru.raceassist.race.commands.setting
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.data.files.StaffSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils
+import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
-import java.util.*
 
 @CommandMethod("ra|raceassist setting")
 @CommandPermission("raceassist.commands.setting.staff")
@@ -37,9 +35,9 @@ class SettingStaffCommand {
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
 
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
 
-        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        val locale = sender.locale()
         val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
 
         if (StaffSettingData.addStaff(raceId, target)) {
@@ -54,9 +52,9 @@ class SettingStaffCommand {
     suspend fun removeStaff(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
 
-        val locale = if (sender is Player) sender.locale() else Locale.getDefault()
+        val locale = sender.locale()
         val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
         if (RaceSettingData.getOwner(raceId) == target) {
             return sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
@@ -72,19 +70,10 @@ class SettingStaffCommand {
 
     @CommandMethod("staff list <raceId>")
     suspend fun listStaff(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
         StaffSettingData.getStaffs(raceId).forEach {
             sender.sendMessage(it.name.toString())
         }
 
-    }
-
-    private fun returnCanSetPlayer(target: OfflinePlayer, sender: CommandSender, playerName: String): Boolean {
-        if (!target.hasPlayedBefore()) {
-            val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-            sender.sendMessage(Lang.getComponent("not-exsist-staff-this-player", locale, playerName, locale))
-            return true
-        }
-        return false
     }
 }

@@ -18,14 +18,14 @@
 package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.audience
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceLeaveCommand {
-    @CommandPermission("RaceAssist.commands.audience.leave")
+    @CommandPermission("raceassist.commands.audience.leave")
     @CommandMethod("leave <raceId>")
     fun leave(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {

@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.data.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.utils.Utils.toUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.*
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -30,37 +30,24 @@ import kotlinx.serialization.json.*
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import java.awt.Polygon
-import java.io.*
-import java.nio.file.Files
 import java.util.*
 
 object RaceUtils {
 
     suspend fun RaceConfig.save(raceId: String) {
-        val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
+        val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
-        raceConfigCache[raceId] = this
         withContext(Dispatchers.IO) {
             file.createNewFile()
-            val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
-            fw.write(string)
-            fw.close()
+            file.writeText(string)
         }
     }
 
     suspend fun getRaceConfig(raceId: String) = withContext(Dispatchers.IO) {
-        if (raceConfigCache.containsKey(raceId)) {
-            return@withContext raceConfigCache[raceId]!!
-        }
-
-        val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
-        val raceConfig = json.decodeFromString<RaceConfig>(Files.readString(file.toPath()))
-        raceConfigCache[raceId] = raceConfig
-        return@withContext raceConfig
+        val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
+        return@withContext json.decodeFromString<RaceConfig>(file.readText())
     }
-
-    private val raceConfigCache: HashMap<String, RaceConfig> = HashMap<String, RaceConfig>()
 
 }
 
@@ -91,7 +78,7 @@ object UUIDSerializer : KSerializer<UUID> {
     override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
+        return decoder.decodeString().toUUID()
     }
 
     override fun serialize(encoder: Encoder, value: UUID) {
@@ -104,7 +91,7 @@ object OfflinePlayerSerializer : KSerializer<OfflinePlayer> {
     override val descriptor = PrimitiveSerialDescriptor("OfflinePlayer", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): OfflinePlayer {
-        return Bukkit.getOfflinePlayer(UUID.fromString(decoder.decodeString()))
+        return Bukkit.getOfflinePlayer(decoder.decodeString().toUUID())
     }
 
     override fun serialize(encoder: Encoder, value: OfflinePlayer) {
@@ -144,7 +131,9 @@ object PolygonSerializer : KSerializer<Polygon> {
 @Serializable
 data class PolygonData(val points: ArrayList<Pair<Int, Int>>)
 
+@OptIn(ExperimentalSerializationApi::class)
 val json = Json {
     isLenient = true
     prettyPrint = true
+    explicitNulls = false
 }

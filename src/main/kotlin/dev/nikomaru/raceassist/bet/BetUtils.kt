@@ -17,4 +17,120 @@
 
 package dev.nikomaru.raceassist.bet
 
-object BetUtils {}
+import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.bet.data.TempBetData
+import dev.nikomaru.raceassist.bet.gui.BetChestGui
+import dev.nikomaru.raceassist.data.database.BetList
+import dev.nikomaru.raceassist.data.database.BetListData
+import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.utils.Utils.toUUID
+import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.math.RoundingMode
+import java.util.*
+
+object BetUtils {
+
+    val TempBetDatas = ArrayList<TempBetData>()
+
+    suspend fun deleteBetData(raceId: String) {
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.deleteWhere { BetList.raceId eq raceId }
+        }
+    }
+
+    fun removeTempBetData(player: Player) {
+        val removeList = arrayListOf<TempBetData>()
+        TempBetDatas.stream().filter { it.player == player }.forEach { removeList.add(it) }
+        removeList.forEach { TempBetDatas.remove(it) }
+    }
+
+    fun initializeTempBetData(raceId: String, sender: Player) {
+        BetChestGui.AllPlayers[raceId]?.forEach { jockey ->
+            TempBetDatas.add(TempBetData(raceId, sender, jockey, 0))
+        }
+    }
+
+    suspend fun listBetData(raceId: String): ArrayList<BetListData> {
+        val list = arrayListOf<BetListData>()
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { BetList.raceId eq raceId }.forEach {
+                list.add(BetListData(it[BetList.rowNum],
+                    it[BetList.timeStamp],
+                    it[BetList.playerUUID].toUUID(),
+                    it[BetList.jockeyUUID].toUUID(),
+                    it[BetList.betting]))
+            }
+        }
+        return list
+    }
+
+    suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.select { BetList.raceId eq raceId }.sumOf {
+            it[BetList.betting]
+        }
+    }
+
+    suspend fun getJockeyBetSum(raceId: String, jockey: OfflinePlayer) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.select { (BetList.jockeyUUID eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }.sumOf { it[BetList.betting] }
+    }
+
+    suspend fun getRowBet(raceId: String, row: Int) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.select { (BetList.rowNum eq row) and (BetList.raceId eq raceId) }.sumOf { it[BetList.betting] }
+    }
+
+    suspend fun playerCanPay(raceId: String, amount: Int, executor: CommandSender): Boolean {
+        val eco = VaultAPI.getEconomy()
+        val owner = RaceSettingData.getOwner(raceId)
+        val can = eco.getBalance(owner) >= amount
+        if (!can) {
+            val locale = executor.locale()
+            executor.sendMessage(Lang.getComponent("no-have-money", locale))
+            if (owner is Player) {
+                owner.sendMessage(Lang.getComponent("no-have-money-owner", owner.locale()))
+            }
+        }
+        return can
+    }
+
+    //払い戻し
+    suspend fun returnBet(jockey: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
+        val odds = getOdds(raceId, jockey)
+        val eco = VaultAPI.getEconomy()
+
+        newSuspendedTransaction(Dispatchers.IO) {
+            BetList.select { (BetList.jockey eq jockey.name.toString()) and (BetList.raceId eq raceId) }.forEach {
+
+                val returnAmount = it[BetList.betting] * odds
+                val retunrPlayer = Bukkit.getOfflinePlayer(it[BetList.playerUUID].toUUID())
+
+                withContext(minecraft) {
+
+                    eco.depositPlayer(retunrPlayer, returnAmount)
+                    eco.withdrawPlayer(RaceSettingData.getOwner(raceId), returnAmount)
+                }
+                sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, retunrPlayer.name, returnAmount))
+                retunrPlayer.player?.sendMessage(Lang.getComponent("paid-bet-player", locale, raceId, retunrPlayer.name, jockey.name, returnAmount))
+            }
+            BetList.deleteWhere { BetList.raceId eq raceId }
+        }
+    }
+
+    suspend fun getOdds(raceId: String, jockey: OfflinePlayer): Double {
+        val sum = getBetSum(raceId)
+        val jockeySum = if (getJockeyBetSum(raceId, jockey) == 0) 0.0001 else getJockeyBetSum(raceId, jockey).toDouble()
+        val rate = BetSettingData.getReturnPercent(raceId).toDouble() / 100
+        return ((sum * rate) / jockeySum).toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
+    }
+
+}

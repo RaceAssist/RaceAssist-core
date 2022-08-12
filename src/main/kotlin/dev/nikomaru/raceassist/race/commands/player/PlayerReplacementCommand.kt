@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands.setting
+package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
@@ -25,59 +25,31 @@ import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
-@CommandMethod("ra|RaceAssist setting")
-@CommandPermission("raceassist.commands.setting.replacement")
-class SettingReplacemcntCommand {
+@CommandMethod("ra|RaceAssist player")
+class PlayerReplacementCommand {
 
+    @CommandPermission("raceassist.commands.player.replacement")
     @CommandMethod("replacement set <raceId> <playerName> <replacement>")
-    suspend fun add(sender: CommandSender,
+    suspend fun setReplacement(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String,
         @Argument(value = "replacement") replacement: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
         val locale = sender.locale()
         val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
         RaceSettingData.setReplacement(raceId, player.uniqueId, replacement)
-        sender.sendMessage(Lang.getComponent("command-result-replacement-set-success", locale, player.name, replacement))
-
+        sender.sendMessage(Lang.getComponent("player-set-replacement", locale))
     }
 
+    @CommandPermission("raceassist.commands.player.replacement")
     @CommandMethod("replacement remove <raceId> <playerName>")
-    suspend fun remove(sender: CommandSender,
+    suspend fun removeReplacement(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
         val locale = sender.locale()
         val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
         RaceSettingData.removeReplacement(raceId, player.uniqueId)
-        sender.sendMessage(Lang.getComponent("command-result-replacement-remove-success", locale))
+        sender.sendMessage(Lang.getComponent("player-remove-replacement", locale))
     }
-
-    @CommandMethod("replacement delete <raceId>")
-    suspend fun delete(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
-        val locale = sender.locale()
-
-        RaceSettingData.deleteReplacement(raceId)
-        sender.sendMessage(Lang.getComponent("command-result-delete-success", locale))
-
-    }
-
-    @CommandMethod("replacement list <raceId>")
-    suspend fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
-        val locale = sender.locale()
-        val replacement = RaceSettingData.getReplacement(raceId)
-        if (replacement.isEmpty()) {
-            sender.sendMessage(Lang.getComponent("command-result-replacement-list-empty", locale))
-            return
-        }
-        replacement.forEach { (t, u) ->
-            sender.sendMessage(Lang.getComponent("command-result-replacement-list-message", locale, Bukkit.getOfflinePlayer(t).name, u))
-        }
-
-    }
-
 }

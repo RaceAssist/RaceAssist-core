@@ -18,29 +18,25 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.utils.CommandUtils
+import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
+import dev.nikomaru.raceassist.utils.Utils
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 @CommandMethod("ra|RaceAssist bet")
 class BetDeleteCommand {
-    @CommandPermission("RaceAssist.commands.bet.delete")
+    @CommandPermission("raceassist.commands.bet.delete")
     @CommandMethod("delete <raceId>")
     @Confirmation
+    @CommandDescription("レースに対して駆けられているものを削除します")
     suspend fun delete(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
-        newSuspendedTransaction(Dispatchers.IO) {
-            BetList.deleteWhere { BetList.raceId eq raceId }
-        }
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        BetUtils.deleteBetData(raceId)
         sender.sendMessage(Lang.getComponent("bet-remove-race", sender.locale(), raceId))
 
     }

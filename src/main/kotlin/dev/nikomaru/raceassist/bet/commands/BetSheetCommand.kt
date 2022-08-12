@@ -21,20 +21,21 @@ import cloud.commandframework.annotations.*
 import com.google.api.services.sheets.v4.model.*
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
+import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")
 class BetSheetCommand {
-    @CommandPermission("RaceAssist.commands.bet.sheet")
+    @CommandPermission("raceassist.commands.bet.sheet")
     @CommandMethod("sheet <raceId> <sheet>")
+    @CommandDescription("現在の賭け状況を閲覧できるシートを設定します")
     suspend fun sheet(sender: CommandSender,
         @Argument(value = "raceId", suggestions = "raceId") raceId: String,
         @Argument(value = "sheet") sheetId: String) {
         withContext(Dispatchers.IO) {
-            if (returnRaceSetting(raceId, sender)) return@withContext
+            if (returnCanRaceSetting(raceId, sender)) return@withContext
         }
         BetSettingData.setSpreadSheetId(raceId, sheetId)
         createNewSheets(sheetId, raceId)
@@ -44,22 +45,14 @@ class BetSheetCommand {
         val sheetsService = getSheetsService(sheetId) ?: return@withContext
         val content = BatchUpdateSpreadsheetRequest()
         val requests: ArrayList<Request> = ArrayList()
-        val request1 = Request()
-        val request2 = Request()
-        val addSheet1 = AddSheetRequest()
-        val addSheet2 = AddSheetRequest()
-        val properties1 = SheetProperties()
-        val properties2 = SheetProperties()
+        val request = Request()
+        val addSheet = AddSheetRequest()
+        val properties = SheetProperties()
         //賭けを表示するためのシート
-        properties1.title = "${raceId}_RaceAssist_Bet"
-        //将来の結果のため
-        properties2.title = "${raceId}_RaceAssist_Result"
-        addSheet1.properties = properties1
-        addSheet2.properties = properties2
-        request1.addSheet = addSheet1
-        request2.addSheet = addSheet2
-        requests.add(request1)
-        requests.add(request2)
+        properties.title = "${raceId}_RaceAssist_Bet"
+        addSheet.properties = properties
+        request.addSheet = addSheet
+        requests.add(request)
         content.requests = requests
         sheetsService.spreadsheets()?.batchUpdate(sheetId, content)?.execute()
     }
