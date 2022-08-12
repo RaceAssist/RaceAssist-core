@@ -17,6 +17,8 @@
 
 package dev.nikomaru.raceassist.utils
 
+import com.github.shynixn.mccoroutine.bukkit.launch
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
@@ -29,7 +31,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import java.util.*
 import kotlin.math.atan2
 
-object CommandUtils {
+object Utils {
 
     val audience: HashMap<String, ArrayList<UUID>> = HashMap()
     val canSetInsideCircuit = HashMap<UUID, Boolean>()
@@ -39,7 +41,6 @@ object CommandUtils {
     val centralRaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
 
-
     suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
         PlaceSettingData.getInsidePolygon(raceId).npoints > 0
     }
@@ -48,25 +49,33 @@ object CommandUtils {
         if (currentLap == null || beforeLap == null) {
             return
         }
-        if (currentLap > beforeLap) {
-            if (currentLap == lap - 1) {
-                player.showTitle(title((Lang.getComponent("last-lap", player.locale())), Lang.getComponent("one-step-forward-lap", player.locale())))
-            } else {
-                player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                    Lang.getComponent("one-step-forward-lap", player.locale())))
-            }
-            delay(40)
-            player.clearTitle()
-        } else if (currentLap < beforeLap) {
-            player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                Lang.getComponent("one-step-backwards-lap", player.locale())))
-            delay(40)
-            player.clearTitle()
-
+        if (currentLap == lap) {
+            return
         }
+        plugin.launch {
+            val count: Long = 2000
+            withContext(Dispatchers.Default) {
+                if (currentLap > beforeLap) {
+                    if (currentLap == lap - 1) {
+                        player.showTitle(title((Lang.getComponent("last-lap", player.locale())),
+                            Lang.getComponent("one-step-forward-lap", player.locale())))
+                    } else {
+                        player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                            Lang.getComponent("one-step-forward-lap", player.locale())))
+                    }
+                    delay(count)
+                    player.clearTitle()
+                } else if (currentLap < beforeLap) {
+                    player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                        Lang.getComponent("one-step-backwards-lap", player.locale())))
+                    delay(count)
+                    player.clearTitle()
+                }
+            }
+        }.join()
     }
 
-    suspend fun returnRaceSetting(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
+    suspend fun returnCanRaceSetting(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
         if (player is ConsoleCommandSender) {
             return@withContext true
         }
@@ -138,12 +147,20 @@ object CommandUtils {
         }
     }
 
+    fun CommandSender.locale(): Locale {
+        return if (this is Player) this.locale() else Locale.getDefault()
+    }
+
     suspend fun getCentralPoint(raceId: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
         if (xPoint) {
             PlaceSettingData.getCentralXPoint(raceId)
         } else {
             PlaceSettingData.getCentralYPoint(raceId)
         }
+    }
+
+    fun String.toUUID(): UUID {
+        return UUID.fromString(this)
     }
 
 }

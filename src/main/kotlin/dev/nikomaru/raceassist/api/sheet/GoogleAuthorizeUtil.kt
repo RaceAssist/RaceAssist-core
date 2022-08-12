@@ -27,6 +27,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.sheets.v4.SheetsScopes
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.files.Config
 import java.io.*
 import java.security.GeneralSecurityException
 
@@ -49,6 +50,6 @@ object GoogleAuthorizeUtil {
         val flow: GoogleAuthorizationCodeFlow =
             GoogleAuthorizationCodeFlow.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), clientSecrets, scopes)
                 .setDataStoreFactory(FileDataStoreFactory(tokensDirectoryPath)).setAccessType("offline").build()
-        return AuthorizationCodeInstalledApp(flow, LocalServerReceiver.Builder().setPort(8888).build()).authorize("user")
+        return AuthorizationCodeInstalledApp(flow, LocalServerReceiver.Builder().setPort(Config.config.spreadSheet.port).build()).authorize("user")
     }
 }

@@ -18,6 +18,7 @@
 package dev.nikomaru.raceassist.horse.commands
 
 import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Horse
 import org.bukkit.entity.Player
@@ -25,12 +26,13 @@ import org.bukkit.entity.Player
 @CommandMethod("ra horse")
 class OwnerDeleteCommand {
     @CommandMethod("ownerDelete")
+    @CommandPermission("raceassist.command.ownerdelete")
     fun removeOwner(sender: CommandSender) {
         if (sender !is Player) {
             sender.sendMessage("このコマンドはプレイヤーのみ実行できます")
             return
         }
-        val entity = sender.getTargetEntity(5) ?: return sender.sendMessage("対象が見つかりませんでした")
+        val entity = sender.getTargetEntity(10) ?: return sender.sendMessage("対象が見つかりませんでした")
         if (entity !is Horse) {
             sender.sendMessage("対象が馬ではありません")
             return

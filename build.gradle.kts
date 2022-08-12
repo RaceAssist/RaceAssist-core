@@ -41,10 +41,14 @@ dependencies {
     implementation("cloud.commandframework", "cloud-kotlin-coroutines-annotations", cloudVersion)
     implementation("cloud.commandframework", "cloud-kotlin-coroutines", cloudVersion)
 
+    implementation("com.github.stefvanschie.inventoryframework", "IF", "0.10.6")
+
     implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposedVersion)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")
 
@@ -57,6 +61,8 @@ dependencies {
     implementation("com.google.api-client", "google-api-client", "1.35.1")
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
     implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
+
+    implementation("com.squareup.okhttp3", "okhttp", "4.10.0")
 
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 }
@@ -76,12 +82,13 @@ tasks {
     shadowJar {
         relocate("cloud.commandframework", "dev.nikomaru.receassist.shaded.cloud")
         relocate("io.leangen.geantyref", "dev.nikomaru.receassist.shaded.typetoken")
+        relocate("com.github.stefvanschie.inventoryframework", "dev.nikomaru.receassist.inventoryframework")
     }
     build {
         dependsOn(shadowJar)
     }
     runServer {
-        minecraftVersion("1.19")
+        minecraftVersion("1.19.2")
     }
 }
 
@@ -101,39 +108,39 @@ bukkit {
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            children = listOf("RaceAssist.commands.audience.join",
-                "RaceAssist.commands.audience.leave",
-                "RaceAssist.commands.audience.list",
-                "RaceAssist.commands.bet.can",
-                "RaceAssist.commands.bet.delete",
-                "RaceAssist.commands.bet.list",
-                "RaceAssist.commands.bet.open",
-                "RaceAssist.commands.bet.rate",
-                "RaceAssist.commands.bet.revert",
-                "RaceAssist.commands.bet.return",
-                "RaceAssist.commands.bet.remove",
-                "RaceAssist.commands.bet.sheet",
-                "RaceAssist.commands.place.reverse",
-                "RaceAssist.commands.place.central",
-                "RaceAssist.commands.place.degree",
-                "RaceAssist.commands.place.lap",
-                "RaceAssist.commands.place.set",
-                "RaceAssist.commands.place.finish",
-                "RaceAssist.commands.player.add",
-                "RaceAssist.commands.player.remove",
-                "RaceAssist.commands.player.delete",
-                "RaceAssist.commands.player.list",
-                "RaceAssist.commands.race.start",
-                "RaceAssist.commands.race.debug",
-                "RaceAssist.commands.race.stop",
-                "RaceAssist.commands.setting.create",
-                "RaceAssist.commands.setting.delete",
-                "RaceAssist.commands.setting.copy",
-                "RaceAssist.commands.setting.staff")
+            children = listOf("raceassist.commands.audience.join",
+                "raceassist.commands.audience.leave",
+                "raceassist.commands.audience.list",
+                "raceassist.commands.bet.can",
+                "raceassist.commands.bet.delete",
+                "raceassist.commands.bet.list",
+                "raceassist.commands.bet.open",
+                "raceassist.commands.bet.rate",
+                "raceassist.commands.bet.revert",
+                "raceassist.commands.bet.return",
+                "raceassist.commands.bet.remove",
+                "raceassist.commands.bet.sheet",
+                "raceassist.commands.place.reverse",
+                "raceassist.commands.place.central",
+                "raceassist.commands.place.degree",
+                "raceassist.commands.place.lap",
+                "raceassist.commands.place.set",
+                "raceassist.commands.place.finish",
+                "raceassist.commands.player.add",
+                "raceassist.commands.player.remove",
+                "raceassist.commands.player.delete",
+                "raceassist.commands.player.list",
+                "raceassist.commands.race.start",
+                "raceassist.commands.race.debug",
+                "raceassist.commands.race.stop",
+                "raceassist.commands.setting.create",
+                "raceassist.commands.setting.delete",
+                "raceassist.commands.setting.copy",
+                "raceassist.commands.setting.staff")
         }
         register("RaceAssist.user") {
             default = Default.TRUE
-            children = listOf("RaceAssist.commands.audience.join", "RaceAssist.commands.audience.leave", "RaceAssist.commands.bet.open")
+            children = listOf("raceassist.commands.audience.join", "raceassist.commands.audience.leave", "raceassist.commands.bet.open")
         }
     }
 }

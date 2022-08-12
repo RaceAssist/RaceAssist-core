@@ -17,12 +17,11 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
+import dev.nikomaru.raceassist.bet.BetUtils.getOdds
 import dev.nikomaru.raceassist.bet.GuiComponent
-import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
-import kotlinx.coroutines.Dispatchers
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
@@ -31,10 +30,6 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import kotlin.math.floor
 
 class BetChestGui {
 
@@ -42,35 +37,22 @@ class BetChestGui {
         val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
         val players: ArrayList<OfflinePlayer> = ArrayList()
         val odds: HashMap<OfflinePlayer, Double> = HashMap()
-        var sum = 0
-        val rate: Int = BetSettingData.getReturnPercent(raceId)
 
         AllPlayers[raceId] = arrayListOf()
         RaceSettingData.getJockeys(raceId).forEach {
             players.add(it)
-            AllPlayers[raceId]!!.add(it)
+            AllPlayers[raceId]?.add(it)
         }
 
-
-        newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { BetList.raceId eq raceId }.forEach {
-                sum += it[BetList.betting]
-            }
-        }
-        players.forEach { jockey ->
-            newSuspendedTransaction(Dispatchers.IO) {
-                var jockeySum = 0
-                BetList.select { (BetList.raceId eq raceId) and (BetList.jockeyUUID eq jockey.uniqueId.toString()) }.forEach {
-                    jockeySum += it[BetList.betting]
-                }
-                odds[jockey] = floor(((sum * (rate.toDouble() / 100)) / jockeySum) * 100) / 100
-            }
+        players.forEach {
+            odds[it] = getOdds(raceId, it)
         }
 
 
         for (i in 0 until 45) {
             gui.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         }
+        // IFに置き換えるよてい https://github.com/stefvanschie/IF
         for (i in 0 until players.size) {
             val item = ItemStack(Material.PLAYER_HEAD, 1)
             val meta: SkullMeta = item.itemMeta as SkullMeta

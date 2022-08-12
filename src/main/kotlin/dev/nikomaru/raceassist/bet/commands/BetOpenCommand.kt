@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.bet.data.TempBetData
+import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
@@ -30,44 +30,27 @@ import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist bet")
 class BetOpenCommand {
-    @CommandPermission("RaceAssist.commands.bet.open")
+    @CommandPermission("raceassist.commands.bet.open")
     @CommandMethod("open <raceId>")
+    @CommandDescription("賭けるためのGUIを表示します")
     suspend fun openVending(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-
         if (!RaceSettingData.existsRace(raceId)) {
             sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
             return
         }
-        val vending = BetChestGui()
-        val canBet = BetSettingData.getAvailable(raceId)
-        if (!canBet) {
+        if (!BetSettingData.getAvailable(raceId)) {
             sender.sendMessage(Lang.getComponent("now-cannot-bet-race", sender.locale()))
             return
         }
-
-        val iterator = TempBetDatas.iterator()
-        while (iterator.hasNext()) {
-            val it = iterator.next()
-            if (it.player == sender) {
-                iterator.remove()
-            }
-        }
+        BetUtils.removeTempBetData(sender)
         withContext(minecraft) {
-            sender.openInventory(vending.getGUI(sender, raceId))
+            sender.openInventory(BetChestGui().getGUI(sender, raceId))
         }
-
-
-        BetChestGui.AllPlayers[raceId]?.forEach { jockey ->
-            TempBetDatas.add(TempBetData(raceId, sender, jockey, 0))
-        }
-
+        BetUtils.initializeTempBetData(raceId, sender)
     }
 
-    companion object {
-        val TempBetDatas = ArrayList<TempBetData>()
-    }
 }

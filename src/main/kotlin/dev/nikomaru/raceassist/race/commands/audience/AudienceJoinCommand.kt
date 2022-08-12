@@ -19,14 +19,14 @@ package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils.audience
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.audience
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceJoinCommand {
-    @CommandPermission("RaceAssist.commands.audience.join")
+    @CommandPermission("raceassist.commands.audience.join")
     @CommandMethod("join <raceId>")
     fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {

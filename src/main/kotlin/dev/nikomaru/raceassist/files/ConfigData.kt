@@ -19,12 +19,20 @@ package dev.nikomaru.raceassist.files
 
 import kotlinx.serialization.Serializable
 
-//TODO(change to hocon to use kotlinx.serialization)
 @Serializable
-data class ConfigData(val version: String, val threshold: Int, val delay: Long, val discordWebHook: DiscordWebHook, val spreadSheet: SpreadSheet)
+data class ConfigData(val version: String,
+    val threshold: Int,
+    val delay: Long,
+    val discordWebHook: DiscordWebHook,
+    val spreadSheet: SpreadSheet,
+    val resultWebhook: ArrayList<ResultWebhook>,
+    val resultTimeOut: Long)
 
 @Serializable
 data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
+
+@Serializable
+data class ResultWebhook(val url: String, val name: String, val password: String)
 
 @Serializable
 data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)

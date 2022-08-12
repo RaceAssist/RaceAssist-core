@@ -15,20 +15,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands
+package dev.nikomaru.raceassist.data.database
 
-import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.Lang.mm
-import org.bukkit.command.CommandSender
+import java.time.LocalDateTime
+import java.util.*
 
-@CommandMethod("ra|raceassist")
-class HelpCommand {
-    @CommandMethod("help")
-    @CommandPermission("raceassist.command.help")
-    @CommandDescription("help command")
-    fun help(sender: CommandSender) {
-        val message = "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
-        sender.sendMessage(mm.deserialize(message))
-    }
-
-}
+data class BetListData(val rowNum: Int, val timeStamp: LocalDateTime, val playerUUID: UUID, val jockeyUUID: UUID, val betting: Int)

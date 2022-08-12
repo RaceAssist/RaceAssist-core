@@ -18,9 +18,9 @@
 package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetCentral
-import dev.nikomaru.raceassist.utils.CommandUtils.centralRaceId
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.canSetCentral
+import dev.nikomaru.raceassist.utils.Utils.centralRaceId
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action

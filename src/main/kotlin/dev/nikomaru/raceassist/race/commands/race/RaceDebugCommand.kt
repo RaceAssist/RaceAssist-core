@@ -21,14 +21,14 @@ import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils
-import dev.nikomaru.raceassist.utils.CommandUtils.displayLap
-import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
-import dev.nikomaru.raceassist.utils.CommandUtils.getPolygon
-import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.judgeLap
-import dev.nikomaru.raceassist.utils.CommandUtils.stop
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils
+import dev.nikomaru.raceassist.utils.Utils.displayLap
+import dev.nikomaru.raceassist.utils.Utils.getCentralPoint
+import dev.nikomaru.raceassist.utils.Utils.getPolygon
+import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
+import dev.nikomaru.raceassist.utils.Utils.judgeLap
+import dev.nikomaru.raceassist.utils.Utils.stop
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -45,7 +45,7 @@ import kotlin.math.roundToInt
 @CommandMethod("ra|RaceAssist race")
 class RaceDebugCommand {
 
-    @CommandPermission("RaceAssist.commands.race.debug")
+    @CommandPermission("raceassist.commands.race.debug")
     @CommandMethod("debug <raceId>")
     suspend fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
@@ -54,7 +54,7 @@ class RaceDebugCommand {
         }
         val locale = sender.locale()
         plugin.launch {
-            if (CommandUtils.returnRaceSetting(raceId, sender)) return@launch
+            if (Utils.returnCanRaceSetting(raceId, sender)) return@launch
             if (!getCircuitExist(raceId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch

@@ -18,17 +18,17 @@
 package dev.nikomaru.raceassist.race.commands.race
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.CommandUtils
-import dev.nikomaru.raceassist.utils.CommandUtils.stop
+import dev.nikomaru.raceassist.utils.Utils
+import dev.nikomaru.raceassist.utils.Utils.stop
 import kotlinx.coroutines.delay
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStopCommand {
-    @CommandPermission("RaceAssist.commands.race.stop")
+    @CommandPermission("raceassist.commands.race.stop")
     @CommandMethod("stop <raceId>")
     suspend fun stop(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (CommandUtils.returnRaceSetting(raceId, sender)) return
+        if (Utils.returnCanRaceSetting(raceId, sender)) return
         stop[raceId] = true
         delay(1000)
         stop[raceId] = false

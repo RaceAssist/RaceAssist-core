@@ -20,16 +20,16 @@ package dev.nikomaru.raceassist.race.commands.place
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.data.files.PlaceSettingData.getReverse
-import dev.nikomaru.raceassist.utils.CommandUtils.getCentralPoint
-import dev.nikomaru.raceassist.utils.CommandUtils.getRaceDegree
-import dev.nikomaru.raceassist.utils.CommandUtils.returnRaceSetting
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.getCentralPoint
+import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
+import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceDegreeCommand {
-    @CommandPermission("RaceAssist.commands.place.degree")
+    @CommandPermission("raceassist.commands.place.degree")
     @CommandMethod("degree <raceId>")
     suspend fun degree(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
@@ -37,7 +37,7 @@ class PlaceDegreeCommand {
             return
         }
 
-        if (returnRaceSetting(raceId, sender)) return
+        if (returnCanRaceSetting(raceId, sender)) return
         val centralXPoint = getCentralPoint(raceId, true) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
         val centralYPoint = getCentralPoint(raceId, false) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
         val reverse = getReverse(raceId)

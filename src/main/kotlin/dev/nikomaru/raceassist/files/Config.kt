@@ -21,7 +21,7 @@ import com.typesafe.config.ConfigRenderOptions
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.*
-import java.io.*
+import java.io.File
 
 object Config {
     lateinit var config: ConfigData
@@ -44,23 +44,18 @@ object Config {
 
         val spreadSheet = SpreadSheet(8888, arrayListOf())
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf())
-        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet)
+        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet, arrayListOf(), 600)
 
         val renderOptions = ConfigRenderOptions.defaults().setOriginComments(false).setComments(false).setFormatted(true).setJson(false)
         val string = hocon.encodeToConfig(configData).root().render(renderOptions)
 
         if (!file.exists()) {
             file.createNewFile()
-            val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
-            fw.write(string)
-            fw.close()
+            file.writeText(string)
         } else {
             val verNode = hocon.decodeFromConfig<ConfigData>(ConfigFactory.parseFile(file)).version
             if (verNode != version) {
-                file.deleteOnExit()
-                val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
-                fw.write(string)
-                fw.close()
+                file.writeText(string)
             }
         }
     }

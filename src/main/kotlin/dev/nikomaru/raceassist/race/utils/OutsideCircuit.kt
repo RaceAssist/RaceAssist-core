@@ -18,9 +18,9 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
+import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.awt.Polygon
@@ -31,8 +31,6 @@ object OutsideCircuit {
     suspend fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(raceId, Polygon())
         insidePolygonMap.putIfAbsent(raceId, PlaceSettingData.getInsidePolygon(raceId))
-
-
 
         if (insidePolygonMap[raceId]!!.contains(x, z)) {
             player.sendActionBar(Lang.getComponent("to-click-inside-point", player.locale()))

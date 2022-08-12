@@ -17,9 +17,9 @@
 package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.canSetInsideCircuit
-import dev.nikomaru.raceassist.utils.CommandUtils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
+import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action

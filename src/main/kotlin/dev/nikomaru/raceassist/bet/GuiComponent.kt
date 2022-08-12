@@ -17,6 +17,7 @@
 
 package dev.nikomaru.raceassist.bet
 
+import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
@@ -90,7 +91,7 @@ object GuiComponent {
     fun noBet(locale: Locale): ItemStack {
         val noBet = ItemStack(Material.BARRIER)
         val noBetMeta: ItemMeta = noBet.itemMeta
-        noBetMeta.displayName(Lang.getComponent("gui-no-one-betting", locale))
+        noBetMeta.displayName(Lang.getComponent("no-one-betting", locale))
         noBet.itemMeta = noBetMeta
         return noBet
     }
@@ -110,6 +111,8 @@ object GuiComponent {
         noHaveMoney.itemMeta = noHaveMoneyMeta
         return noHaveMoney
     }
+
+    val noDataGrass = GuiItem(ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 
 }
 
