@@ -22,8 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
-import java.io.*
-import java.nio.file.Files
+import java.io.File
+import java.io.InputStreamReader
 import java.text.MessageFormat
 import java.util.*
 
@@ -48,14 +48,6 @@ object Lang {
             val langDir = File(plugin.dataFolder, "lang")
             if (!langDir.exists()) {
                 langDir.mkdir()
-            }
-            lang.forEach { locale ->
-                val input: InputStream = this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties") ?: return@forEach
-                plugin.logger.info("Loading resource lang file for $locale")
-                val file = File(langDir, "$locale.properties")
-                if (!file.exists()) {
-                    Files.copy(input, file.toPath())
-                }
             }
             withContext(Dispatchers.IO) {
                 langDir.listFiles()?.forEach {

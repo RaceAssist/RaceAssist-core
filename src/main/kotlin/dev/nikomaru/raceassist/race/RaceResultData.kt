@@ -41,10 +41,11 @@ data class RaceResultData(val ver: String = "1.0",
     val rectangleData: RectangleData,
     val insidePolygon: @Serializable(with = PolygonSerializer::class) Polygon,
     val outsidePolygon: @Serializable(with = PolygonSerializer::class) Polygon,
-    val currentRaceData: ArrayList<CurrentRacaData>)
+    val currentRaceData: ArrayList<CurrentRaceData>,
+    var image: String?)
 
 @Serializable
-data class CurrentRacaData(
+data class CurrentRaceData(
     val time: Double,
     val playerRaceData: ArrayList<PlayerRaceData>,
 )

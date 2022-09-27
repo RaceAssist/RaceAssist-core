@@ -33,7 +33,7 @@ class HorseBreedEvent : Listener {
         }
         val horse = event.entity as Horse
 
-        if (horse.getCalcSpeed() < 13.7 && horse.getCalcJump() < 4.0) {
+        if (horse.getCalcSpeed() < 13.85 && horse.getCalcJump() < 4.0) {
             return
         }
         val mother = event.mother as Horse

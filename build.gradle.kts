@@ -27,6 +27,7 @@ repositories {
 
 val cloudVersion = "1.6.2"
 val exposedVersion = "0.38.2"
+val ktorVersion = "2.1.0"
 dependencies {
     compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
 
@@ -48,7 +49,19 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposedVersion)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation("mysql:mysql-connector-java:8.0.30")
+
+    implementation("io.ktor", "ktor-server-core", ktorVersion)
+    implementation("io.ktor", "ktor-server-netty", ktorVersion)
+    implementation("io.ktor", "ktor-server-content-negotiation", ktorVersion)
+    implementation("io.ktor", "ktor-serialization-kotlinx-json", ktorVersion)
+    implementation("io.ktor", "ktor-server-auth", ktorVersion)
+    implementation("io.ktor", "ktor-server-auth-jwt", ktorVersion)
+    implementation("io.ktor", "ktor-network-tls-certificates", ktorVersion)
+
+    implementation("ch.qos.logback", "logback-classic", "1.2.11")
+
+    implementation("org.jetbrains.kotlinx", "kotlinx-datetime", "0.4.0")
 
     implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")
 
@@ -65,6 +78,8 @@ dependencies {
     implementation("com.squareup.okhttp3", "okhttp", "4.10.0")
 
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
+
+    compileOnly("xyz.jpenilla", "squaremap-api", "1.1.8")
 }
 
 java {
@@ -136,7 +151,8 @@ bukkit {
                 "raceassist.commands.setting.create",
                 "raceassist.commands.setting.delete",
                 "raceassist.commands.setting.copy",
-                "raceassist.commands.setting.staff")
+                "raceassist.commands.setting.staff",
+                " raceassist.commands.web")
         }
         register("RaceAssist.user") {
             default = Default.TRUE

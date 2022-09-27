@@ -122,7 +122,7 @@ class BetRevertCommand {
         }
     }
 
-    private suspend fun transferMoney(sender: OfflinePlayer, receiver: OfflinePlayer, amount: Double) = withContext(minecraft) {
+    private suspend fun transferMoney(sender: OfflinePlayer, receiver: OfflinePlayer, amount: Double) = withContext(Dispatchers.minecraft) {
         val eco = VaultAPI.getEconomy()
         eco.withdrawPlayer(sender, amount)
         eco.depositPlayer(receiver, amount)

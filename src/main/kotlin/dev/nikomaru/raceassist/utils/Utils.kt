@@ -17,19 +17,25 @@
 
 package dev.nikomaru.raceassist.utils
 
-import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
+import dev.nikomaru.raceassist.utils.coroutines.async
 import kotlinx.coroutines.*
 import net.kyori.adventure.title.Title.title
+import org.bukkit.*
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.awt.image.BufferedImage
+import java.io.BufferedOutputStream
+import java.io.ByteArrayOutputStream
+import java.math.BigInteger
+import java.security.MessageDigest
 import java.util.*
-import kotlin.math.atan2
+import javax.imageio.ImageIO
+import kotlin.math.*
 
 object Utils {
 
@@ -40,6 +46,7 @@ object Utils {
     val canSetCentral = HashMap<UUID, Boolean>()
     val centralRaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
+    lateinit var mapColor: Properties
 
     suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
         PlaceSettingData.getInsidePolygon(raceId).npoints > 0
@@ -52,27 +59,60 @@ object Utils {
         if (currentLap == lap) {
             return
         }
-        plugin.launch {
-            val count: Long = 2000
-            withContext(Dispatchers.Default) {
-                if (currentLap > beforeLap) {
-                    if (currentLap == lap - 1) {
-                        player.showTitle(title((Lang.getComponent("last-lap", player.locale())),
-                            Lang.getComponent("one-step-forward-lap", player.locale())))
-                    } else {
-                        player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                            Lang.getComponent("one-step-forward-lap", player.locale())))
-                    }
-                    delay(count)
-                    player.clearTitle()
-                } else if (currentLap < beforeLap) {
+        val count: Long = 2000
+        withContext(Dispatchers.async) {
+            if (currentLap > beforeLap) {
+                if (currentLap == lap - 1) {
+                    player.showTitle(title((Lang.getComponent("last-lap", player.locale())),
+                        Lang.getComponent("one-step-forward-lap", player.locale())))
+                } else {
                     player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                        Lang.getComponent("one-step-backwards-lap", player.locale())))
-                    delay(count)
-                    player.clearTitle()
+                        Lang.getComponent("one-step-forward-lap", player.locale())))
                 }
+                delay(count)
+                player.clearTitle()
+            } else if (currentLap < beforeLap) {
+                player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                    Lang.getComponent("one-step-backwards-lap", player.locale())))
+                delay(count)
+                player.clearTitle()
             }
-        }.join()
+        }
+    }
+
+    private fun getBlockColor(x: Int, z: Int, world: World): String {
+        val block = world.getHighestBlockAt(x, z, HeightMap.WORLD_SURFACE)
+        val key = block.blockData.material.key.asString()
+        val color = mapColor.getProperty(key) ?: "#000000"
+        if (color == "#000000") {
+            println(key)
+        }
+        return color
+    }
+
+    suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.IO) {
+        val image = BufferedImage(abs(x1 - x2) + 9, abs(y1 - y2) + 9, BufferedImage.TYPE_3BYTE_BGR)
+
+        val sizeX = abs(x1 - x2) + 8
+        val sizeY = abs(y1 - y2) + 8
+        for (x in min(x1, x2) - 4..max(x1, x2) + 4) {
+            for (y in min(y1, y2) - 4..max(y1, y2) + 4) {
+                val relectiveX = sizeX - (x - (min(x1, x2) - 4))
+                val relectiveY = sizeY - (y - (min(y1, y2) - 4))
+                val hex = getBlockColor(x, y, Bukkit.getWorld("world")!!).replace("#", "")
+                val rgb = hex.toInt(16)
+                image.setRGB(relectiveX, relectiveY, rgb)
+            }
+        }
+
+        val baos = ByteArrayOutputStream()
+        val bos = BufferedOutputStream(baos)
+        withContext(Dispatchers.IO) {
+            ImageIO.write(image, "png", bos)
+            bos.flush()
+            bos.close()
+        }
+        return@withContext Base64.getEncoder().encodeToString(baos.toByteArray())
     }
 
     suspend fun returnCanRaceSetting(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
@@ -102,6 +142,7 @@ object Utils {
                     return -1
                 }
             }
+
             90 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
                     return 1
@@ -110,6 +151,7 @@ object Utils {
                     return -1
                 }
             }
+
             180 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
                     return 1
@@ -118,6 +160,7 @@ object Utils {
                     return -1
                 }
             }
+
             270 -> {
                 if ((beforeDegree in goalDegree - threshold until goalDegree) && (currentDegree in goalDegree until goalDegree + threshold)) {
                     return 1
@@ -161,6 +204,16 @@ object Utils {
 
     fun String.toUUID(): UUID {
         return UUID.fromString(this)
+    }
+
+    fun UUID.toOfflinePlayer(): OfflinePlayer {
+        return Bukkit.getOfflinePlayer(this)
+    }
+
+    fun passwordHash(string: String): String {
+        val sha3 = MessageDigest.getInstance("SHA3-256")
+        val sha3Result = sha3.digest(string.toByteArray())
+        return String.format("%040x", BigInteger(1, sha3Result))
     }
 
 }

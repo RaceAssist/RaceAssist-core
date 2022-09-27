@@ -26,10 +26,10 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")
-class BetReturnCommand {
+class BetPayCommand {
 
     @CommandPermission("raceassist.commands.bet.return.jockey")
-    @CommandMethod("return <raceId> <playerName>")
+    @CommandMethod("pay <raceId> <playerName>")
     @CommandDescription("払い戻し用のコマンド")
     @Confirmation
     suspend fun returnJockey(sender: CommandSender,
@@ -42,7 +42,7 @@ class BetReturnCommand {
             return
         }
         if (!BetUtils.playerCanPay(raceId, BetUtils.getBetSum(raceId), sender)) return
-        BetUtils.returnBet(jockey, raceId, sender, locale)
+        BetUtils.payDividend(jockey, raceId, sender, locale)
         sender.sendMessage(Lang.getComponent("finish-pay", locale))
     }
 }
