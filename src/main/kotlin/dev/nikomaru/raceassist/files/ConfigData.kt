@@ -20,13 +20,17 @@ package dev.nikomaru.raceassist.files
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ConfigData(val version: String,
+data class ConfigData(
+    val version: String,
     val threshold: Int,
     val delay: Long,
     val discordWebHook: DiscordWebHook,
     val spreadSheet: SpreadSheet,
     val resultWebhook: ArrayList<ResultWebhook>,
-    val resultTimeOut: Long)
+    val webAPI: WebAPI?,
+    val raceLimitMilliSecond: Long,
+    val mySQL: MySQL?,
+)
 
 @Serializable
 data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
@@ -36,3 +40,15 @@ data class ResultWebhook(val url: String, val name: String, val password: String
 
 @Serializable
 data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
+
+@Serializable
+data class WebAPI(val port: Int, val sslPort: Int, val sslSetting: SslSetting, val jwtConfig: JWTConfig?)
+
+@Serializable
+data class SslSetting(val keyAlias: String, val keyStorePassword: String, val privateKeyPassword: String)
+
+@Serializable
+data class MySQL(val url: String, val username: String, val password: String)
+
+@Serializable
+data class JWTConfig(val privateKey: String, val keyId: String, val issuer: String, val audience: ArrayList<String>, val realm: String = "RaceAssist")

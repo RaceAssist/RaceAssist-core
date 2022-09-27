@@ -104,18 +104,15 @@ object BetUtils {
     }
 
     //払い戻し
-    suspend fun returnBet(jockey: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
+    suspend fun payDividend(jockey: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
         val odds = getOdds(raceId, jockey)
         val eco = VaultAPI.getEconomy()
 
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.select { (BetList.jockey eq jockey.name.toString()) and (BetList.raceId eq raceId) }.forEach {
-
                 val returnAmount = it[BetList.betting] * odds
                 val retunrPlayer = Bukkit.getOfflinePlayer(it[BetList.playerUUID].toUUID())
-
-                withContext(minecraft) {
-
+                withContext(Dispatchers.minecraft) {
                     eco.depositPlayer(retunrPlayer, returnAmount)
                     eco.withdrawPlayer(RaceSettingData.getOwner(raceId), returnAmount)
                 }

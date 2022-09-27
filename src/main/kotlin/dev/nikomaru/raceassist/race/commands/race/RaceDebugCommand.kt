@@ -85,7 +85,7 @@ class RaceDebugCommand {
 
 
             for (timer in 0..4) {
-                val showTimer = async(minecraft) {
+                val showTimer = async(Dispatchers.minecraft) {
                     sender.showTitle(Title.title(Lang.getComponent("${5 - timer}", locale), Lang.getComponent("", locale)))
                 }
                 delay(1000)
