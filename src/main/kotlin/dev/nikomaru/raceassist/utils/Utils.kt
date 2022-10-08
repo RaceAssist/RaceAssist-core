@@ -22,10 +22,13 @@ import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
 import dev.nikomaru.raceassist.utils.coroutines.async
 import kotlinx.coroutines.*
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.kyori.adventure.title.Title.title
 import org.bukkit.*
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
+import org.bukkit.entity.Horse
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.image.BufferedImage
@@ -214,6 +217,14 @@ object Utils {
         val sha3 = MessageDigest.getInstance("SHA3-256")
         val sha3Result = sha3.digest(string.toByteArray())
         return String.format("%040x", BigInteger(1, sha3Result))
+    }
+
+    fun UUID.toLivingHorse(): Horse? {
+        return Bukkit.getEntity(this) as? Horse
+    }
+
+    fun Component.toPlainText(): String {
+        return PlainTextComponentSerializer.plainText().serialize(this)
     }
 
 }

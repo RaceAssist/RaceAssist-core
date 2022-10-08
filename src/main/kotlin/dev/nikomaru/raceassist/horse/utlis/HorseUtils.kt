@@ -17,8 +17,14 @@
 
 package dev.nikomaru.raceassist.horse.utlis
 
+import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.horse.data.HorseData
+import dev.nikomaru.raceassist.web.data.History
+import kotlinx.serialization.decodeFromString
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Horse
+import java.util.*
 import kotlin.math.pow
 
 object HorseUtils {
@@ -28,10 +34,50 @@ object HorseUtils {
     }
 
     fun Horse.getCalcJump(): Double {
-        return this.jumpStrength.pow(1.7) * 5.293;
+        return this.jumpStrength.pow(1.7) * 5.293
     }
 
     fun Horse.getCalcMaxHealth(): Double {
         return this.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value
+    }
+
+    fun Horse.getMotherUniqueId(): UUID? {
+        val uuid = this.uniqueId
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        if (!file.exists()) {
+            return null
+        }
+        val data = json.decodeFromString<HorseData>(file.readText())
+        return data.mother
+    }
+
+    fun Horse.getFatherUniqueId(): UUID? {
+        val uuid = this.uniqueId
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        if (!file.exists()) {
+            return null
+        }
+        val data = json.decodeFromString<HorseData>(file.readText())
+        return data.father
+    }
+
+    fun Horse.getBreaderUniqueId(): UUID? {
+        val uuid = this.uniqueId
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        if (!file.exists()) {
+            return null
+        }
+        val data = json.decodeFromString<HorseData>(file.readText())
+        return data.breader
+    }
+
+    fun Horse.getHistories(): ArrayList<History> {
+        val uuid = this.uniqueId
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        if (!file.exists()) {
+            return arrayListOf()
+        }
+        val data = json.decodeFromString<HorseData>(file.readText())
+        return data.history
     }
 }

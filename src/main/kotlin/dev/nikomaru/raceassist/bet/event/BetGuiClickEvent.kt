@@ -89,7 +89,7 @@ class BetGuiClickEvent : Listener {
                 while (iterator.hasNext()) {
                     val it = iterator.next()
                     if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot)) {
-                        it.bet = selectedNowBet + 10
+                        it.betPerUnit = selectedNowBet + 10
                     }
                 }
 
@@ -115,7 +115,7 @@ class BetGuiClickEvent : Listener {
                 while (iterator.hasNext()) {
                     val it = iterator.next()
                     if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 9)) {
-                        it.bet = selectedNowBet + 1
+                        it.betPerUnit = selectedNowBet + 1
                     }
                 }
 
@@ -149,7 +149,7 @@ class BetGuiClickEvent : Listener {
                 while (iterator.hasNext()) {
                     val it = iterator.next()
                     if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 27)) {
-                        it.bet = selectedNowBet - 1
+                        it.betPerUnit = selectedNowBet - 1
                     }
                 }
 
@@ -184,7 +184,7 @@ class BetGuiClickEvent : Listener {
                 while (iterator.hasNext()) {
                     val it = iterator.next()
                     if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 36)) {
-                        it.bet = selectedNowBet - 10
+                        it.betPerUnit = selectedNowBet - 10
                     }
                 }
 
@@ -205,7 +205,7 @@ class BetGuiClickEvent : Listener {
                 while (iterator.hasNext()) {
                     val it = iterator.next()
                     if (it.raceId == raceId && it.player == player) {
-                        it.bet = 0
+                        it.betPerUnit = 0
                     }
                 }
 
@@ -253,18 +253,18 @@ class BetGuiClickEvent : Listener {
                     val iterator = BetUtils.TempBetDatas.iterator()
                     while (iterator.hasNext()) {
                         val temp = iterator.next()
-                        if (temp.raceId == raceId && temp.player == player && temp.bet != 0) {
+                        if (temp.raceId == raceId && temp.player == player && temp.betPerUnit != 0) {
                             BetList.insert { bet ->
                                 bet[BetList.raceId] = raceId
                                 bet[playerName] = player.name
                                 bet[playerUUID] = player.uniqueId.toString()
                                 bet[jockey] = temp.jockey.name.toString()
                                 bet[jockeyUUID] = temp.jockey.uniqueId.toString()
-                                bet[betting] = temp.bet * betUnit
+                                bet[betting] = temp.betPerUnit * betUnit
                                 bet[timeStamp] = LocalDateTime.now()
                                 bet[rowNum] = row + 1
                             }
-                            betProcess(player, row, temp.bet, temp.jockey, eco, owner, raceId)
+                            betProcess(player, row, temp.betPerUnit, temp.jockey, eco, owner, raceId)
                             row++
                         }
                     }
@@ -335,7 +335,7 @@ class BetGuiClickEvent : Listener {
         while (iterator.hasNext()) {
             val it = iterator.next()
             if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot)) {
-                bet = it.bet
+                bet = it.betPerUnit
             }
         }
         return bet
@@ -345,7 +345,7 @@ class BetGuiClickEvent : Listener {
         var sum = 0
         BetUtils.TempBetDatas.forEach {
             if (it.raceId == raceId && it.player == player) {
-                sum += it.bet
+                sum += it.betPerUnit
             }
         }
         return sum

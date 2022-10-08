@@ -49,7 +49,7 @@ object RaceSettingData {
 
         val place = Place(1, null, null, 0, false, Polygon(), Polygon())
         val bet = Bet(false, 75, null, 100)
-        val raceConfig = RaceConfig(raceId, raceName, owner, arrayListOf(owner), arrayListOf(), place, bet, hashMapOf())
+        val raceConfig = RaceConfig(raceId, raceName, owner, arrayListOf(owner), arrayListOf(), place, bet, hashMapOf(), hashMapOf())
         val json = json.encodeToJsonElement(raceConfig)
         val string = json.toString()
 
@@ -77,16 +77,12 @@ object RaceSettingData {
         file.delete()
     }
 
-    suspend fun getJockeys(raceId: String): ArrayList<OfflinePlayer> = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).jockeys
-    }
-
     suspend fun getOwner(raceId: String): OfflinePlayer = withContext(Dispatchers.IO) {
         getRaceConfig(raceId).owner
     }
 
-    suspend fun getReplacement(raceId: String): HashMap<UUID, String> = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).replacement
+    suspend fun getJockeys(raceId: String): ArrayList<OfflinePlayer> = withContext(Dispatchers.IO) {
+        getRaceConfig(raceId).jockeys
     }
 
     suspend fun addJockey(raceId: String, jockey: OfflinePlayer) = withContext(Dispatchers.IO) {
@@ -95,15 +91,19 @@ object RaceSettingData {
         data.save(raceId)
     }
 
-    suspend fun setReplacement(raceId: String, uuid: UUID, name: String) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.replacement[uuid] = name
-        data.save(raceId)
-    }
-
     suspend fun removeJockey(raceId: String, jockey: OfflinePlayer) = withContext(Dispatchers.IO) {
         val data = getRaceConfig(raceId)
         data.jockeys.remove(jockey)
+        data.save(raceId)
+    }
+
+    suspend fun getReplacement(raceId: String): HashMap<UUID, String> = withContext(Dispatchers.IO) {
+        getRaceConfig(raceId).replacement
+    }
+
+    suspend fun setReplacement(raceId: String, uuid: UUID, name: String) = withContext(Dispatchers.IO) {
+        val data = getRaceConfig(raceId)
+        data.replacement[uuid] = name
         data.save(raceId)
     }
 
@@ -116,6 +116,28 @@ object RaceSettingData {
     suspend fun deleteReplacement(raceId: String) = withContext(Dispatchers.IO) {
         val data = getRaceConfig(raceId)
         data.replacement.clear()
+        data.save(raceId)
+    }
+
+    suspend fun getHorse(raceId: String): HashMap<UUID, UUID> = withContext(Dispatchers.IO) {
+        getRaceConfig(raceId).horse
+    }
+
+    suspend fun setHorse(raceId: String, playerUniqueId: UUID, horseUniqueId: UUID) = withContext(Dispatchers.IO) {
+        val data = getRaceConfig(raceId)
+        data.horse[playerUniqueId] = horseUniqueId
+        data.save(raceId)
+    }
+
+    suspend fun removeHorse(raceId: String, uuid: UUID) = withContext(Dispatchers.IO) {
+        val data = getRaceConfig(raceId)
+        data.horse.remove(uuid)
+        data.save(raceId)
+    }
+
+    suspend fun deleteHorse(raceId: String) = withContext(Dispatchers.IO) {
+        val data = getRaceConfig(raceId)
+        data.horse.clear()
         data.save(raceId)
     }
 

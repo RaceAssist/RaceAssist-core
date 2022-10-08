@@ -51,6 +51,7 @@ object RaceUtils {
 
 }
 
+//TODO 馬に関するデータを保存する
 @Serializable
 data class RaceConfig(var raceId: String,
     var raceName: String,
@@ -59,7 +60,8 @@ data class RaceConfig(var raceId: String,
     var jockeys: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
     val place: Place,
     val bet: Bet,
-    val replacement: HashMap<@Serializable(with = UUIDSerializer::class) UUID, String>)
+    val replacement: HashMap<@Serializable(with = UUIDSerializer::class) UUID, String>,
+    val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID>)
 
 @Serializable
 data class Place(var lap: Int,

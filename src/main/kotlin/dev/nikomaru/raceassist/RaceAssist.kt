@@ -24,7 +24,6 @@ import cloud.commandframework.meta.SimpleCommandMeta
 import cloud.commandframework.paper.PaperCommandManager
 import com.github.shynixn.mccoroutine.bukkit.*
 import dev.nikomaru.raceassist.api.VaultAPI
-import dev.nikomaru.raceassist.api.web.WebAPI
 import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.data.database.BetList
@@ -44,6 +43,7 @@ import dev.nikomaru.raceassist.utils.*
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import dev.nikomaru.raceassist.web.WebCommand
+import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.command.CommandSender
@@ -158,6 +158,7 @@ class RaceAssist : SuspendingJavaPlugin() {
             parse(RaceStartCommand())
             parse(RaceStopCommand())
             parse(RaceDebugCommand())
+            parse(RaceHorseCommand())
 
             parse(BetCanCommand())
             parse(BetDeleteCommand())

@@ -24,7 +24,9 @@ import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.*
 import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
+import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
@@ -60,6 +62,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
     private val raceUniqueId = _raceUniqueId ?: RandomStringUtils.randomAlphanumeric(20)
     private val executor = _executor
     private val locale = executor.locale()
+    private lateinit var replacement: HashMap<UUID, String>
 
     var finished = false
 
@@ -154,6 +157,14 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
             audiences.add(executor)
         }
 
+        replacement = RaceSettingData.getReplacement(raceId)
+        RaceSettingData.getHorse(raceId).forEach { (t, u) ->
+            val name = u.toLivingHorse()?.customName()?.toPlainText()
+            if (name != null) {
+                replacement[t] = name
+            }
+        }
+
         return true
     }
 
@@ -213,7 +224,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
             lap,
             goalDistance,
             uuidToName,
-            RaceSettingData.getReplacement(raceId),
+            replacement,
             rectangleData,
             insidePolygon,
             outsidePolygon,
@@ -330,14 +341,13 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
         }
     }
 
-    private suspend fun displayScoreboard(nowRankings: List<UUID>,
+    private fun displayScoreboard(nowRankings: List<UUID>,
         currentDegree: HashMap<UUID, Int>,
         raceAudience: Collection<UUID>,
         innerCircumference: Int,
         startDegree: Int,
         goalDegree: Int,
-        lap: Int,
-        raceId: String) {
+        lap: Int) {
 
         raceAudience.forEach {
 
@@ -354,7 +364,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
 
                 for (i in nowRankings.indices) {
 
-                    val playerName = RaceSettingData.getReplacement(raceId)[nowRankings[i]] ?: Bukkit.getPlayer(nowRankings[i])?.name
+                    val playerName = replacement[nowRankings[i]] ?: Bukkit.getPlayer(nowRankings[i])?.name
 
                     val component = if (currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId] == null) {
                         Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)
@@ -491,8 +501,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
                     innerCircumference.roundToInt(),
                     startDegree,
                     goalDegree,
-                    lap,
-                    raceId)
+                    lap)
             }
             delay(Config.config.delay)
             displayRanking.await()

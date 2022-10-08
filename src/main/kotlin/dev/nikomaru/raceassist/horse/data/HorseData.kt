@@ -15,8 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.data
+package dev.nikomaru.raceassist.horse.data
 
-import org.bukkit.OfflinePlayer
+import dev.nikomaru.raceassist.data.files.UUIDSerializer
+import dev.nikomaru.raceassist.web.data.History
+import kotlinx.serialization.Serializable
+import java.util.*
 
-data class TempBetData(val raceId: String, val player: OfflinePlayer, val jockey: OfflinePlayer, var betPerUnit: Int)
+@Serializable
+data class HorseData(val horse: @Serializable(with = UUIDSerializer::class) UUID,
+    val breader: @Serializable(with = UUIDSerializer::class) UUID?,
+    val mother: @Serializable(with = UUIDSerializer::class) UUID?,
+    val father: @Serializable(with = UUIDSerializer::class) UUID?,
+    val history: ArrayList<History>)

@@ -17,8 +17,12 @@
 
 package dev.nikomaru.raceassist.horse.events
 
+import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
+import kotlinx.serialization.encodeToString
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Horse
 import org.bukkit.event.EventHandler
@@ -27,7 +31,7 @@ import org.bukkit.event.entity.EntityBreedEvent
 
 class HorseBreedEvent : Listener {
     @EventHandler
-    suspend fun onHorseBreed(event: EntityBreedEvent) {
+    fun onHorseBreed(event: EntityBreedEvent) {
         if (event.entity.type != EntityType.HORSE) {
             return
         }
@@ -39,6 +43,12 @@ class HorseBreedEvent : Listener {
         val mother = event.mother as Horse
         val father = event.father as Horse
 
+        val data = HorseData(horse.uniqueId, event.breeder?.uniqueId, mother.uniqueId, father.uniqueId, arrayListOf())
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("${horse.uniqueId}.json")
+        val dataString = json.encodeToString(data)
+
+        file.writeText(dataString)
     }
 
 }
+

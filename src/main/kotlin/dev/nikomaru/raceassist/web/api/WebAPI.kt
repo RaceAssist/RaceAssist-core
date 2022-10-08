@@ -15,17 +15,29 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.api.web
+package dev.nikomaru.raceassist.web.api
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.UserAuthData
+import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getBreaderUniqueId
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcMaxHealth
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getFatherUniqueId
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getHistories
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getMotherUniqueId
 import dev.nikomaru.raceassist.utils.Utils.passwordHash
+import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
+import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.Utils.toUUID
+import dev.nikomaru.raceassist.web.data.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -40,6 +52,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.select
@@ -156,6 +169,49 @@ private fun Application.module() {
                     .withClaim("username", username).withExpiresAt(Date(System.currentTimeMillis() + 30_000))
                     .sign(Algorithm.RSA256(publicKey as RSAPublicKey, privateKey as RSAPrivateKey))
                 call.respond(hashMapOf("token" to token))
+            }
+        }
+        route("/horse") {
+            get("{uuid?}") {
+                val uuid = call.parameters["uuid"] ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
+                val horse = uuid.toUUID().toLivingHorse() ?: return@get call.respondText("Horse not found", status = HttpStatusCode.NotFound)
+
+                val horseData = HorseData(horse.uniqueId,
+                    horse.customName()?.toPlainText(),
+                    horse.ownerUniqueId!!,
+                    horse.getBreaderUniqueId(),
+                    horse.getCalcSpeed(),
+                    horse.getCalcJump(),
+                    horse.getCalcMaxHealth(),
+                    horse.color.name,
+                    horse.style.name,
+                    horse.getMotherUniqueId(),
+                    horse.getFatherUniqueId(),
+                    horse.getHistories())
+
+                val horseDataJson = json.encodeToString(horseData)
+                call.respondText(horseDataJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json)
+            }
+        }
+        route("/jockeys") {
+            get("{raceId?}") {
+                val raceId = call.parameters["raceId"] ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
+                if (!RaceSettingData.existsRace(raceId)) {
+                    call.respondText("Race not found", status = HttpStatusCode.NotFound)
+                }
+                val jockeys = RaceSettingData.getJockeys(raceId)
+                val jockeyDatas = arrayListOf<WebRaceJockeyData>()
+
+                jockeys.forEach {
+                    val webRaceJockeyData =
+                        WebRaceJockeyData(it.uniqueId, RaceSettingData.getHorse(raceId)[it.uniqueId], BetUtils.getOdds(raceId, it))
+                    jockeyDatas.add(webRaceJockeyData)
+                }
+
+                val datas = WebRaceJockeyDatas(raceId, BetSettingData.getBetUnit(raceId), jockeyDatas)
+                val datasJson = json.encodeToString(datas)
+
+                call.respondText(datasJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json)
             }
         }
         authenticate("auth-jwt") {
