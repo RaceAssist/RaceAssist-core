@@ -4,6 +4,9 @@
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml/badge.svg?branch=master)](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+RaceAssist is a plugin that enables horse races and other races to be conducted within Minecraft.
+
+[![RaceAssits-example](https://i.ytimg.com/vi/JR7l4XLi_Qs/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLD7usjv7AlQ5sfs1cAZFNfWl_i_Ug)](https://www.youtube.com/watch?v=JR7l4XLi_Qs&)
 
 ## Wiki
 
