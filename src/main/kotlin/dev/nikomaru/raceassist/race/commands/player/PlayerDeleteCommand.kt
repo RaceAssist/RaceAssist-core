@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
 
@@ -28,10 +28,10 @@ import org.bukkit.command.CommandSender
 class PlayerDeleteCommand {
 
     @CommandPermission("raceassist.commands.player.delete")
-    @CommandMethod("delete <raceId>")
-    suspend fun deletePlayer(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("delete <operateRaceId>")
+    suspend fun deletePlayer(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
 
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
 
         RaceSettingData.getJockeys(raceId).forEach {
             RaceSettingData.removeJockey(raceId, it)

@@ -15,11 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.data.database
+package dev.nikomaru.raceassist.horse.utlis
 
-import org.jetbrains.exposed.sql.Table
+object IntegrityHorseData {
+    // listを取得し、horseDataを追加、削除する
+    fun getIntegrityHorseData() {
+    }
 
-object UserAuthData : Table() {
-    val uuid = varchar("UUID", 40)
-    val hashedPassword = varchar("PASSWORD", 256)
+    // Load horse data and subsequently confirm its existence.
+    suspend fun confirmHorseData() {
+
+    }
 }

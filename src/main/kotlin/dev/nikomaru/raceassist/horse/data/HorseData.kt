@@ -19,12 +19,40 @@ package dev.nikomaru.raceassist.horse.data
 
 import dev.nikomaru.raceassist.data.files.UUIDSerializer
 import dev.nikomaru.raceassist.web.data.History
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.time.ZonedDateTime
 import java.util.*
 
 @Serializable
 data class HorseData(val horse: @Serializable(with = UUIDSerializer::class) UUID,
-    val breader: @Serializable(with = UUIDSerializer::class) UUID?,
+    val breeder: @Serializable(with = UUIDSerializer::class) UUID?,
+    val owner: @Serializable(with = UUIDSerializer::class) UUID?,
     val mother: @Serializable(with = UUIDSerializer::class) UUID?,
     val father: @Serializable(with = UUIDSerializer::class) UUID?,
-    val history: ArrayList<History>)
+    val history: ArrayList<History>,
+    val color: String,
+    val style: String,
+    val speed: Double,
+    val jump: Double,
+    val health: Double,
+    val name: String?,
+    val birthDate: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime?,
+    val lastRecordDate: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime,
+    val deathData: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime?)
+
+object KZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ZonedDateTime", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: ZonedDateTime) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): ZonedDateTime {
+        val string = decoder.decodeString()
+        return ZonedDateTime.parse(string)
+    }
+}

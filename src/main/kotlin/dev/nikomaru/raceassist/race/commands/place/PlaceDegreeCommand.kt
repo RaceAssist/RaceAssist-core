@@ -20,27 +20,27 @@ package dev.nikomaru.raceassist.race.commands.place
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.data.files.PlaceSettingData.getReverse
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.getCentralPoint
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
-import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceDegreeCommand {
     @CommandPermission("raceassist.commands.place.degree")
-    @CommandMethod("degree <raceId>")
-    suspend fun degree(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("degree <operatePlaceId>")
+    suspend fun degree(sender: CommandSender, @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (returnCanRaceSetting(raceId, sender)) return
-        val centralXPoint = getCentralPoint(raceId, true) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
-        val centralYPoint = getCentralPoint(raceId, false) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
-        val reverse = getReverse(raceId)
+        if (!RaceUtils.hasRaceControlPermission(placeId, sender)) return
+        val centralXPoint = getCentralPoint(placeId, true) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+        val centralYPoint = getCentralPoint(placeId, false) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
+        val reverse = getReverse(placeId)
         val nowX = sender.location.blockX
         val nowY = sender.location.blockZ
         val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
@@ -50,24 +50,29 @@ class PlaceDegreeCommand {
             in 0..45 -> {
                 0
             }
+
             in 46..135 -> {
                 90
             }
+
             in 136..225 -> {
                 180
             }
+
             in 226..315 -> {
                 270
             }
+
             in 316..360 -> {
                 0
             }
+
             else -> {
                 0
             }
         }
         sender.sendMessage(Lang.getComponent("to-set-degree", sender.locale(), degree))
-        PlaceSettingData.setGoalDegree(raceId, degree)
+        PlaceSettingData.setGoalDegree(placeId, degree)
 
     }
 }

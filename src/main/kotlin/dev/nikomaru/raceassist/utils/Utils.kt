@@ -18,16 +18,14 @@
 package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.data.files.StaffSettingData.existStaff
 import dev.nikomaru.raceassist.utils.coroutines.async
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.kyori.adventure.title.Title.title
+import okhttp3.OkHttpClient
 import org.bukkit.*
 import org.bukkit.command.CommandSender
-import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Horse
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -37,6 +35,7 @@ import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.*
+import java.util.concurrent.*
 import javax.imageio.ImageIO
 import kotlin.math.*
 
@@ -47,7 +46,7 @@ object Utils {
     val canSetOutsideCircuit = HashMap<UUID, Boolean>()
     val circuitRaceId = HashMap<UUID, String>()
     val canSetCentral = HashMap<UUID, Boolean>()
-    val centralRaceId = HashMap<UUID, String>()
+    val centralPlaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
     lateinit var mapColor: Properties
 
@@ -116,22 +115,6 @@ object Utils {
             bos.close()
         }
         return@withContext Base64.getEncoder().encodeToString(baos.toByteArray())
-    }
-
-    suspend fun returnCanRaceSetting(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
-        if (player is ConsoleCommandSender) {
-            return@withContext true
-        }
-        (player as Player)
-        if (!RaceSettingData.existsRace(raceId)) {
-            player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale(), raceId))
-            return@withContext true
-        }
-        if (!existStaff(raceId, player)) {
-            player.sendMessage(Lang.getComponent("only-race-creator-can-setting", player.locale()))
-            return@withContext true
-        }
-        return@withContext false
     }
 
     fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
@@ -226,5 +209,8 @@ object Utils {
     fun Component.toPlainText(): String {
         return PlainTextComponentSerializer.plainText().serialize(this)
     }
+
+    val client =
+        OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).build()
 
 }

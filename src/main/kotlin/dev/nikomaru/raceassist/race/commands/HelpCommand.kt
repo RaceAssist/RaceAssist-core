@@ -24,7 +24,7 @@ import org.bukkit.command.CommandSender
 @CommandMethod("ra|raceassist")
 class HelpCommand {
     @CommandMethod("help")
-    @CommandPermission("raceassist.command.help")
+    @CommandPermission("raceassist.commands.help")
     @CommandDescription("help command")
     fun help(sender: CommandSender) {
         val message = "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"

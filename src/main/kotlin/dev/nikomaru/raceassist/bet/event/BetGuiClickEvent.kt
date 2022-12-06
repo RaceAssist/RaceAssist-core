@@ -103,6 +103,7 @@ class BetGuiClickEvent : Listener {
                 delay(50)
                 clicked.remove(player.uniqueId)
             }
+
             in 9..16 -> {
                 // 1 ↑
                 if (slot > (limit + 9)) {
@@ -130,6 +131,7 @@ class BetGuiClickEvent : Listener {
                 delay(50)
                 clicked.remove(player.uniqueId)
             }
+
             in 27..34 -> {
                 //1 ↓
                 if (slot > (limit + 27)) {
@@ -163,6 +165,7 @@ class BetGuiClickEvent : Listener {
                 delay(50)
                 clicked.remove(player.uniqueId)
             }
+
             in 36..43 -> {
                 // 10 ↓
                 if (slot > (limit + 36)) {
@@ -198,6 +201,7 @@ class BetGuiClickEvent : Listener {
                 delay(50)
                 clicked.remove(player.uniqueId)
             }
+
             17 -> {
                 //clear
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
@@ -216,6 +220,7 @@ class BetGuiClickEvent : Listener {
                     item.itemMeta = itemMeta
                 }
             }
+
             35 -> {
                 //deny
                 player.closeInventory()
@@ -230,6 +235,7 @@ class BetGuiClickEvent : Listener {
                 }
 
             }
+
             44 -> {
                 //accept
 

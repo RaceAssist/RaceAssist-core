@@ -29,8 +29,8 @@ class SettingCopyCommand {
     @CommandPermission("raceassist.commands.setting.copy")
     @CommandMethod("copy <raceId_1> <raceId_2>")
     suspend fun copy(sender: CommandSender,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId_1", suggestions = "raceId") raceId_1: String,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId_2") raceId_2: String) {
+        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId_1") raceId_1: String,
+        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId_2", suggestions = "raceId") raceId_2: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

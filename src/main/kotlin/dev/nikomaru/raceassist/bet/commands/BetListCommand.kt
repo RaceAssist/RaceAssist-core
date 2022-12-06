@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.bet.BetUtils
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -28,11 +28,11 @@ import org.bukkit.command.CommandSender
 @CommandMethod("ra|RaceAssist bet")
 class BetListCommand {
     @CommandPermission("raceassist.commands.bet.list")
-    @CommandMethod("list <raceId>")
+    @CommandMethod("list <operateRaceId>")
     @CommandDescription("現在賭けられている一覧を表示します")
-    suspend fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun list(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         val locale = sender.locale()
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         val list = BetUtils.listBetData(raceId)
         if (list.isEmpty()) {
             sender.sendMessage(Lang.getComponent("no-one-betting", locale))

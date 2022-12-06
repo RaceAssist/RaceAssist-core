@@ -25,10 +25,13 @@ import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.horse.data.HorseData
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getBirthDate
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getBreaderUniqueId
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcMaxHealth
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getDeathDate
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getFatherUniqueId
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getHistories
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getMotherUniqueId
@@ -37,7 +40,8 @@ import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.Utils.toUUID
-import dev.nikomaru.raceassist.web.data.*
+import dev.nikomaru.raceassist.web.data.WebRaceJockeyData
+import dev.nikomaru.raceassist.web.data.WebRaceJockeyDatas
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -62,6 +66,7 @@ import java.security.KeyStore
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.PKCS8EncodedKeySpec
+import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.*
 
@@ -119,6 +124,7 @@ private fun Application.module() {
             challenge { _, _ ->
                 call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
             }
+
         }
 
     }
@@ -142,6 +148,7 @@ private fun Application.module() {
 
                 val offlinePlayer = Bukkit.getOfflinePlayer(username)
                 if (!offlinePlayer.hasPlayedBefore()) {
+                    //401
                     call.respond(HttpStatusCode.Unauthorized, "This player has never played before")
                 }
                 val uuid = offlinePlayer.uniqueId
@@ -152,9 +159,11 @@ private fun Application.module() {
                     UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
                 }
                 if (!exist) {
+                    //401
                     call.respond(HttpStatusCode.Unauthorized, "This player is not registered")
                 }
                 if (offlinePlayer.isBanned) {
+                    //403
                     call.respond(HttpStatusCode.Forbidden, "This player is banned")
                 }
                 val registeredPassword = newSuspendedTransaction {
@@ -162,6 +171,7 @@ private fun Application.module() {
                     rr[UserAuthData.hashedPassword]
                 }
                 if (passwordHash(password) != registeredPassword) {
+                    //401
                     call.respond(HttpStatusCode.Unauthorized, "Password is incorrect")
                 }
 
@@ -173,21 +183,26 @@ private fun Application.module() {
         }
         route("/horse") {
             get("{uuid?}") {
-                val uuid = call.parameters["uuid"] ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
-                val horse = uuid.toUUID().toLivingHorse() ?: return@get call.respondText("Horse not found", status = HttpStatusCode.NotFound)
+                val uuid = call.parameters["uuid"]?.toUUID() ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
+                val horse = uuid.toLivingHorse() ?: return@get call.respondText("Horse not found", status = HttpStatusCode.NotFound)
 
-                val horseData = HorseData(horse.uniqueId,
-                    horse.customName()?.toPlainText(),
-                    horse.ownerUniqueId!!,
+                val horseData = HorseData(
+                    horse.uniqueId,
                     horse.getBreaderUniqueId(),
+                    horse.ownerUniqueId!!,
+                    horse.getMotherUniqueId(),
+                    horse.getFatherUniqueId(),
+                    horse.getHistories(),
+                    horse.color.name,
+                    horse.style.name,
                     horse.getCalcSpeed(),
                     horse.getCalcJump(),
                     horse.getCalcMaxHealth(),
-                    horse.color.name,
-                    horse.style.name,
-                    horse.getMotherUniqueId(),
-                    horse.getFatherUniqueId(),
-                    horse.getHistories())
+                    horse.customName()?.toPlainText(),
+                    horse.getBirthDate(),
+                    ZonedDateTime.now(),
+                    horse.getDeathDate(),
+                )
 
                 val horseDataJson = json.encodeToString(horseData)
                 call.respondText(horseDataJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json)

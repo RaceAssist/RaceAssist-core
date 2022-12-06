@@ -15,28 +15,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
-import cloud.commandframework.annotations.specifier.Range
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.data.files.*
 import org.bukkit.command.CommandSender
 
-@CommandMethod("ra|RaceAssist bet")
-class BetUnitCommand {
+@CommandMethod("ra|RaceAssist setting")
+class SettingPlaceIdCommand {
 
-    @CommandPermission("raceassist.commands.bet.unit")
-    @CommandMethod("unit <operateRaceId> <unit>")
-    @CommandDescription("最小の賭け単位を設定します")
-    suspend fun setUnit(sender: CommandSender,
+    @CommandPermission("raceassist.commands.setting.placeId")
+    @CommandMethod("placeId <operateRaceId> <placeId>")
+    suspend fun setPlaceId(sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "unit") @Range(min = "1", max = "100000") unit: Int) {
-        val locale = sender.locale()
+        @Argument(value = "placeId", suggestions = "placeId") placeId: String) {
         if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        BetSettingData.setBetUnit(raceId, unit)
-        sender.sendMessage(Lang.getComponent("change-bet-unit-message", locale, raceId, unit))
+        RaceSettingData.setPlaceId(raceId, placeId)
+        sender.sendRichMessage("$raceId の placeId を $placeId に設定しました。")
     }
+
 }

@@ -23,6 +23,7 @@ import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.*
+import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
@@ -30,8 +31,6 @@ import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.*
-import kotlinx.datetime.*
-import kotlinx.datetime.TimeZone
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -39,7 +38,6 @@ import net.kyori.adventure.title.Title
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.apache.commons.lang.RandomStringUtils
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -52,14 +50,15 @@ import java.awt.Polygon
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.ZonedDateTime
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.math.*
 
-class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: String?) {
+class RaceJudgement(_raceId: String, _executor: CommandSender) {
 
     private val raceId = _raceId
-    private val raceUniqueId = _raceUniqueId ?: RandomStringUtils.randomAlphanumeric(20)
+    private lateinit var placeId: String
     private val executor = _executor
     private val locale = executor.locale()
     private lateinit var replacement: HashMap<UUID, String>
@@ -104,7 +103,8 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
     private var beforeTime = 0L
 
     suspend fun setting(): Boolean {
-        if (PlaceSettingData.getInsidePolygon(raceId).npoints == 0 || PlaceSettingData.getOutsidePolygon(raceId).npoints == 0) {
+        placeId = RaceSettingData.getPlaceId(raceId)
+        if (PlaceSettingData.getInsidePolygon(placeId).npoints == 0 || PlaceSettingData.getOutsidePolygon(placeId).npoints == 0) {
             executor.sendMessage(Lang.getComponent("no-exist-race", locale))
             return false
         }
@@ -122,27 +122,27 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
             return false
         }
 
-        centralXPoint = PlaceSettingData.getCentralXPoint(raceId) ?: run {
+        centralXPoint = PlaceSettingData.getCentralXPoint(placeId) ?: run {
             executor.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             return false
         }
 
-        centralYPoint = PlaceSettingData.getCentralYPoint(raceId) ?: run {
+        centralYPoint = PlaceSettingData.getCentralYPoint(placeId) ?: run {
             executor.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             return false
         }
 
-        goalDegree = PlaceSettingData.getGoalDegree(raceId)
+        goalDegree = PlaceSettingData.getGoalDegree(placeId)
 
         jockeyCount = jockeys.size
         threshold = Config.config.threshold
-        lap = PlaceSettingData.getLap(raceId)
-        reverse = PlaceSettingData.getReverse(raceId)
+        lap = RaceSettingData.getLap(raceId)
+        reverse = PlaceSettingData.getReverse(placeId)
         innerCircumference = getInnerCircumference(insidePolygon)
 
 
-        insidePolygon = PlaceSettingData.getInsidePolygon(raceId)
-        outsidePolygon = PlaceSettingData.getOutsidePolygon(raceId)
+        insidePolygon = PlaceSettingData.getInsidePolygon(placeId)
+        outsidePolygon = PlaceSettingData.getOutsidePolygon(placeId)
 
         limit = Config.config.raceLimitMilliSecond
 
@@ -214,11 +214,10 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
 
         raceResultData = RaceResultData("1.0",
             raceId,
-            raceUniqueId,
             senderName,
             horses,
-            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
             false,
             hashMapOf(),
             lap,
@@ -244,7 +243,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
         withContext(Dispatchers.IO) {
             val resultFolder = RaceAssist.plugin.dataFolder.resolve("result")
             resultFolder.mkdirs()
-            val resultFile = resultFolder.resolve("${raceResultData.raceUniqueId}.json")
+            val resultFile = resultFolder.resolve("${raceResultData.raceId}.json")
             resultFile.writeText(json.encodeToString(raceResultData))
             sendResultWebHook(raceResultData)
         }
@@ -253,11 +252,16 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
     private fun sendResultWebHook(raceResultData: RaceResultData) {
         val json = json.encodeToString(raceResultData)
         val body: RequestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
-        val client = OkHttpClient()
         Config.config.resultWebhook.forEach {
+            var editUrl = it.url
+            if (editUrl.last() != '/') {
+                editUrl += "/"
+            }
+            editUrl += "v1/result/push/"
+
             val request: Request =
-                Request.Builder().url(it.url + raceResultData.raceUniqueId).header("Authorization", Credentials.basic(it.name, it.password))
-                    .post(body).build()
+                Request.Builder().url(editUrl + raceResultData.raceId).header("Authorization", Credentials.basic(it.name, it.password)).post(body)
+                    .build()
             client.newCall(request).execute().body?.close()
         }
     }
@@ -510,7 +514,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender, _raceUniqueId: St
 
     suspend fun last() {
         //終了時の処理
-        raceResultData.finish = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        raceResultData.finish = ZonedDateTime.now()
         audiences.showTitleI18n("finish-race")
         delay(1000)
 

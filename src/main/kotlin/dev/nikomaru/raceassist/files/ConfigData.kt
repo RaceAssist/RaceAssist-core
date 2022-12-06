@@ -26,6 +26,7 @@ data class ConfigData(
     val delay: Long,
     val discordWebHook: DiscordWebHook,
     val spreadSheet: SpreadSheet,
+    val recordHorse: RecordHorse,
     val resultWebhook: ArrayList<ResultWebhook>,
     val webAPI: WebAPI?,
     val raceLimitMilliSecond: Long,
@@ -34,6 +35,9 @@ data class ConfigData(
 
 @Serializable
 data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
+
+@Serializable
+data class RecordHorse(val minSpeed: Double, val minJump: Double)
 
 @Serializable
 data class ResultWebhook(val url: String, val name: String, val password: String)

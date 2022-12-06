@@ -41,26 +41,23 @@ object BetSettingData {
     }
 
     suspend fun setAvailable(raceId: String, available: Boolean) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.bet.available = available
-        data.save(raceId)
+        val bet = getRaceConfig(raceId).bet.copy(available = available)
+        getRaceConfig(raceId).copy(bet = bet).save()
     }
 
     suspend fun setReturnPercent(raceId: String, returnPercent: Int) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.bet.returnPercent = returnPercent
-        data.save(raceId)
+        val bet = getRaceConfig(raceId).bet.copy(returnPercent = returnPercent)
+        getRaceConfig(raceId).copy(bet = bet).save()
     }
 
     suspend fun setSpreadSheetId(raceId: String, spreadSheetId: String) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.bet.spreadSheetId = spreadSheetId
-        data.save(raceId)
+        val bet = getRaceConfig(raceId).bet.copy(spreadSheetId = spreadSheetId)
+        getRaceConfig(raceId).copy(bet = bet).save()
+
     }
 
     suspend fun setBetUnit(raceId: String, betUnit: Int) {
-        val data = getRaceConfig(raceId)
-        data.bet.betUnit = betUnit
-        data.save(raceId)
+        val bet = getRaceConfig(raceId).bet.copy(betUnit = betUnit)
+        getRaceConfig(raceId).copy(bet = bet).save()
     }
 }

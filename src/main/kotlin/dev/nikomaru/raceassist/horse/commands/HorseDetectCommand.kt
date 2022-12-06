@@ -15,11 +15,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.data.database
+package dev.nikomaru.raceassist.horse.commands
 
-import org.jetbrains.exposed.sql.Table
+import cloud.commandframework.annotations.CommandMethod
 
-object UserAuthData : Table() {
-    val uuid = varchar("UUID", 40)
-    val hashedPassword = varchar("PASSWORD", 256)
-}
+@CommandMethod("ra horse")
+class HorseDetectCommand

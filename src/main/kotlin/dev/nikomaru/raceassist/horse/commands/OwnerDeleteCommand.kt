@@ -26,7 +26,7 @@ import org.bukkit.entity.Player
 @CommandMethod("ra horse")
 class OwnerDeleteCommand {
     @CommandMethod("ownerDelete")
-    @CommandPermission("raceassist.command.ownerdelete")
+    @CommandPermission("raceassist.commands.horse.ownerdelete")
     fun removeOwner(sender: CommandSender) {
         if (sender !is Player) {
             sender.sendMessage("このコマンドはプレイヤーのみ実行できます")

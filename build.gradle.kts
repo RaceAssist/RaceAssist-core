@@ -1,4 +1,5 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java")
@@ -25,7 +26,7 @@ repositories {
     maven("https://repo.incendo.org/content/repositories/snapshots")
 }
 
-val cloudVersion = "1.6.2"
+val cloudVersion = "1.7.1"
 val exposedVersion = "0.38.2"
 val ktorVersion = "2.1.0"
 dependencies {
@@ -44,12 +45,7 @@ dependencies {
 
     implementation("com.github.stefvanschie.inventoryframework", "IF", "0.10.6")
 
-    implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-java-time", exposedVersion)
-
-    implementation("mysql:mysql-connector-java:8.0.30")
+    implementation("mysql", "mysql-connector-java", "8.0.30")
 
     implementation("io.ktor", "ktor-server-core", ktorVersion)
     implementation("io.ktor", "ktor-server-netty", ktorVersion)
@@ -61,15 +57,20 @@ dependencies {
 
     implementation("ch.qos.logback", "logback-classic", "1.2.11")
 
+    implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
+    implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
+    implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
+    implementation("org.jetbrains.exposed", "exposed-java-time", exposedVersion)
+
     implementation("org.jetbrains.kotlinx", "kotlinx-datetime", "0.4.0")
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")
-
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api", "2.2.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core", "2.2.0")
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
 
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.3.3")
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-hocon", "1.3.3")
+
+    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api", "2.7.0")
+    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core", "2.7.0")
 
     implementation("com.google.api-client", "google-api-client", "1.35.1")
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
@@ -80,6 +81,7 @@ dependencies {
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 
     compileOnly("xyz.jpenilla", "squaremap-api", "1.1.8")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 java {
@@ -117,46 +119,68 @@ bukkit {
 
     apiVersion = "1.19"
     depend = listOf("Vault")
-    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.2.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.2.0")
+    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0")
 
 
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            children = listOf("raceassist.commands.audience.join",
-                "raceassist.commands.audience.leave",
-                "raceassist.commands.audience.list",
-                "raceassist.commands.bet.can",
-                "raceassist.commands.bet.delete",
-                "raceassist.commands.bet.list",
-                "raceassist.commands.bet.open",
-                "raceassist.commands.bet.rate",
-                "raceassist.commands.bet.revert",
-                "raceassist.commands.bet.return",
-                "raceassist.commands.bet.remove",
-                "raceassist.commands.bet.sheet",
-                "raceassist.commands.place.reverse",
-                "raceassist.commands.place.central",
+            children = listOf("raceassist.commands.audience.leave",
                 "raceassist.commands.place.degree",
-                "raceassist.commands.place.lap",
-                "raceassist.commands.place.set",
-                "raceassist.commands.place.finish",
+                "raceassist.commands.bet.sheet",
+                "raceassist.commands.race.start",
                 "raceassist.commands.player.add",
+                "raceassist.commands.horse.ownerdelete",
+                "raceassist.commands.bet.can",
+                "raceassist.commands.setting.copy",
                 "raceassist.commands.player.remove",
+                "raceassist.commands.bet.list",
+                "raceassist.commands.bet.delete",
+                "raceassist.commands.setting.view",
+                "raceassist.commands.place.central",
+                "raceassist.commands.audience.list",
+                "raceassist.commands.setting.staff",
+                "raceassist.commands.setting.create",
+                "raceassist.commands.bet.open",
+                "raceassist.commands.place.reverse",
+                "raceassist.commands.bet.revert.jockey",
+                "raceassist.commands.reload",
+                "raceassist.commands.web",
+                "raceassist.commands.place.set",
                 "raceassist.commands.player.delete",
                 "raceassist.commands.player.list",
-                "raceassist.commands.race.start",
                 "raceassist.commands.race.debug",
-                "raceassist.commands.race.stop",
-                "raceassist.commands.setting.create",
+                "raceassist.commands.race.horse",
+                "raceassist.commands.bet.revert.row",
+                "raceassist.commands.place.finish",
+                "raceassist.commands.bet.return.jockey",
                 "raceassist.commands.setting.delete",
-                "raceassist.commands.setting.copy",
-                "raceassist.commands.setting.staff",
-                " raceassist.commands.web")
+                "raceassist.commands.race.stop",
+                "raceassist.commands.bet.unit",
+                "raceassist.commands.bet.revert.all",
+                "raceassist.commands.place.lap",
+                "raceassist.commands.bet.rate",
+                "raceassist.commands.player.replacement",
+                "raceassist.commands.audience.join",
+                "raceassist.command.help")
         }
         register("RaceAssist.user") {
             default = Default.TRUE
-            children = listOf("raceassist.commands.audience.join", "raceassist.commands.audience.leave", "raceassist.commands.bet.open")
+            children = listOf(
+                "raceassist.commands.audience.join",
+                "raceassist.commands.audience.leave",
+                "raceassist.commands.bet.open",
+                "raceassist.commands.web",
+                "raceassist.commands.horse.ownerdelete",
+            )
         }
     }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }

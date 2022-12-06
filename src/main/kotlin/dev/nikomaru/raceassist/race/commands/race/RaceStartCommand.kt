@@ -18,21 +18,20 @@
 package dev.nikomaru.raceassist.race.commands.race
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.race.RaceJudgement
-import dev.nikomaru.raceassist.utils.Utils
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist race")
 class RaceStartCommand {
 
     @CommandPermission("raceassist.commands.race.start")
-    @CommandMethod("start <raceId> [raceUniqueId]")
+    @CommandMethod("start <operateRaceId>")
     suspend fun start(
-        sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String,
-        @Argument(value = "raceUniqueId") raceUniqueId: String?,
+        sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
     ) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
-        val raceJudgement = RaceJudgement(raceId, sender, raceUniqueId)
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        val raceJudgement = RaceJudgement(raceId, sender)
         if (!raceJudgement.setting()) {
             return
         }

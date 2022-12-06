@@ -21,7 +21,7 @@ import cloud.commandframework.annotations.*
 import com.google.api.services.sheets.v4.model.*
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
@@ -29,14 +29,12 @@ import org.bukkit.command.CommandSender
 @CommandMethod("ra|RaceAssist bet")
 class BetSheetCommand {
     @CommandPermission("raceassist.commands.bet.sheet")
-    @CommandMethod("sheet <raceId> <sheet>")
+    @CommandMethod("sheet <operateRaceId> <sheet>")
     @CommandDescription("現在の賭け状況を閲覧できるシートを設定します")
     suspend fun sheet(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "sheet") sheetId: String) {
-        withContext(Dispatchers.IO) {
-            if (returnCanRaceSetting(raceId, sender)) return@withContext
-        }
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         BetSettingData.setSpreadSheetId(raceId, sheetId)
         createNewSheets(sheetId, raceId)
     }

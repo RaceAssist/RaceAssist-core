@@ -20,12 +20,9 @@ package dev.nikomaru.raceassist.race.commands.race
 import cloud.commandframework.annotations.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.displayLap
-import dev.nikomaru.raceassist.utils.Utils.getCentralPoint
-import dev.nikomaru.raceassist.utils.Utils.getPolygon
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import dev.nikomaru.raceassist.utils.Utils.judgeLap
 import dev.nikomaru.raceassist.utils.Utils.stop
@@ -46,43 +43,41 @@ import kotlin.math.roundToInt
 class RaceDebugCommand {
 
     @CommandPermission("raceassist.commands.race.debug")
-    @CommandMethod("debug <raceId>")
-    suspend fun debug(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("debug <operateRaceId>")
+    suspend fun debug(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
         val locale = sender.locale()
         plugin.launch {
-            if (Utils.returnCanRaceSetting(raceId, sender)) return@launch
-            if (!getCircuitExist(raceId)) {
+            if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return@launch
+            val placeId = RaceSettingData.getPlaceId(raceId)
+            if (!getCircuitExist(placeId)) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
 
-            val insidePolygon = getPolygon(raceId, true)
-            val outsidePolygon = getPolygon(raceId, false)
+            val insidePolygon = PlaceSettingData.getInsidePolygon(placeId)
+            val outsidePolygon = PlaceSettingData.getOutsidePolygon(placeId)
             if (insidePolygon.npoints < 3 || outsidePolygon.npoints < 3) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
             }
-            val reverse = PlaceSettingData.getReverse(raceId)
-            val lap: Int = PlaceSettingData.getLap(raceId)
+            val reverse = PlaceSettingData.getReverse(placeId)
+            val lap: Int = RaceSettingData.getLap(raceId)
             val threshold = 40
             val centralXPoint: Int =
-                getCentralPoint(raceId, true) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+                PlaceSettingData.getCentralXPoint(placeId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val centralYPoint: Int =
-                getCentralPoint(raceId, false) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
-            val goalDegree: Int = PlaceSettingData.getGoalDegree(raceId)
+                PlaceSettingData.getCentralYPoint(placeId) ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
+            val goalDegree: Int = PlaceSettingData.getGoalDegree(placeId)
             var beforeDegree = 0
             var currentLap = 0
             var counter = 0
             var passBorders = 0
             var totalDegree = 0
             val lengthCircle = calcurateLength(insidePolygon)
-
-
-
 
             for (timer in 0..4) {
                 val showTimer = async(Dispatchers.minecraft) {
@@ -166,8 +161,8 @@ class RaceDebugCommand {
         return total
     }
 
-    private suspend fun getCircuitExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        (PlaceSettingData.getInsidePolygon(raceId).npoints > 0 && PlaceSettingData.getInsidePolygon(raceId).npoints > 0)
+    private suspend fun getCircuitExist(placeId: String) = newSuspendedTransaction(Dispatchers.IO) {
+        (PlaceSettingData.getInsidePolygon(placeId).npoints > 0 && PlaceSettingData.getInsidePolygon(placeId).npoints > 0)
     }
 
 }

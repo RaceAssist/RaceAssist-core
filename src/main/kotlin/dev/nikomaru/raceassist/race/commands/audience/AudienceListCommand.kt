@@ -18,21 +18,21 @@
 package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
-import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist audience")
 class AudienceListCommand {
     @CommandPermission("raceassist.commands.audience.list")
-    @CommandMethod("list <raceId>")
-    suspend fun list(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("list <operateRaceId>")
+    suspend fun list(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         val locale = sender.locale()
 
-        if (returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         sender.sendMessage(Lang.getComponent("participants-list", locale))
         Utils.audience[raceId]?.forEach {
             sender.sendMessage(Bukkit.getOfflinePlayer(it).name.toString())

@@ -17,82 +17,131 @@
 
 package dev.nikomaru.raceassist.data.files
 
-import dev.nikomaru.raceassist.data.files.RaceUtils.getRaceConfig
+import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.data.files.RaceUtils.getPlaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.encodeToJsonElement
+import org.bukkit.OfflinePlayer
 import java.awt.Polygon
+import java.io.*
 
 object PlaceSettingData {
 
-    suspend fun getLap(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.lap
+    suspend fun existsPlace(placeId: String) = withContext(Dispatchers.IO) {
+        val file = RaceAssist.plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+        return@withContext file.exists()
     }
 
-    suspend fun getInsidePolygon(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.inside
+    suspend fun createPlace(placeId: String, owner: OfflinePlayer): Boolean = withContext(Dispatchers.IO) {
+        val file = File(File(RaceAssist.plugin.dataFolder, "PlaceData"), "$placeId.json")
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+        if (file.exists()) {
+            return@withContext false
+        }
+
+        val placeConfig = PlaceConfig(placeId, null, null, 0, false, Polygon(), Polygon(), owner, arrayListOf(owner))
+        val json = json.encodeToJsonElement(placeConfig)
+        val string = json.toString()
+
+        file.createNewFile()
+        val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
+        fw.write(string)
+        fw.close()
+
+        return@withContext true
     }
 
-    suspend fun getOutsidePolygon(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.outside
+    suspend fun copyPlace(placeId_1: String, placeId_2: String, owner: OfflinePlayer) = withContext(Dispatchers.IO) {
+        val beforeData = RaceUtils.getPlaceConfig(placeId_1)
+        val afterData = beforeData.copy(placeId = placeId_2, owner = owner, staff = arrayListOf(owner))
+        afterData.save()
     }
 
-    suspend fun getCentralXPoint(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.centralX
+    fun deletePlace(placeId: String) {
+        val file = File(File(RaceAssist.plugin.dataFolder, "PlaceData"), "$placeId.json")
+        file.delete()
     }
 
-    suspend fun getCentralYPoint(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.centralY
+    suspend fun getInsidePolygon(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).inside
     }
 
-    suspend fun getGoalDegree(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.goalDegree
+    suspend fun getOutsidePolygon(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).outside
     }
 
-    suspend fun getReverse(raceId: String) = withContext(Dispatchers.IO) {
-        getRaceConfig(raceId).place.reverse
+    suspend fun getCentralXPoint(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).centralX
     }
 
-    suspend fun setLap(raceId: String, lap: Int) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.lap = lap
-        data.save(raceId)
+    suspend fun getCentralYPoint(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).centralY
     }
 
-    suspend fun setInsidePolygon(raceId: String, polygon: Polygon) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.inside = polygon
-        data.save(raceId)
+    suspend fun getGoalDegree(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).goalDegree
     }
 
-    suspend fun setOutsidePolygon(raceId: String, polygon: Polygon) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.outside = polygon
-        data.save(raceId)
+    suspend fun getReverse(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).reverse
     }
 
-    suspend fun setCentralXPoint(raceId: String, x: Int) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.centralX = x
-        data.save(raceId)
+    suspend fun setInsidePolygon(placeId: String, polygon: Polygon) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(inside = polygon).save()
     }
 
-    suspend fun setCentralYPoint(raceId: String, y: Int) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.centralY = y
-        data.save(raceId)
+    suspend fun setOutsidePolygon(placeId: String, polygon: Polygon) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(outside = polygon).save()
     }
 
-    suspend fun setGoalDegree(raceId: String, degree: Int) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.goalDegree = degree
-        data.save(raceId)
+    suspend fun setCentralXPoint(placeId: String, x: Int) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(centralX = x).save()
     }
 
-    suspend fun setReverse(raceId: String, reverse: Boolean) = withContext(Dispatchers.IO) {
-        val data = getRaceConfig(raceId)
-        data.place.reverse = reverse
-        data.save(raceId)
+    suspend fun setCentralYPoint(placeId: String, y: Int) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(centralY = y).save()
+    }
+
+    suspend fun setGoalDegree(placeId: String, degree: Int) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(goalDegree = degree).save()
+    }
+
+    suspend fun setReverse(placeId: String, reverse: Boolean) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).copy(reverse = reverse).save()
+    }
+
+    suspend fun getStaffs(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).staff
+    }
+
+    suspend fun addStaff(placeId: String, player: OfflinePlayer) = withContext(Dispatchers.IO) {
+        if (existStaff(placeId, player)) return@withContext false
+        val data = getPlaceConfig(placeId)
+        data.staff.add(player)
+        data.save()
+        return@withContext true
+    }
+
+    suspend fun existStaff(placeId: String, player: OfflinePlayer) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).staff.contains(player)
+    }
+
+    suspend fun removeStaff(placeId: String, player: OfflinePlayer) = withContext(Dispatchers.IO) {
+        if (getOwner(placeId) == player || !existStaff(placeId, player)) {
+            return@withContext false //Owner can't be removed or staff can't be removed if they aren't in the list
+        }
+        val data = getPlaceConfig(placeId)
+        data.staff.remove(player)
+        data.save()
+        return@withContext true
+    }
+
+    suspend fun getOwner(placeId: String) = withContext(Dispatchers.IO) {
+        getPlaceConfig(placeId).owner
     }
 
 }

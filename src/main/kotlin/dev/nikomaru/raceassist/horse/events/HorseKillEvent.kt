@@ -15,11 +15,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.data.database
+package dev.nikomaru.raceassist.horse.events
 
-import org.jetbrains.exposed.sql.Table
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.updateKilledHorse
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Horse
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDeathEvent
 
-object UserAuthData : Table() {
-    val uuid = varchar("UUID", 40)
-    val hashedPassword = varchar("PASSWORD", 256)
+class HorseKillEvent : Listener {
+    @EventHandler
+    suspend fun horseKillEvent(event: EntityDeathEvent) {
+
+        val entity = event.entity
+        if (entity.type != EntityType.HORSE) {
+            return
+        }
+        val horse = entity as Horse
+
+        updateKilledHorse(horse)
+        return
+    }
 }

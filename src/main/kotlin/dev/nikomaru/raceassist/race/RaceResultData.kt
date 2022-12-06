@@ -19,19 +19,19 @@ package dev.nikomaru.raceassist.race
 
 import dev.nikomaru.raceassist.data.files.PolygonSerializer
 import dev.nikomaru.raceassist.data.files.UUIDSerializer
-import kotlinx.datetime.LocalDateTime
+import dev.nikomaru.raceassist.horse.data.KZonedDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.awt.Polygon
+import java.time.ZonedDateTime
 import java.util.*
 
 @Serializable
 data class RaceResultData(val ver: String = "1.0",
     val raceId: String,
-    val raceUniqueId: String,
     val administrator: String,
     val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID>,
-    val start: LocalDateTime,
-    var finish: LocalDateTime,
+    val start: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime,
+    var finish: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime,
     var suspend: Boolean,
     val result: HashMap<Int, @Serializable(with = UUIDSerializer::class) UUID>,
     val lap: Int,

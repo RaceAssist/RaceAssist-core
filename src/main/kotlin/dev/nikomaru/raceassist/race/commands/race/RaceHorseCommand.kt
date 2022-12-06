@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.race
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
@@ -34,9 +34,9 @@ import java.util.*
 @CommandPermission("raceassist.commands.race.horse")
 class RaceHorseCommand {
 
-    @CommandMethod("add <raceId>")
-    suspend fun addHorse(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+    @CommandMethod("add <operateRaceId>")
+    suspend fun addHorse(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
@@ -55,21 +55,21 @@ class RaceHorseCommand {
         sender.sendRichMessage("<color:green> $raceId に ${owner.name} の馬を追加しました。")
     }
 
-    @CommandMethod("remove <raceId> <playerName>")
+    @CommandMethod("remove <operateRaceId> <playerName>")
     suspend fun removeHorse(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         val locale = sender.locale()
         val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         RaceSettingData.removeHorse(raceId, player.uniqueId)
         sender.sendRichMessage("<color:green> $raceId から ${player.name} の馬を削除しました。")
     }
 
-    @CommandMethod("list <raceId>")
-    suspend fun listHorse(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("list <operateRaceId>")
+    suspend fun listHorse(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         val locale = sender.locale()
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         val horses = RaceSettingData.getHorse(raceId)
         if (horses.isEmpty()) {
             sender.sendRichMessage("<color:red> $raceId に馬が登録されていません。")
@@ -86,10 +86,10 @@ class RaceHorseCommand {
         }
     }
 
-    @CommandMethod("delete <raceId>")
-    suspend fun deleteHorse(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("delete <operateRaceId>")
+    suspend fun deleteHorse(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         val locale = sender.locale()
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         RaceSettingData.deleteHorse(raceId)
         sender.sendRichMessage("<color:green> $raceId の馬を全て削除しました。")
     }

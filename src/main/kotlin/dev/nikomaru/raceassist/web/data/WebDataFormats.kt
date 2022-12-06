@@ -36,18 +36,4 @@ data class WebRaceJockeyData(val jockey: @Serializable(with = UUIDSerializer::cl
     val odds: Double)
 
 @Serializable
-data class HorseData(val horse: @Serializable(with = UUIDSerializer::class) UUID,
-    val horseName: String?,
-    val owner: @Serializable(with = UUIDSerializer::class) UUID,
-    val breader: @Serializable(with = UUIDSerializer::class) UUID?,
-    val speed: Double,
-    val jump: Double,
-    val health: Double,
-    val color: String,
-    val style: String,
-    val mother: @Serializable(with = UUIDSerializer::class) UUID?,
-    val father: @Serializable(with = UUIDSerializer::class) UUID?,
-    val history: ArrayList<History>)
-
-@Serializable
-data class History(val raceId: String, val raceUniqueId: String?, val rank: Int)
+data class History(val raceId: String, val rank: Int)

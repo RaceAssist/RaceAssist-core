@@ -31,6 +31,7 @@ import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
+import dev.nikomaru.raceassist.horse.events.HorseKillEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.ReloadCommand
 import dev.nikomaru.raceassist.race.commands.audience.*
@@ -46,11 +47,14 @@ import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import org.apache.commons.lang.StringUtils
 import org.bukkit.command.CommandSender
-import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.*
 
 class RaceAssist : SuspendingJavaPlugin() {
@@ -96,7 +100,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     private fun settingDatabase() {
         if (Config.config.mySQL != null) {
             Class.forName("com.mysql.cj.jdbc.Driver")
-            org.jetbrains.exposed.sql.Database.connect(url = "jdbc:mysql://${Config.config.mySQL!!.url}",
+            Database.connect(url = "jdbc:mysql://${Config.config.mySQL!!.url}",
                 driver = "com.mysql.cj.jdbc.Driver",
                 user = Config.config.mySQL!!.username,
                 password = Config.config.mySQL!!.password)
@@ -105,8 +109,7 @@ class RaceAssist : SuspendingJavaPlugin() {
                 SchemaUtils.create(BetList, UserAuthData)
             }
         } else {
-            org.jetbrains.exposed.sql.Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db",
-                driver = "org.sqlite.JDBC")
+            Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
 
             transaction {
                 SchemaUtils.create(BetList)
@@ -127,7 +130,7 @@ class RaceAssist : SuspendingJavaPlugin() {
             java.util.function.Function.identity())
 
 
-        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+        if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions()
         }
 
@@ -143,11 +146,12 @@ class RaceAssist : SuspendingJavaPlugin() {
             parse(AudienceListCommand())
 
             parse(PlaceCentralCommand())
+            parse(PlaceCreateCommand())
             parse(PlaceDegreeCommand())
             parse(PlaceFinishCommand())
-            parse(PlaceLapCommand())
             parse(PlaceReverseCommand())
             parse(PlaceSetCommand())
+            parse(PlaceStaffCommand())
 
             parse(PlayerAddCommand())
             parse(PlayerDeleteCommand())
@@ -170,9 +174,12 @@ class RaceAssist : SuspendingJavaPlugin() {
             parse(BetPayCommand())
             parse(BetUnitCommand())
 
+            parse(SettingCopyCommand())
             parse(SettingCreateCommand())
             parse(SettingDeleteCommand())
-            parse(SettingCopyCommand())
+            parse(SettingLapCommand())
+            parse(SettingPlaceIdCommand())
+            parse(SettingReplacemcntCommand())
             parse(SettingStaffCommand())
             parse(SettingViewCommand())
 
@@ -188,6 +195,29 @@ class RaceAssist : SuspendingJavaPlugin() {
             }
         }
 
+        val debug = false
+        if (debug) {
+            val commandFile = File("D:\\Desktop\\commands.txt")
+            val commandList = mutableListOf<String>()
+            val permissionList = hashSetOf<String>()
+            commandManager.commands.stream().forEach { command ->
+                var string = ""
+                command.arguments.forEach {
+                    val argment = when (it::class.java.simpleName) {
+                        "CommandArgument" -> "<${it.name}>"
+                        else -> it.name
+                    }
+                    string += "$argment "
+                }
+                string = StringUtils.removeEnd(string, " ")
+                commandList.add("` $string ` <br>")
+                permissionList.add("\"${command.commandPermission}\"")
+                commandList.add("permission: ` ${command.commandPermission} ` <br>")
+                commandList.add("")
+            }
+            println(permissionList)
+            Files.write(commandFile.toPath(), commandList, StandardCharsets.UTF_8)
+        }
     }
 
     private fun registerEvents() {
@@ -196,6 +226,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         server.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), this)
         server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
         server.pluginManager.registerSuspendingEvents(HorseBreedEvent(), this)
+        server.pluginManager.registerSuspendingEvents(HorseKillEvent(), this)
     }
 
     companion object {

@@ -42,7 +42,8 @@ object Config {
 
         val spreadSheet = SpreadSheet(8888, arrayListOf())
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf())
-        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet, arrayListOf(), null, 600000, null)
+        val recordHorse = RecordHorse(13.5, 3.8)
+        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet, recordHorse, arrayListOf(), null, 600000, null)
 
         val string = json.encodeToString(configData)
 

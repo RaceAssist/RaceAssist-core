@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -30,11 +30,11 @@ import org.bukkit.command.CommandSender
 class PlayerAddCommand {
 
     @CommandPermission("raceassist.commands.player.add")
-    @CommandMethod("add <raceId> <playerName>")
+    @CommandMethod("add <operateRaceId> <playerName>")
     suspend fun addPlayer(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
 
         val locale = sender.locale()
 
