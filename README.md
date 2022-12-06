@@ -4,6 +4,10 @@
 [![Gradle Build Action](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml/badge.svg?branch=master)](https://github.com/Nlkomaru/RaceAssist-core/actions/workflows/build_and_deploy.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+## ver2.0 goals
+
+[project](https://github.com/Nlkomaru/RaceAssist-core/projects/1)
+
 
 ## Wiki
 
