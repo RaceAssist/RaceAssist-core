@@ -19,20 +19,20 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")
 class BetCanCommand {
     @CommandPermission("raceassist.commands.bet.can")
-    @CommandMethod("can <raceId> <type>")
+    @CommandMethod("can <operateRaceId> <type>")
     @CommandDescription("そのレースに対しての賭けることが可能か設定します")
     suspend fun setCanBet(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "type", suggestions = "betType") type: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         if (type == "on") {
             setCanBet(raceId, sender)
         } else if (type == "off") {

@@ -15,28 +15,35 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 
-@CommandMethod("ra|RaceAssist bet")
-class BetUnitCommand {
-
-    @CommandPermission("raceassist.commands.bet.unit")
-    @CommandMethod("unit <operateRaceId> <unit>")
-    @CommandDescription("最小の賭け単位を設定します")
-    suspend fun setUnit(sender: CommandSender,
+@CommandMethod("ra|RaceAssist setting")
+class SettingLapCommand {
+    @CommandPermission("raceassist.commands.setting.lap")
+    @CommandMethod("lap <operateRaceId> <lap>")
+    suspend fun setLap(sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "unit") @Range(min = "1", max = "100000") unit: Int) {
-        val locale = sender.locale()
+        @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
+        if (sender !is Player) {
+            sender.sendMessage("Only the player can do this.")
+            return
+        }
+
         if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        BetSettingData.setBetUnit(raceId, unit)
-        sender.sendMessage(Lang.getComponent("change-bet-unit-message", locale, raceId, unit))
+
+        if (lap < 1) {
+            sender.sendMessage(Lang.getComponent("to-need-enter-over-1", sender.locale()))
+            return
+        }
+        RaceSettingData.setLap(raceId, lap)
+        sender.sendMessage(Lang.getComponent("to-set-lap", sender.locale()))
+
     }
 }

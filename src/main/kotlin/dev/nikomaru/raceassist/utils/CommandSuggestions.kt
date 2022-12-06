@@ -20,6 +20,8 @@ package dev.nikomaru.raceassist.utils
 import cloud.commandframework.annotations.suggestions.Suggestions
 import cloud.commandframework.context.CommandContext
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.data.files.RaceUtils
+import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import java.io.File
@@ -44,6 +46,49 @@ open class CommandSuggestions {
         return list
     }
 
+    @Suggestions("placeId")
+    fun suggestPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = ArrayList<String>()
+        File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+            list.add(it.nameWithoutExtension)
+        }
+        return list
+    }
+
+    @Suggestions("operateRaceId")
+    fun suggestOperateRaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = runBlocking {
+            val raceIds = ArrayList<String>()
+            File(RaceAssist.plugin.dataFolder, "RaceData").listFiles()?.forEach {
+                val raceId = it.nameWithoutExtension
+                if (RaceUtils.hasRaceControlPermission(raceId, sender.sender)) {
+                    raceIds.add(raceId)
+                }
+            }
+            raceIds
+        }
+
+        return list
+    }
+
+    @Suggestions("operatePlaceId")
+    fun suggestOperatePlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+
+        val list = runBlocking {
+            val placeIds = ArrayList<String>()
+            File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+                val placeId = it.nameWithoutExtension
+                if (RaceUtils.hasPlaceControlPermission(placeId, sender.sender)) {
+                    placeIds.add(placeId)
+                }
+            }
+            placeIds
+        }
+
+
+        return list
+    }
+
     @Suggestions("placeType")
     fun suggestPlaceType(sender: CommandContext<CommandSender>, input: String?): List<String> {
         return listOf("in", "out")
@@ -55,3 +100,5 @@ open class CommandSuggestions {
     }
 
 }
+
+

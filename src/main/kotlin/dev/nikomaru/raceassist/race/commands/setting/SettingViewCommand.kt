@@ -27,22 +27,27 @@ import java.util.*
 @CommandMethod("ra|RaceAssist setting")
 class SettingViewCommand {
 
-    @CommandMethod("view <raceId>")
+    @CommandMethod("view <operateRaceId>")
     @CommandPermission("raceassist.commands.setting.view")
-    suspend fun view(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun view(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
         if (!RaceSettingData.existsRace(raceId)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         val raceData = RaceUtils.getRaceConfig(raceId)
+        val placeData = RaceUtils.getPlaceConfig(raceId)
         sender.sendMessage("raceId = ${raceData.raceId}")
         sender.sendMessage("raceName = ${raceData.raceName}")
         sender.sendMessage("owner = ${raceData.owner.name}")
         sender.sendMessage("staff = ${raceData.staff.joinToString { it.name.toString() }}")
         sender.sendMessage("jockeys = ${raceData.jockeys.joinToString { it.name.toString() }}")
         sender.sendMessage("replacement = ${raceData.replacement.map { it.key.toName() to it.value }.toMap()}")
-        sender.sendMessage("x = ${raceData.place.centralX}")
-        sender.sendMessage("y = ${raceData.place.centralY}")
-        sender.sendMessage("lap = ${raceData.place.lap}")
-        sender.sendMessage("reverce = ${raceData.place.reverse}")
-        sender.sendMessage("goalDegree = ${raceData.place.goalDegree}")
+        sender.sendMessage("lap = ${raceData.lap}")
+        sender.sendMessage("-----place-----")
+        sender.sendMessage("placeId = ${raceData.placeId}")
+        sender.sendMessage("x = ${placeData.centralX}")
+        sender.sendMessage("y = ${placeData.centralY}")
+        sender.sendMessage("reverce = ${placeData.reverse}")
+        sender.sendMessage("goalDegree = ${placeData.goalDegree}")
+        sender.sendMessage("-----bet-----")
         sender.sendMessage("bet-avaiable = ${raceData.bet.available}")
         sender.sendMessage("bet-returnPercent = ${raceData.bet.returnPercent}")
         sender.sendMessage("bet-spreadSheetId = ${raceData.bet.spreadSheetId}")

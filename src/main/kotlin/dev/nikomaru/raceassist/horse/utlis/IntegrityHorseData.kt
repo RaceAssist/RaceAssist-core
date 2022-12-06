@@ -15,13 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.horse.utlis
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+object IntegrityHorseData {
+    // listを取得し、horseDataを追加、削除する
+    fun getIntegrityHorseData() {
+    }
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
+    // Load horse data and subsequently confirm its existence.
+    suspend fun confirmHorseData() {
 
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+    }
+}

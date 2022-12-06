@@ -26,14 +26,14 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")
-class BetReturnCommand {
+class BetPayCommand {
 
     @CommandPermission("raceassist.commands.bet.return.jockey")
-    @CommandMethod("return <raceId> <playerName>")
+    @CommandMethod("pay <operateRaceId> <playerName>")
     @CommandDescription("払い戻し用のコマンド")
     @Confirmation
     suspend fun returnJockey(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
         val locale = sender.locale()
         val jockey = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
@@ -42,7 +42,7 @@ class BetReturnCommand {
             return
         }
         if (!BetUtils.playerCanPay(raceId, BetUtils.getBetSum(raceId), sender)) return
-        BetUtils.returnBet(jockey, raceId, sender, locale)
+        BetUtils.payDividend(jockey, raceId, sender, locale)
         sender.sendMessage(Lang.getComponent("finish-pay", locale))
     }
 }

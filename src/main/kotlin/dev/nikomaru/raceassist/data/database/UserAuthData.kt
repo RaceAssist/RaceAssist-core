@@ -15,13 +15,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.data.database
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import org.jetbrains.exposed.sql.Table
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
-
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+object UserAuthData : Table() {
+    val uuid = varchar("UUID", 40)
+    val hashedPassword = varchar("PASSWORD", 256)
+}

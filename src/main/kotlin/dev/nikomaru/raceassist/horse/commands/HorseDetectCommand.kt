@@ -15,13 +15,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.horse.commands
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import cloud.commandframework.annotations.CommandMethod
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
-
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+@CommandMethod("ra horse")
+class HorseDetectCommand

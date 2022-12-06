@@ -16,24 +16,22 @@
  */
 package dev.nikomaru.raceassist.files
 
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigRenderOptions
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.hocon.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
 import java.io.File
 
 object Config {
     lateinit var config: ConfigData
-    const val version: String = "1.0.0"
+    const val version: String = "2.0.0"
 
     @ExperimentalSerializationApi
     fun load() {
-        val file = plugin.dataFolder.resolve("config.conf")
+        val file = plugin.dataFolder.resolve("config.json")
 
         createConfig(file)
 
-        config = hocon.decodeFromConfig(ConfigFactory.parseFile(file))
+        config = json.decodeFromString(file.readText())
     }
 
     @ExperimentalSerializationApi
@@ -44,16 +42,16 @@ object Config {
 
         val spreadSheet = SpreadSheet(8888, arrayListOf())
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf())
-        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet, arrayListOf(), 600)
+        val recordHorse = RecordHorse(13.5, 3.8)
+        val configData = ConfigData(version, 40, 200, discordWebHook, spreadSheet, recordHorse, arrayListOf(), null, 600000, null)
 
-        val renderOptions = ConfigRenderOptions.defaults().setOriginComments(false).setComments(false).setFormatted(true).setJson(false)
-        val string = hocon.encodeToConfig(configData).root().render(renderOptions)
+        val string = json.encodeToString(configData)
 
         if (!file.exists()) {
             file.createNewFile()
             file.writeText(string)
         } else {
-            val verNode = hocon.decodeFromConfig<ConfigData>(ConfigFactory.parseFile(file)).version
+            val verNode = json.decodeFromString<ConfigData>(file.readText()).version
             if (verNode != version) {
                 file.writeText(string)
             }
@@ -63,6 +61,9 @@ object Config {
 }
 
 @ExperimentalSerializationApi
-private val hocon = Hocon
+private val json = Json {
+    isLenient = true
+    prettyPrint = true
+}
 
 

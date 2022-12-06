@@ -18,33 +18,25 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import cloud.commandframework.annotations.specifier.Range
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
-class PlaceLapCommand {
-    @CommandPermission("raceassist.commands.place.lap")
-    @CommandMethod("lap <raceId> <lap>")
-    suspend fun setLap(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
-        @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
+class PlaceCreateCommand {
+
+    @CommandPermission("raceassist.commands.place.reverse")
+    @CommandMethod("create <placeId>")
+    suspend fun reverse(sender: CommandSender, @Argument(value = "placeId") @Regex(value = "[^_]+_\\d+$") placeId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        PlaceSettingData.createPlace(placeId, sender)
 
-        if (lap < 1) {
-            sender.sendMessage(Lang.getComponent("to-need-enter-over-1", sender.locale()))
-            return
-        }
-        PlaceSettingData.setLap(raceId, lap)
-        sender.sendMessage(Lang.getComponent("to-set-lap", sender.locale()))
+        sender.sendMessage(Lang.getComponent("to-create-new-placeId", sender.locale()))
 
     }
 }

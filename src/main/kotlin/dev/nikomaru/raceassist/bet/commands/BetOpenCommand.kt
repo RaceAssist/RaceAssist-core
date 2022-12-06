@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -47,7 +48,7 @@ class BetOpenCommand {
             return
         }
         BetUtils.removeTempBetData(sender)
-        withContext(minecraft) {
+        withContext(Dispatchers.minecraft) {
             sender.openInventory(BetChestGui().getGUI(sender, raceId))
         }
         BetUtils.initializeTempBetData(raceId, sender)

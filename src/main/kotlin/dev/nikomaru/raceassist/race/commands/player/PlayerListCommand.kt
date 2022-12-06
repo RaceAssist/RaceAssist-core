@@ -19,17 +19,17 @@ package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.Utils
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist player")
 class PlayerListCommand {
 
     @CommandPermission("raceassist.commands.player.list")
-    @CommandMethod("list <raceId>")
-    suspend fun displayPlayerList(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("list <operateRaceId>")
+    suspend fun displayPlayerList(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
 
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         if (RaceSettingData.getJockeys(raceId).isEmpty()) {
             sender.sendMessage("<color:red>プレイヤーはいません")
         }

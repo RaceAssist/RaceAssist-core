@@ -18,32 +18,28 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Utils.getInsideRaceExist
-import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceSetCommand {
     @CommandPermission("raceassist.commands.place.set")
-    @CommandMethod("set <raceId> <type>")
+    @CommandMethod("set <operatePlaceId> <type>")
     suspend fun set(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String,
         @Argument(value = "type", suggestions = "placeType") type: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (!RaceSettingData.existsRace(raceId)) {
-            sender.sendMessage(Lang.getComponent("no-exist-race", sender.locale()))
-            return
-        } else if (returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasPlaceControlPermission(placeId, sender)) return
 
         if (canSetOutsideCircuit[sender.uniqueId] != null || canSetInsideCircuit[sender.uniqueId] != null) {
             sender.sendMessage(Lang.getComponent("already-setting-mode", sender.locale()))
@@ -53,14 +49,14 @@ class PlaceSetCommand {
             canSetInsideCircuit[sender.uniqueId] = true
             sender.sendMessage(Lang.getComponent("to-be-inside-set-mode", sender.locale()))
         } else if (type == "out") {
-            if (!getInsideRaceExist(raceId)) {
+            if (!getInsideRaceExist(placeId)) {
                 sender.sendMessage(Lang.getComponent("no-inside-course-set", sender.locale()))
                 return
             }
             canSetOutsideCircuit[sender.uniqueId] = true
             sender.sendMessage(Lang.getComponent("to-be-outside-set-mode", sender.locale()))
         }
-        circuitRaceId[sender.uniqueId] = raceId
+        circuitRaceId[sender.uniqueId] = placeId
         sender.sendMessage(Lang.getComponent("to-click-left-start-right-finish", sender.locale()))
         sender.sendMessage(Lang.getComponent("to-enter-finish-message", sender.locale()))
 

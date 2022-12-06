@@ -15,13 +15,25 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.coroutines
+package dev.nikomaru.raceassist.web.data
 
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import dev.nikomaru.raceassist.data.files.UUIDSerializer
+import kotlinx.serialization.Serializable
+import java.util.*
 
-val Dispatchers.async: CoroutineContext
-    get() = DispatcherContainer.async
+@Serializable
+data class WebBetDatas(val list: WebBetData, val betUnit: Int)
 
-val Dispatchers.minecraft: CoroutineContext
-    get() = DispatcherContainer.sync
+@Serializable
+data class WebBetData(val jockey: @Serializable(with = UUIDSerializer::class) UUID, var betPerUnit: Int)
+
+@Serializable
+data class WebRaceJockeyDatas(val raceId: String, val betUnit: Int, val datas: ArrayList<WebRaceJockeyData>)
+
+@Serializable
+data class WebRaceJockeyData(val jockey: @Serializable(with = UUIDSerializer::class) UUID,
+    val horse: @Serializable(with = UUIDSerializer::class) UUID?,
+    val odds: Double)
+
+@Serializable
+data class History(val raceId: String, val rank: Int)

@@ -28,7 +28,7 @@ import org.bukkit.entity.Player
 class AudienceJoinCommand {
     @CommandPermission("raceassist.commands.audience.join")
     @CommandMethod("join <raceId>")
-    fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun join(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

@@ -18,6 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -26,8 +27,10 @@ import org.bukkit.entity.Player
 @CommandMethod("ra|RaceAssist setting")
 class SettingCreateCommand {
     @CommandPermission("raceassist.commands.setting.create")
-    @CommandMethod("create <raceId>")
-    suspend fun create(sender: CommandSender, @Argument(value = "raceId") @Regex(value = "[^_]+_\\d+$") raceId: String) {
+    @CommandMethod("create <raceId> <placeId>")
+    suspend fun create(sender: CommandSender,
+        @Argument(value = "raceId") @Regex(value = "[^_]+_\\d+$") raceId: String,
+        @Argument(value = "placeId", suggestions = "placeId") placeId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
@@ -36,7 +39,11 @@ class SettingCreateCommand {
             sender.sendMessage(Lang.getComponent("already-used-the-name-race", sender.locale()))
             return
         }
-        RaceSettingData.createRace(raceId, sender)
+        if (!PlaceSettingData.existsPlace(placeId)) {
+            sender.sendMessage(Lang.getComponent("not-exists-place", sender.locale()))
+            return
+        }
+        RaceSettingData.createRace(raceId, placeId, sender)
         sender.sendMessage(Lang.getComponent("to-create-race", sender.locale()))
 
     }

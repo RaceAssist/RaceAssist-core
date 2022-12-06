@@ -27,7 +27,7 @@ class ReloadCommand {
 
     @OptIn(ExperimentalSerializationApi::class)
     @CommandMethod("reload")
-    @CommandPermission("raceassist.command.reload")
+    @CommandPermission("raceassist.commands.reload")
     @CommandDescription("help command")
     fun reload(sender: CommandSender) {
         Config.load()

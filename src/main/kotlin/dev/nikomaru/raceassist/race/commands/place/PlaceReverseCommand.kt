@@ -19,23 +19,23 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils.hasRaceControlPermission
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils.returnCanRaceSetting
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandMethod("ra|RaceAssist place")
 class PlaceReverseCommand {
     @CommandPermission("raceassist.commands.place.reverse")
-    @CommandMethod("reverse <raceId>")
-    suspend fun reverse(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    @CommandMethod("reverse <operatePlaceId>")
+    suspend fun reverse(sender: CommandSender, @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        if (returnCanRaceSetting(raceId, sender)) return
+        if (!hasRaceControlPermission(placeId, sender)) return
 
-        PlaceSettingData.setReverse(raceId, !PlaceSettingData.getReverse(raceId))
+        PlaceSettingData.setReverse(placeId, !PlaceSettingData.getReverse(placeId))
 
         sender.sendMessage(Lang.getComponent("to-change-race-orientation", sender.locale()))
 

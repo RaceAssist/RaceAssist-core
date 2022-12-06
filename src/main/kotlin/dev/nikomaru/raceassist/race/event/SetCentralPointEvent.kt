@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.race.event
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetCentral
-import dev.nikomaru.raceassist.utils.Utils.centralRaceId
+import dev.nikomaru.raceassist.utils.Utils.centralPlaceId
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -36,8 +36,8 @@ class SetCentralPointEvent : Listener {
             return
         }
 
-        PlaceSettingData.setCentralXPoint(centralRaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockX ?: 0)
-        PlaceSettingData.setCentralYPoint(centralRaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockZ ?: 0)
+        PlaceSettingData.setCentralXPoint(centralPlaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockX ?: 0)
+        PlaceSettingData.setCentralYPoint(centralPlaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockZ ?: 0)
 
         event.player.sendMessage(Lang.getComponent("to-set-this-point-central", event.player.locale()))
         canSetCentral.remove(event.player.uniqueId)

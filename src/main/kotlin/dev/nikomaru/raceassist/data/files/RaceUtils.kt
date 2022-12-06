@@ -18,6 +18,8 @@
 package dev.nikomaru.raceassist.data.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.data.files.RaceSettingData.existsRace
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,13 +31,28 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.command.CommandSender
+import org.bukkit.command.ConsoleCommandSender
+import org.bukkit.entity.Player
 import java.awt.Polygon
 import java.util.*
 
 object RaceUtils {
 
-    suspend fun RaceConfig.save(raceId: String) {
+    suspend fun RaceConfig.save() {
+        val raceId = this.raceId
         val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
+        val json = json.encodeToJsonElement(this)
+        val string = json.toString()
+        withContext(Dispatchers.IO) {
+            file.createNewFile()
+            file.writeText(string)
+        }
+    }
+
+    suspend fun PlaceConfig.save() {
+        val placeId = this.placeId
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
         withContext(Dispatchers.IO) {
@@ -49,29 +66,73 @@ object RaceUtils {
         return@withContext json.decodeFromString<RaceConfig>(file.readText())
     }
 
+    suspend fun getPlaceConfig(placeId: String) = withContext(Dispatchers.IO) {
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+        return@withContext json.decodeFromString<PlaceConfig>(file.readText())
+    }
+
+    suspend fun hasPlaceControlPermission(placeId: String, player: CommandSender) = withContext(Dispatchers.IO) {
+        if (player is ConsoleCommandSender) {
+            return@withContext true
+        }
+        (player as Player)
+        if (!PlaceSettingData.existsPlace(placeId)) {
+            player.sendMessage(Lang.getComponent("no-exist-this-placeid-race", player.locale(), placeId))
+            return@withContext false
+        }
+        if (!PlaceSettingData.existStaff(placeId, player)) {
+            player.sendMessage(Lang.getComponent("only-place-creator-can-setting", player.locale()))
+            return@withContext false
+        }
+        return@withContext true
+    }
+
+    suspend fun hasRaceControlPermission(raceId: String, player: CommandSender) = withContext(Dispatchers.IO) {
+        if (player is ConsoleCommandSender) {
+            return@withContext true
+        }
+        (player as Player)
+        if (!existsRace(raceId)) {
+            player.sendMessage(Lang.getComponent("no-exist-this-raceid-race", player.locale(), raceId))
+            return@withContext false
+        }
+        if (!RaceSettingData.existStaff(raceId, player)) {
+            player.sendMessage(Lang.getComponent("only-race-creator-can-setting", player.locale()))
+            return@withContext false
+        }
+        return@withContext true
+    }
+
 }
 
+//TODO 馬に関するデータを保存する
 @Serializable
-data class RaceConfig(var raceId: String,
-    var raceName: String,
-    var owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
-    var staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
-    var jockeys: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
-    val place: Place,
+data class RaceConfig(val raceId: String,
+    val raceName: String,
+    val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
+    val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+    val jockeys: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+    val lap: Int,
+    val placeId: String,
     val bet: Bet,
-    val replacement: HashMap<@Serializable(with = UUIDSerializer::class) UUID, String>)
+    val replacement: HashMap<@Serializable(with = UUIDSerializer::class) UUID, String>,
+    val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID>)
 
 @Serializable
-data class Place(var lap: Int,
-    var centralX: Int?,
-    var centralY: Int?,
-    var goalDegree: Int,
-    var reverse: Boolean,
-    var inside: @Serializable(with = PolygonSerializer::class) Polygon,
-    var outside: @Serializable(with = PolygonSerializer::class) Polygon)
+data class PlaceConfig(
+    val placeId: String,
+    val centralX: Int?,
+    val centralY: Int?,
+    val goalDegree: Int,
+    val reverse: Boolean,
+    val inside: @Serializable(with = PolygonSerializer::class) Polygon,
+    val outside: @Serializable(with = PolygonSerializer::class) Polygon,
+    val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
+    val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+)
 
 @Serializable
-data class Bet(var available: Boolean, var returnPercent: Int, var spreadSheetId: String?, var betUnit: Int)
+data class Bet(val available: Boolean, val returnPercent: Int, val spreadSheetId: String?, val betUnit: Int)
 
 // UUID <==> String
 object UUIDSerializer : KSerializer<UUID> {

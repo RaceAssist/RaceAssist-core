@@ -22,8 +22,8 @@ import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -40,26 +40,26 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 class BetRevertCommand {
 
     @CommandPermission("raceassist.commands.bet.revert.row")
-    @CommandMethod("row <raceId> <row>")
+    @CommandMethod("row <operateRaceId> <row>")
     @CommandDescription("そのレースの指定した番号の行のベットを返金します")
     @Confirmation
     suspend fun returnRow(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "row") row: Int) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         if (!BetUtils.playerCanPay(raceId, BetUtils.getRowBet(raceId, row), sender)) return
         returnRowBet(row, raceId, sender)
         sender.sendMessage(Lang.getComponent("bet-revert-complete-message", sender.locale()))
     }
 
     @CommandPermission("raceassist.commands.bet.revert.jockey")
-    @CommandMethod("player <raceId> <playerName>")
+    @CommandMethod("player <operateRaceId> <playerName>")
     @CommandDescription("そのレースに対して特定のプレイヤーのものを返金します")
     @Confirmation
     suspend fun returnPlayer(sender: CommandSender,
-        @Argument(value = "raceId", suggestions = "raceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
         @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         val jockey =
             Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", sender.locale()))
         if (!RaceSettingData.getJockeys(raceId).contains(jockey)) {
@@ -72,11 +72,11 @@ class BetRevertCommand {
     }
 
     @CommandPermission("raceassist.commands.bet.revert.all")
-    @CommandMethod("all <raceId>")
+    @CommandMethod("all <operateRaceId>")
     @CommandDescription("そのレースに対して賭けられたものをすべて返金します")
     @Confirmation
-    suspend fun returnAll(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
-        if (Utils.returnCanRaceSetting(raceId, sender)) return
+    suspend fun returnAll(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
         if (!BetUtils.playerCanPay(raceId, BetUtils.getBetSum(raceId), sender)) return
         revertAllBet(raceId, sender)
         sender.sendMessage(Lang.getComponent("bet-revert-complete-message", sender.locale()))
@@ -122,7 +122,7 @@ class BetRevertCommand {
         }
     }
 
-    private suspend fun transferMoney(sender: OfflinePlayer, receiver: OfflinePlayer, amount: Double) = withContext(minecraft) {
+    private suspend fun transferMoney(sender: OfflinePlayer, receiver: OfflinePlayer, amount: Double) = withContext(Dispatchers.minecraft) {
         val eco = VaultAPI.getEconomy()
         eco.withdrawPlayer(sender, amount)
         eco.depositPlayer(receiver, amount)
