@@ -78,8 +78,9 @@ object WebAPI {
     val audience = jwtConfig.audience
     val privateKey = jwtConfig.privateKey
     val keyId = jwtConfig.keyId
+    private lateinit var originalServer: NettyApplicationEngine
 
-    fun startServer() {
+    fun settingServer() {
         val keyStoreFile = RaceAssist.plugin.dataFolder.resolve("keystore.jks")
         val keystore = KeyStore.getInstance(keyStoreFile, Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray())
 
@@ -97,7 +98,15 @@ object WebAPI {
             module(Application::module)
         }
 
-        embeddedServer(Netty, environment).start(wait = true)
+        originalServer = embeddedServer(Netty, environment)
+    }
+
+    fun startServer() {
+        originalServer.start(wait = false)
+    }
+
+    fun stopServer() {
+        originalServer.stop(0, 0, TimeUnit.SECONDS)
     }
 
 }
