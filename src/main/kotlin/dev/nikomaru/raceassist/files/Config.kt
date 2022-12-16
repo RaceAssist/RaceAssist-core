@@ -34,6 +34,12 @@ object Config {
         config = json.decodeFromString(file.readText())
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
+    fun reload() {
+        load()
+        plugin.settingWebAPI()
+    }
+
     @ExperimentalSerializationApi
     private fun createConfig(file: File) {
         if (!file.parentFile.exists()) {

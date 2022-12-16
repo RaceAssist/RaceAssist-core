@@ -19,18 +19,16 @@ package dev.nikomaru.raceassist.race.commands
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.files.Config
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|raceassist")
 class ReloadCommand {
 
-    @OptIn(ExperimentalSerializationApi::class)
     @CommandMethod("reload")
     @CommandPermission("raceassist.commands.reload")
     @CommandDescription("help command")
     fun reload(sender: CommandSender) {
-        Config.load()
+        Config.reload()
         sender.sendMessage("Reloaded config")
     }
 

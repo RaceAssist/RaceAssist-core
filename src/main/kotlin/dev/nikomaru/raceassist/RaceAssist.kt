@@ -75,7 +75,7 @@ class RaceAssist : SuspendingJavaPlugin() {
         settingWebAPI()
     }
 
-    private fun settingWebAPI() {
+    fun settingWebAPI() {
         if (Config.config.webAPI != null) {
             if (Config.config.mySQL == null) {
                 plugin.logger.warning("MySQLが設定されていないため、WebAPIを起動できません。")
@@ -83,6 +83,7 @@ class RaceAssist : SuspendingJavaPlugin() {
             }
             launch {
                 async(Dispatchers.async) {
+                    WebAPI.settingServer()
                     WebAPI.startServer()
                 }
             }
@@ -120,6 +121,7 @@ class RaceAssist : SuspendingJavaPlugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
+        WebAPI.stopServer()
     }
 
     private fun setCommand() {
