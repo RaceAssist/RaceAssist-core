@@ -23,10 +23,10 @@ import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit

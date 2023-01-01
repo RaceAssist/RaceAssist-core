@@ -21,8 +21,8 @@ import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")

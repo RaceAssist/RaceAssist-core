@@ -19,11 +19,11 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
 import dev.nikomaru.raceassist.utils.Utils.getInsideRaceExist
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 

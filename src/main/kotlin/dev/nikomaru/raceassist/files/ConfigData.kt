@@ -34,7 +34,11 @@ data class ConfigData(
 )
 
 @Serializable
-data class DiscordWebHook(val result: ArrayList<String>, val betAll: ArrayList<String>)
+data class DiscordWebHook(val race: ArrayList<String>,
+    val bet: ArrayList<String>,
+    val place: ArrayList<String>,
+    val horse: ArrayList<String>,
+    val web: ArrayList<String>)
 
 @Serializable
 data class RecordHorse(val minSpeed: Double, val minJump: Double)
@@ -46,7 +50,10 @@ data class ResultWebhook(val url: String, val name: String, val password: String
 data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
 
 @Serializable
-data class WebAPI(val port: Int, val sslPort: Int, val sslSetting: SslSetting, val jwtConfig: JWTConfig?)
+data class WebAPI(val port: Int, val sslPort: Int, val sslSetting: SslSetting, val jwtConfig: JWTConfig?, val recordUrl: ArrayList<RecordLog>)
+
+@Serializable
+data class RecordLog(val url: String, val name: String, val password: String)
 
 @Serializable
 data class SslSetting(val keyAlias: String, val keyStorePassword: String, val privateKeyPassword: String)

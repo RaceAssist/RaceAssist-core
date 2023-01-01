@@ -18,9 +18,9 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.awt.Polygon

@@ -21,7 +21,7 @@ import dev.nikomaru.raceassist.bet.BetUtils.getOdds
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor

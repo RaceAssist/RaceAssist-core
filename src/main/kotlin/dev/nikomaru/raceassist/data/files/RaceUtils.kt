@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.data.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.RaceSettingData.existsRace
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.toUUID
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.*

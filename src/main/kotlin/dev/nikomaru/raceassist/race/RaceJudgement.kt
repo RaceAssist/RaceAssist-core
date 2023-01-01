@@ -22,22 +22,22 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.utils.*
-import dev.nikomaru.raceassist.utils.Utils.client
+import dev.nikomaru.raceassist.utils.RaceAudience
+import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import dev.nikomaru.raceassist.utils.i18n.Lang
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -249,20 +249,22 @@ class RaceJudgement(_raceId: String, _executor: CommandSender) {
         }
     }
 
-    private fun sendResultWebHook(raceResultData: RaceResultData) {
-        val json = json.encodeToString(raceResultData)
-        val body: RequestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+    private suspend fun sendResultWebHook(raceResultData: RaceResultData) {
         Config.config.resultWebhook.forEach {
             var editUrl = it.url
             if (editUrl.last() != '/') {
                 editUrl += "/"
             }
-            editUrl += "v1/result/push/"
+            editUrl += "v1/result/push/${raceResultData.raceId}"
 
-            val request: Request =
-                Request.Builder().url(editUrl + raceResultData.raceId).header("Authorization", Credentials.basic(it.name, it.password)).post(body)
-                    .build()
-            client.newCall(request).execute().body?.close()
+            Utils.client.post(editUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(raceResultData)
+                headers {
+                    val token = Base64.getEncoder().encodeToString("${it.name}:${it.password}".toByteArray())
+                    append("Authorization", "Basic $token")
+                }
+            }
         }
     }
 
@@ -316,7 +318,7 @@ class RaceJudgement(_raceId: String, _executor: CommandSender) {
 
     private suspend fun sendDiscordResultWebHook(json: String) = withContext(Dispatchers.IO) {
 
-        Config.config.discordWebHook.result.forEach {
+        Config.config.discordWebHook.race.forEach {
             try {
                 val webHookUrl = URL(it)
                 val con: HttpsURLConnection = (webHookUrl.openConnection() as HttpsURLConnection)

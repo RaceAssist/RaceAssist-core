@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils
+package dev.nikomaru.raceassist.utils.i18n
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +69,10 @@ object Lang {
     fun getText(key: String, locale: Locale, vararg args: Any?): String {
         val lang = langList[locale.toString()] ?: langList["ja_JP"]
         return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
+    }
+
+    fun <T> sendData(data: T) {
+        // Do something
     }
 
 }

@@ -28,7 +28,7 @@ import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.BetList.rowNum
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer

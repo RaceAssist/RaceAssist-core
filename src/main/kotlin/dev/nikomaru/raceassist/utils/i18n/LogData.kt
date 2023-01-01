@@ -15,26 +15,19 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.horse.events
+package dev.nikomaru.raceassist.utils.i18n
 
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.updateKilledHorse
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Horse
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDeathEvent
+import java.time.ZonedDateTime
+import java.util.*
 
-class HorseKillEvent : Listener {
-    @EventHandler
-    suspend fun horseDeathEvent(event: EntityDeathEvent) {
+interface LogData {
 
-        val entity = event.entity
-        if (entity.type != EntityType.HORSE) {
-            return
-        }
-        val horse = entity as Horse
+    val type: LogDataType
+    val executor: UUID?
+    val date: ZonedDateTime
 
-        updateKilledHorse(horse)
-        return
-    }
+    fun <T : LogData> sendPlayerMessage(data: T)
+    suspend fun <T : LogData> sendDiscordWebhook(data: T)
+    suspend fun <T : LogData> sendWebRecordBody(data: T)
+    suspend fun <T : LogData> sendConsoleMessage(data: T)
 }

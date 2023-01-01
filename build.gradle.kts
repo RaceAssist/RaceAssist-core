@@ -28,7 +28,7 @@ repositories {
 
 val cloudVersion = "1.7.1"
 val exposedVersion = "0.38.2"
-val ktorVersion = "2.1.0"
+val ktorVersion = "2.1.1"
 dependencies {
     compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
 
@@ -54,6 +54,10 @@ dependencies {
     implementation("io.ktor", "ktor-server-auth", ktorVersion)
     implementation("io.ktor", "ktor-server-auth-jwt", ktorVersion)
     implementation("io.ktor", "ktor-network-tls-certificates", ktorVersion)
+    implementation("io.ktor", "ktor-client-core", ktorVersion)
+    implementation("io.ktor", "ktor-client-java", ktorVersion)
+    implementation("io.ktor", "ktor-client-logging", ktorVersion)
+    implementation("io.ktor", "ktor-client-content-negotiation", ktorVersion)
 
     implementation("ch.qos.logback", "logback-classic", "1.2.11")
 
@@ -75,8 +79,6 @@ dependencies {
     implementation("com.google.api-client", "google-api-client", "1.35.1")
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
     implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
-
-    implementation("com.squareup.okhttp3", "okhttp", "4.10.0")
 
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 
@@ -106,6 +108,9 @@ tasks {
     }
     runServer {
         minecraftVersion("1.19.2")
+    }
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
     }
 }
 

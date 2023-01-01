@@ -1,6 +1,6 @@
 /*
  *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
- *
+ *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
@@ -15,26 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.horse.events
+package dev.nikomaru.raceassist.utils.i18n
 
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.updateKilledHorse
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Horse
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDeathEvent
-
-class HorseKillEvent : Listener {
-    @EventHandler
-    suspend fun horseDeathEvent(event: EntityDeathEvent) {
-
-        val entity = event.entity
-        if (entity.type != EntityType.HORSE) {
-            return
-        }
-        val horse = entity as Horse
-
-        updateKilledHorse(horse)
-        return
-    }
+enum class LogDataType {
+    BET, PLACE, RACE, WEB, HORSE,
 }
+// プレイヤーに対してもメッセージを送る場合targetを使用しplayerについても記録したい場合明示的に分け同じものを格納
+// 時刻はZonedDateTimeを使用する

@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.race.commands.setting
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
 import dev.nikomaru.raceassist.data.files.*
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 

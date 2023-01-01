@@ -15,26 +15,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.horse.events
+package dev.nikomaru.raceassist.utils.i18n
 
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.updateKilledHorse
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Horse
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDeathEvent
-
-class HorseKillEvent : Listener {
-    @EventHandler
-    suspend fun horseDeathEvent(event: EntityDeathEvent) {
-
-        val entity = event.entity
-        if (entity.type != EntityType.HORSE) {
-            return
-        }
-        val horse = entity as Horse
-
-        updateKilledHorse(horse)
-        return
-    }
-}
+data class RecordLogData(val path: String, val data: LogData)

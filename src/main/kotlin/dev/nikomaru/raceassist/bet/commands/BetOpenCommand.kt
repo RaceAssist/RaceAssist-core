@@ -22,8 +22,8 @@ import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender

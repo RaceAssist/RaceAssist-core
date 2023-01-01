@@ -19,11 +19,18 @@ package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.coroutines.async
+import dev.nikomaru.raceassist.utils.i18n.Lang
+import io.ktor.client.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.kyori.adventure.title.Title.title
-import okhttp3.OkHttpClient
 import org.bukkit.*
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Horse
@@ -35,7 +42,6 @@ import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.*
-import java.util.concurrent.*
 import javax.imageio.ImageIO
 import kotlin.math.*
 
@@ -210,7 +216,20 @@ object Utils {
         return PlainTextComponentSerializer.plainText().serialize(this)
     }
 
-    val client =
-        OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).build()
+    val client = HttpClient(Java) {
+        install(Logging) {
+            logger = Logger.DEFAULT
+            level = LogLevel.INFO
+        }
+        install(ContentNegotiation) {
+            json(Json {
+                isLenient = true
+                prettyPrint = true
+            })
+        }
+        Charsets {
+            register(Charsets.UTF_8)
+        }
+    }
 
 }

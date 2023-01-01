@@ -41,8 +41,10 @@ import dev.nikomaru.raceassist.race.commands.race.*
 import dev.nikomaru.raceassist.race.commands.setting.*
 import dev.nikomaru.raceassist.race.event.*
 import dev.nikomaru.raceassist.utils.*
+import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
+import dev.nikomaru.raceassist.utils.i18n.Lang
 import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.*
@@ -122,6 +124,7 @@ class RaceAssist : SuspendingJavaPlugin() {
     override fun onDisable() {
         // Plugin shutdown logic
         WebAPI.stopServer()
+        client.close()
     }
 
     private fun setCommand() {

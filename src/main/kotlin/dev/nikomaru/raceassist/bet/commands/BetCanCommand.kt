@@ -20,8 +20,9 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.files.BetSettingData
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.utils.i18n.LogDataType
+import dev.nikomaru.raceassist.utils.i18n.bet.ChangeAvailableBetData
+import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist bet")
@@ -42,12 +43,18 @@ class BetCanCommand {
 
     private suspend fun setCanBet(raceId: String, sender: CommandSender) {
         BetSettingData.setAvailable(raceId, true)
-        sender.sendMessage(Lang.getComponent("can-bet-this-raceid", sender.locale(), raceId))
+        ChangeAvailableBetData(type = LogDataType.BET,
+            raceId = raceId,
+            executor = if (sender is OfflinePlayer) sender.uniqueId else null,
+            available = true)
     }
 
     private suspend fun setCannotBet(raceId: String, sender: CommandSender) {
         BetSettingData.setAvailable(raceId, false)
-        sender.sendMessage(Lang.getComponent("cannot-bet-this-raceid", sender.locale(), raceId))
+        ChangeAvailableBetData(type = LogDataType.BET,
+            raceId = raceId,
+            executor = if (sender is OfflinePlayer) sender.uniqueId else null,
+            available = false)
     }
 
 }
