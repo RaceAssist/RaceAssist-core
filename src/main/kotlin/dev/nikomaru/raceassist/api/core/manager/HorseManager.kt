@@ -15,31 +15,30 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.race.commands.player
+package dev.nikomaru.raceassist.api.core.manager
 
-import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
-import org.bukkit.command.CommandSender
+import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.horse.data.HorseData
+import dev.nikomaru.raceassist.utils.Utils.toUUID
+import kotlinx.serialization.decodeFromString
+import java.util.*
 
-@CommandMethod("ra|RaceAssist player")
-class PlayerListCommand {
+class HorseManager {
 
-    @CommandPermission("raceassist.commands.player.list")
-    @CommandMethod("list <operateRaceId>")
-    suspend fun displayPlayerList(
-        sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
-    ) {
-
-        val raceManager = RaceAssist.api.getRaceManager(raceId)
-        if (raceManager?.senderHasControlPermission(sender) != true) return
-        if (raceManager.getJockeys().isEmpty()) {
-            sender.sendMessage("<color:red>プレイヤーはいません")
+    fun recordHorses(): ArrayList<UUID> {
+        val horses = arrayListOf<UUID>()
+        RaceAssist.plugin.dataFolder.resolve("horse").listFiles()?.forEach {
+            horses.add(it.nameWithoutExtension.toUUID())
         }
+        return horses
+    }
 
-        raceManager.getJockeys().forEach {
-            sender.sendMessage(it.name.toString())
+    fun getHorseData(uuid: UUID): HorseData? {
+        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        if (!file.exists()) {
+            return null
         }
-
+        return json.decodeFromString<HorseData>(file.readText())
     }
 }

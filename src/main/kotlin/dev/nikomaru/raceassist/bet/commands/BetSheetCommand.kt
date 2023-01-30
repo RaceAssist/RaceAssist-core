@@ -19,9 +19,10 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import com.google.api.services.sheets.v4.model.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.utils.Utils.locale
+import dev.nikomaru.raceassist.utils.event.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.command.CommandSender
@@ -31,11 +32,18 @@ class BetSheetCommand {
     @CommandPermission("raceassist.commands.bet.sheet")
     @CommandMethod("sheet <operateRaceId> <sheet>")
     @CommandDescription("現在の賭け状況を閲覧できるシートを設定します")
-    suspend fun sheet(sender: CommandSender,
+    suspend fun sheet(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "sheet") sheetId: String) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        BetSettingData.setSpreadSheetId(raceId, sheetId)
+        @Argument(value = "sheet") sheetId: String
+    ) {
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
+        val betManager = RaceAssist.api.getBetManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        val owner = raceManager.getOwner()
+        betManager.setSpreadSheetId(sheetId)
         createNewSheets(sheetId, raceId)
     }
 

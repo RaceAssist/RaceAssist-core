@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Utils.canSetCentral
 import dev.nikomaru.raceassist.utils.Utils.centralPlaceId
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -29,13 +29,16 @@ import org.bukkit.entity.Player
 class PlaceCentralCommand {
     @CommandPermission("raceassist.commands.place.central")
     @CommandMethod("central <operatePlaceId>")
-    suspend fun central(sender: CommandSender, @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String) {
+    suspend fun central(
+        sender: CommandSender,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (!RaceUtils.hasPlaceControlPermission(placeId, sender)) return
+        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
         canSetCentral[sender.uniqueId] = true
         centralPlaceId[sender.uniqueId] = placeId
         sender.sendMessage(Lang.getComponent("to-set-central-point", sender.locale()))

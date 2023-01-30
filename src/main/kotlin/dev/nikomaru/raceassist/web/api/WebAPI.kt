@@ -23,7 +23,8 @@ import com.auth0.jwt.algorithms.Algorithm
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.UserAuthData
-import dev.nikomaru.raceassist.data.files.*
+import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.data.files.json
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getBirthDate
@@ -41,7 +42,7 @@ import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import dev.nikomaru.raceassist.web.data.WebRaceJockeyData
-import dev.nikomaru.raceassist.web.data.WebRaceJockeyDatas
+import dev.nikomaru.raceassist.web.data.WebRaceJockeyDataList
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -68,7 +69,7 @@ import java.security.interfaces.RSAPublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.time.ZonedDateTime
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.TimeUnit
 
 object WebAPI {
 
@@ -82,7 +83,8 @@ object WebAPI {
 
     fun settingServer() {
         val keyStoreFile = RaceAssist.plugin.dataFolder.resolve("keystore.jks")
-        val keystore = KeyStore.getInstance(keyStoreFile, Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray())
+        val keystore =
+            KeyStore.getInstance(keyStoreFile, Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray())
 
         val environment = applicationEngineEnvironment {
             connector {
@@ -115,7 +117,8 @@ private fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
-    val jwkProvider = JwkProviderBuilder(WebAPI.issuer).cached(10, 24, TimeUnit.HOURS).rateLimited(10, 1, TimeUnit.MINUTES).build()
+    val jwkProvider =
+        JwkProviderBuilder(WebAPI.issuer).cached(10, 24, TimeUnit.HOURS).rateLimited(10, 1, TimeUnit.MINUTES).build()
     install(Authentication) {
         jwt("auth-jwt") {
             realm = WebAPI.myRealm
@@ -123,8 +126,10 @@ private fun Application.module() {
                 acceptLeeway(3)
             }
             validate { credential ->
-                if (credential.payload.getClaim("username").asString() == credential.payload.getClaim("uuid").asString().toUUID()
-                        .toOfflinePlayer().name) {
+                if (credential.payload.getClaim("username").asString() == credential.payload.getClaim("uuid").asString()
+                        .toUUID()
+                        .toOfflinePlayer().name
+                ) {
                     JWTPrincipal(credential.payload)
                 } else {
                     null
@@ -184,7 +189,8 @@ private fun Application.module() {
                     call.respond(HttpStatusCode.Unauthorized, "Password is incorrect")
                 }
 
-                val token = JWT.create().withAudience(*(WebAPI.audience.toTypedArray())).withIssuer(WebAPI.issuer).withClaim("uuid", uuid.toString())
+                val token = JWT.create().withAudience(*(WebAPI.audience.toTypedArray())).withIssuer(WebAPI.issuer)
+                    .withClaim("uuid", uuid.toString())
                     .withClaim("username", username).withExpiresAt(Date(System.currentTimeMillis() + 30_000))
                     .sign(Algorithm.RSA256(publicKey as RSAPublicKey, privateKey as RSAPrivateKey))
                 call.respond(hashMapOf("token" to token))
@@ -192,8 +198,14 @@ private fun Application.module() {
         }
         route("/horse") {
             get("{uuid?}") {
-                val uuid = call.parameters["uuid"]?.toUUID() ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
-                val horse = uuid.toLivingHorse() ?: return@get call.respondText("Horse not found", status = HttpStatusCode.NotFound)
+                val uuid = call.parameters["uuid"]?.toUUID() ?: return@get call.respondText(
+                    "Missing id",
+                    status = HttpStatusCode.BadRequest
+                )
+                val horse = uuid.toLivingHorse() ?: return@get call.respondText(
+                    "Horse not found",
+                    status = HttpStatusCode.NotFound
+                )
 
                 val horseData = HorseData(
                     horse.uniqueId,
@@ -219,23 +231,34 @@ private fun Application.module() {
         }
         route("/jockeys") {
             get("{raceId?}") {
-                val raceId = call.parameters["raceId"] ?: return@get call.respondText("Missing id", status = HttpStatusCode.BadRequest)
-                if (!RaceSettingData.existsRace(raceId)) {
+                val raceId = call.parameters["raceId"] ?: return@get call.respondText(
+                    "Missing id",
+                    status = HttpStatusCode.BadRequest
+                )
+
+                if (!RaceUtils.existsRace(raceId)) {
                     call.respondText("Race not found", status = HttpStatusCode.NotFound)
                 }
-                val jockeys = RaceSettingData.getJockeys(raceId)
-                val jockeyDatas = arrayListOf<WebRaceJockeyData>()
+                val raceManager = RaceAssist.api.getRaceManager(raceId)!!
+                val jockeys = raceManager.getJockeys()
+                val jockeyData = arrayListOf<WebRaceJockeyData>()
 
                 jockeys.forEach {
                     val webRaceJockeyData =
-                        WebRaceJockeyData(it.uniqueId, RaceSettingData.getHorse(raceId)[it.uniqueId], BetUtils.getOdds(raceId, it))
-                    jockeyDatas.add(webRaceJockeyData)
+                        WebRaceJockeyData(
+                            it.uniqueId,
+                            raceManager.getHorse()[it.uniqueId],
+                            BetUtils.getOdds(raceId, it)
+                        )
+                    jockeyData.add(webRaceJockeyData)
                 }
 
-                val datas = WebRaceJockeyDatas(raceId, BetSettingData.getBetUnit(raceId), jockeyDatas)
-                val datasJson = json.encodeToString(datas)
+                val betManager = RaceAssist.api.getBetManager(raceId)!!
 
-                call.respondText(datasJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json)
+                val data = WebRaceJockeyDataList(raceId, betManager.getBetUnit(), jockeyData)
+                val dataJson = json.encodeToString(data)
+
+                call.respondText(dataJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json)
             }
         }
         authenticate("auth-jwt") {

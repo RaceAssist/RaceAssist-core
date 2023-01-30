@@ -15,6 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.i18n
+package dev.nikomaru.raceassist.utils.event
 
-data class RecordLogData(val path: String, val data: LogData)
+import java.time.ZonedDateTime
+import java.util.*
+
+interface EventData {
+    val type: LogDataType
+    val executor: UUID?
+    val date: ZonedDateTime
+}

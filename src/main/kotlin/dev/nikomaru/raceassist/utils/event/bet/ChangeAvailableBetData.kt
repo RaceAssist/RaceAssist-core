@@ -15,15 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.data.database
+package dev.nikomaru.raceassist.utils.event.bet
 
-import java.time.LocalDateTime
+import dev.nikomaru.raceassist.utils.event.EventData
+import dev.nikomaru.raceassist.utils.event.LogDataType
+import java.time.ZonedDateTime
 import java.util.*
 
-data class BetListData(
-    val rowNum: Int,
-    val timeStamp: LocalDateTime,
-    val playerUUID: UUID,
-    val jockeyUUID: UUID,
-    val betting: Int
-)
+data class ChangeAvailableBetData(
+    override val type: LogDataType,
+    val raceId: String,
+    override val executor: UUID?,
+    val available: Boolean,
+    override val date: ZonedDateTime = ZonedDateTime.now(),
+) : EventData

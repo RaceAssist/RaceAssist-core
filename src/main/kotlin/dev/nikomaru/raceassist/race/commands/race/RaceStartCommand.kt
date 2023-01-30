@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.race
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.race.RaceJudgement
 import org.bukkit.command.CommandSender
 
@@ -30,7 +30,7 @@ class RaceStartCommand {
     suspend fun start(
         sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
     ) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         val raceJudgement = RaceJudgement(raceId, sender)
         if (!raceJudgement.setting()) {
             return

@@ -53,7 +53,8 @@ class HorseBreedEvent : Listener {
         val mother = event.mother as Horse
         val father = event.father as Horse
 
-        val data = HorseData(horse.uniqueId,
+        val data = HorseData(
+            horse.uniqueId,
             event.breeder?.uniqueId,
             null,
             mother.uniqueId,
@@ -67,7 +68,8 @@ class HorseBreedEvent : Listener {
             horse.customName()?.toPlainText(),
             ZonedDateTime.now(),
             ZonedDateTime.now(),
-            null)
+            null
+        )
 
         if (!RaceAssist.plugin.dataFolder.resolve("horse").exists()) {
             RaceAssist.plugin.dataFolder.resolve("horse").mkdirs()

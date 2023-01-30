@@ -18,9 +18,10 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.utils.Utils.locale
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
@@ -29,16 +30,19 @@ import org.bukkit.command.CommandSender
 
 class PlaceStaffCommand {
     @CommandMethod("staff add <operatePlaceId> <playerName>")
-    suspend fun addStaff(sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") PlaceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
+    fun addStaff(
+        sender: CommandSender,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String,
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
 
-        if (!RaceUtils.hasPlaceControlPermission(PlaceId, sender)) return
+        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
 
         val locale = sender.locale()
-        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        val target = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
 
-        if (PlaceSettingData.addStaff(PlaceId, target)) {
+        if (RaceAssist.api.getPlaceManager(placeId)?.addStaff(target) == true) {
             sender.sendMessage(Lang.getComponent("add-staff", locale))
         } else {
             sender.sendMessage(Lang.getComponent("already-added-staff", locale))
@@ -47,18 +51,21 @@ class PlaceStaffCommand {
     }
 
     @CommandMethod("staff remove <operatePlaceId> <playerName>")
-    suspend fun removeStaff(sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") PlaceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (!RaceUtils.hasPlaceControlPermission(PlaceId, sender)) return
+    fun removeStaff(
+        sender: CommandSender,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String,
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
+        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
 
         val locale = sender.locale()
-        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-        if (PlaceSettingData.getOwner(PlaceId) == target) {
+        val target = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        if (RaceAssist.api.getPlaceManager(placeId)?.getOwner() == target) {
             return sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
         }
 
-        if (PlaceSettingData.removeStaff(PlaceId, target)) {
+        if (RaceAssist.api.getPlaceManager(placeId)?.removeStaff(target) == true) {
             sender.sendMessage(Lang.getComponent("delete-staff", locale))
         } else {
             sender.sendMessage(Lang.getComponent("not-find-staff", locale))
@@ -67,11 +74,13 @@ class PlaceStaffCommand {
     }
 
     @CommandMethod("staff list <operatePlaceId>")
-    suspend fun listStaff(sender: CommandSender, @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") PlaceId: String) {
-        if (!RaceUtils.hasPlaceControlPermission(PlaceId, sender)) return
-        PlaceSettingData.getStaffs(PlaceId).forEach {
+    fun listStaff(
+        sender: CommandSender,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String
+    ) {
+        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
+        RaceAssist.api.getPlaceManager(placeId)?.getStaffs()?.forEach {
             sender.sendMessage(it.name.toString())
         }
-
     }
 }

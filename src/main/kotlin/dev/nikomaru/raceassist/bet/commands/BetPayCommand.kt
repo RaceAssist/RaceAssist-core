@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Utils.locale
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
@@ -32,12 +32,17 @@ class BetPayCommand {
     @CommandMethod("pay <operateRaceId> <playerName>")
     @CommandDescription("払い戻し用のコマンド")
     @Confirmation
-    suspend fun returnJockey(sender: CommandSender,
+    suspend fun returnJockey(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
         val locale = sender.locale()
-        val jockey = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-        if (!RaceSettingData.getJockeys(raceId).contains(jockey)) {
+        val jockey = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        if (!raceManager.getJockeys().contains(jockey)) {
             sender.sendMessage(Lang.getComponent("player-not-jockey", locale, jockey.name))
             return
         }

@@ -18,8 +18,8 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -28,13 +28,16 @@ class PlaceCreateCommand {
 
     @CommandPermission("raceassist.commands.place.reverse")
     @CommandMethod("create <placeId>")
-    suspend fun reverse(sender: CommandSender, @Argument(value = "placeId") @Regex(value = "[^_]+_\\d+$") placeId: String) {
+    suspend fun reverse(
+        sender: CommandSender,
+        @Argument(value = "placeId") @Regex(value = "[^_]+_\\d+$") placeId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        PlaceSettingData.createPlace(placeId, sender)
+        RaceAssist.api.getDataManager().createPlace(placeId, sender)
 
         sender.sendMessage(Lang.getComponent("to-create-new-placeId", sender.locale()))
 

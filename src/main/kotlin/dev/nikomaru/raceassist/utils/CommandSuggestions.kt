@@ -20,7 +20,6 @@ package dev.nikomaru.raceassist.utils
 import cloud.commandframework.annotations.suggestions.Suggestions
 import cloud.commandframework.context.CommandContext
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.RaceUtils
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -61,7 +60,7 @@ open class CommandSuggestions {
             val raceIds = ArrayList<String>()
             File(RaceAssist.plugin.dataFolder, "RaceData").listFiles()?.forEach {
                 val raceId = it.nameWithoutExtension
-                if (RaceUtils.hasRaceControlPermission(raceId, sender.sender)) {
+                if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender.sender) == true) {
                     raceIds.add(raceId)
                 }
             }
@@ -78,7 +77,7 @@ open class CommandSuggestions {
             val placeIds = ArrayList<String>()
             File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
                 val placeId = it.nameWithoutExtension
-                if (RaceUtils.hasPlaceControlPermission(placeId, sender.sender)) {
+                if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender.sender) == true) {
                     placeIds.add(placeId)
                 }
             }

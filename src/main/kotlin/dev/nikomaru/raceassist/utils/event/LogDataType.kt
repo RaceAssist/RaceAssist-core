@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.i18n
+package dev.nikomaru.raceassist.utils.event
 
 enum class LogDataType {
     BET, PLACE, RACE, WEB, HORSE,

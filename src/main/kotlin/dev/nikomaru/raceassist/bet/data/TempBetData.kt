@@ -19,4 +19,9 @@ package dev.nikomaru.raceassist.bet.data
 
 import org.bukkit.OfflinePlayer
 
-data class TempBetData(val raceId: String, val player: OfflinePlayer, val jockey: OfflinePlayer, var betPerUnit: Int)
+data class TempBetData(
+    val raceId: String,
+    val player: OfflinePlayer,
+    val jockey: OfflinePlayer,
+    var betPerUnit: Int
+)

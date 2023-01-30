@@ -18,9 +18,11 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.utils.event.LogDataType
+import dev.nikomaru.raceassist.utils.event.bet.DeleteBetData
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -29,15 +31,26 @@ class BetDeleteCommand {
     @CommandPermission("raceassist.commands.bet.delete")
     @CommandMethod("delete <operateRaceId>")
     @Confirmation
-    @CommandDescription("レースに対して駆けられているものを削除します")
-    suspend fun delete(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+    @CommandDescription("レースに対して賭けられているものを削除します")
+    suspend fun delete(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        BetUtils.deleteBetData(raceId)
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
+        val deleteDataList = BetUtils.deleteBetData(raceId)
         sender.sendMessage(Lang.getComponent("bet-remove-race", sender.locale(), raceId))
+        //TODO event call
+
+        val data = DeleteBetData(
+            type = LogDataType.BET,
+            raceId = raceId,
+            executor = sender.uniqueId,
+            deleteBetDataList = deleteDataList
+        )
 
     }
 

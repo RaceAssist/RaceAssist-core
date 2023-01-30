@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Utils.locale
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
@@ -30,9 +30,12 @@ class BetListCommand {
     @CommandPermission("raceassist.commands.bet.list")
     @CommandMethod("list <operateRaceId>")
     @CommandDescription("現在賭けられている一覧を表示します")
-    suspend fun list(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+    suspend fun list(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+    ) {
         val locale = sender.locale()
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         val list = BetUtils.listBetData(raceId)
         if (list.isEmpty()) {
             sender.sendMessage(Lang.getComponent("no-one-betting", locale))
@@ -41,7 +44,17 @@ class BetListCommand {
         list.forEach {
             val jockeyName = Bukkit.getOfflinePlayer(it.jockeyUUID).name
             val betPlayerName = Bukkit.getOfflinePlayer(it.playerUUID).name
-            sender.sendMessage(Lang.getComponent("bet-list-detail-message", locale, it.rowNum, it.timeStamp, betPlayerName, jockeyName, it.betting))
+            sender.sendMessage(
+                Lang.getComponent(
+                    "bet-list-detail-message",
+                    locale,
+                    it.rowNum,
+                    it.timeStamp,
+                    betPlayerName,
+                    jockeyName,
+                    it.betting
+                )
+            )
         }
     }
 }

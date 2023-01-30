@@ -15,17 +15,19 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.i18n
+package dev.nikomaru.raceassist.utils.event
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.awt.Color
 
 @Serializable
-data class DiscordWebhookData(val username: String = "RaceAssist",
-    val avatar_url: String = "https://github.com/Nlkomaru/RaceAssist-web/blob/bed3817eb04c73aed2726ea7923113776d468dbb/public/favicon.png?raw=true",
-    val content: String = "",
-    val embeds: ArrayList<DiscordWebhookEmbed>)
+data class DiscordWebhookData(
+    val username: String = "RaceAssist",
+    @SerialName("avatar_url") val avatarUrl: String = "https://github.com/Nlkomaru/RaceAssist-web/blob/bed3817eb04c73aed2726ea7923113776d468dbb/public/favicon.png?raw=true",
+    val content: String? = null,
+    val embeds: ArrayList<DiscordWebhookEmbed>? = null
+)
 
 @Serializable
 data class DiscordWebhookEmbed(

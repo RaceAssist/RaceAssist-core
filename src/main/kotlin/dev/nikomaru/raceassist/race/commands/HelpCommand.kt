@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.i18n.Lang.mm
+import dev.nikomaru.raceassist.utils.event.Lang.mm
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|raceassist")
@@ -27,7 +27,8 @@ class HelpCommand {
     @CommandPermission("raceassist.commands.help")
     @CommandDescription("help command")
     fun help(sender: CommandSender) {
-        val message = "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
+        val message =
+            "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
         sender.sendMessage(mm.deserialize(message))
     }
 //

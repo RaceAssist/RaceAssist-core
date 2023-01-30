@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.i18n
+package dev.nikomaru.raceassist.utils.event
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,12 @@ object Lang {
 
             lang.forEach { locale ->
                 val conf = Properties()
-                conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!, "UTF-8"))
+                conf.load(
+                    InputStreamReader(
+                        this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!,
+                        "UTF-8"
+                    )
+                )
                 langList[locale] = conf
             }
 
@@ -71,8 +76,5 @@ object Lang {
         return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
     }
 
-    fun <T> sendData(data: T) {
-        // Do something
-    }
 
 }

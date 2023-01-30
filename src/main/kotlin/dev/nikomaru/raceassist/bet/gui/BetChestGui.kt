@@ -17,15 +17,16 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils.getOdds
 import dev.nikomaru.raceassist.bet.GuiComponent
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.Material
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
@@ -39,7 +40,7 @@ class BetChestGui {
         val odds: HashMap<OfflinePlayer, Double> = HashMap()
 
         AllPlayers[raceId] = arrayListOf()
-        RaceSettingData.getJockeys(raceId).forEach {
+        RaceAssist.api.getRaceManager(raceId)!!.getJockeys().forEach {
             players.add(it)
             AllPlayers[raceId]?.add(it)
         }
@@ -57,7 +58,13 @@ class BetChestGui {
             val item = ItemStack(Material.PLAYER_HEAD, 1)
             val meta: SkullMeta = item.itemMeta as SkullMeta
             meta.owningPlayer = players[i]
-            meta.displayName(Lang.getComponent("betting-zero-money", player.locale(), BetSettingData.getBetUnit(raceId)))
+            meta.displayName(
+                Lang.getComponent(
+                    "betting-zero-money",
+                    player.locale(),
+                    RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
+                )
+            )
             val lore: ArrayList<Component> = arrayListOf()
             lore.add(Lang.getComponent("gui-jockey-name", player.locale(), players[i].name))
             lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[players[i]]))

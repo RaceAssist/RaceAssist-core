@@ -1,4 +1,6 @@
+
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -11,9 +13,10 @@ plugins {
     id("org.sonarqube") version "3.3"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
     kotlin("plugin.serialization") version "1.6.10"
+    id("org.jetbrains.dokka") version "1.7.20"
 }
 
-group = "dev.nikomaru"
+group = "dev.nikomaru.raceassist"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -30,6 +33,8 @@ val cloudVersion = "1.7.1"
 val exposedVersion = "0.38.2"
 val ktorVersion = "2.1.1"
 dependencies {
+
+
     compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
 
     library(kotlin("stdlib"))
@@ -82,6 +87,8 @@ dependencies {
 
     bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
 
+    implementation("com.github.doyaaaaaken", "kotlin-csv-jvm", "1.7.0")
+
     compileOnly("xyz.jpenilla", "squaremap-api", "1.1.8")
     implementation(kotlin("stdlib-jdk8"))
 }
@@ -99,8 +106,8 @@ tasks {
         kotlinOptions.jvmTarget = "17"
     }
     shadowJar {
-        relocate("cloud.commandframework", "dev.nikomaru.receassist.shaded.cloud")
-        relocate("io.leangen.geantyref", "dev.nikomaru.receassist.shaded.typetoken")
+        relocate("cloud.commandframework", "dev.nikomaru.receassist.core.shaded.cloud")
+        relocate("io.leangen.geantyref", "dev.nikomaru.receassist.core.shaded.typetoken")
         relocate("com.github.stefvanschie.inventoryframework", "dev.nikomaru.receassist.inventoryframework")
     }
     build {
@@ -124,13 +131,17 @@ bukkit {
 
     apiVersion = "1.19"
     depend = listOf("Vault")
-    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0")
+    libraries = listOf(
+        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0",
+        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0"
+    )
 
 
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            children = listOf("raceassist.commands.audience.leave",
+            children = listOf(
+                "raceassist.commands.audience.leave",
                 "raceassist.commands.place.degree",
                 "raceassist.commands.bet.sheet",
                 "raceassist.commands.race.start",
@@ -167,7 +178,8 @@ bukkit {
                 "raceassist.commands.bet.rate",
                 "raceassist.commands.player.replacement",
                 "raceassist.commands.audience.join",
-                "raceassist.command.help")
+                "raceassist.command.help"
+            )
         }
         register("RaceAssist.user") {
             default = Default.TRUE
@@ -189,3 +201,23 @@ val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
 }
+
+tasks.withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+        configureEach {
+            perPackageOption {
+                matchingRegex.set(".*")
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set("dev.nikomaru.raceassist.api.core.*")
+                suppress.set(false)
+            }
+            perPackageOption {
+                matchingRegex.set(".*\\.data.*")
+                suppress.set(false)
+            }
+        }
+    }
+}
+

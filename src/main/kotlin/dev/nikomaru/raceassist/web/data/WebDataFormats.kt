@@ -22,18 +22,17 @@ import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable
-data class WebBetDatas(val list: WebBetData, val betUnit: Int)
-
-@Serializable
 data class WebBetData(val jockey: @Serializable(with = UUIDSerializer::class) UUID, var betPerUnit: Int)
 
 @Serializable
-data class WebRaceJockeyDatas(val raceId: String, val betUnit: Int, val datas: ArrayList<WebRaceJockeyData>)
+data class WebRaceJockeyDataList(val raceId: String, val betUnit: Int, val dataList: ArrayList<WebRaceJockeyData>)
 
 @Serializable
-data class WebRaceJockeyData(val jockey: @Serializable(with = UUIDSerializer::class) UUID,
+data class WebRaceJockeyData(
+    val jockey: @Serializable(with = UUIDSerializer::class) UUID,
     val horse: @Serializable(with = UUIDSerializer::class) UUID?,
-    val odds: Double)
+    val odds: Double
+)
 
 @Serializable
 data class History(val raceId: String, val rank: Int)

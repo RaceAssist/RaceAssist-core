@@ -18,8 +18,8 @@ package dev.nikomaru.raceassist.race.event
 
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
-import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -41,7 +41,12 @@ class SetInsideCircuitEvent : Listener {
             event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return
         }
-        InsideCircuit.insideCircuit(player, circuitRaceId[player.uniqueId]!!, event.clickedBlock!!.x, event.clickedBlock!!.z)
+        InsideCircuit.insideCircuit(
+            player,
+            circuitPlaceId[player.uniqueId]!!,
+            event.clickedBlock!!.x,
+            event.clickedBlock!!.z
+        )
     }
 }
 

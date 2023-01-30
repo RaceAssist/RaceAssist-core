@@ -45,11 +45,20 @@ object GoogleAuthorizeUtil {
             return null
         }
         val inputStream: InputStream = FileInputStream(credentialsFilePath)
-        val clientSecrets: GoogleClientSecrets = GoogleClientSecrets.load(GsonFactory.getDefaultInstance(), InputStreamReader(inputStream))
+        val clientSecrets: GoogleClientSecrets =
+            GoogleClientSecrets.load(GsonFactory.getDefaultInstance(), InputStreamReader(inputStream))
         val scopes = listOf(SheetsScopes.SPREADSHEETS)
         val flow: GoogleAuthorizationCodeFlow =
-            GoogleAuthorizationCodeFlow.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), clientSecrets, scopes)
+            GoogleAuthorizationCodeFlow.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance(),
+                clientSecrets,
+                scopes
+            )
                 .setDataStoreFactory(FileDataStoreFactory(tokensDirectoryPath)).setAccessType("offline").build()
-        return AuthorizationCodeInstalledApp(flow, LocalServerReceiver.Builder().setPort(Config.config.spreadSheet.port).build()).authorize("user")
+        return AuthorizationCodeInstalledApp(
+            flow,
+            LocalServerReceiver.Builder().setPort(Config.config.spreadSheet.port).build()
+        ).authorize("user")
     }
 }

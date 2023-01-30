@@ -108,7 +108,7 @@ object HorseUtils {
             return null
         }
         val data = json.decodeFromString<HorseData>(file.readText())
-        return data.deathData
+        return data.deathDate
     }
 
     fun Horse.isMatchStatus(): Boolean {
@@ -132,7 +132,8 @@ object HorseUtils {
                 lastRecordDate = ZonedDateTime.now(),
             )
         } else {
-            data = HorseData(this.uniqueId,
+            data = HorseData(
+                this.uniqueId,
                 null,
                 this.ownerUniqueId,
                 null,
@@ -146,7 +147,8 @@ object HorseUtils {
                 this.customName()?.toPlainText(),
                 null,
                 ZonedDateTime.now(),
-                null)
+                null
+            )
         }
         val dataString = json.encodeToString(data)
         withContext(Dispatchers.async) {
@@ -182,7 +184,7 @@ object HorseUtils {
         }
 
         val beforeData = json.decodeFromString<HorseData>(file.readText())
-        val afterData = beforeData.copy(deathData = ZonedDateTime.now())
+        val afterData = beforeData.copy(deathDate = ZonedDateTime.now())
 
         withContext(Dispatchers.IO) {
             val dataString = json.encodeToString(afterData)

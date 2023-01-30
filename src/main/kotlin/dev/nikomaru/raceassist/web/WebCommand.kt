@@ -20,8 +20,8 @@ package dev.nikomaru.raceassist.web
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.utils.Utils.passwordHash
-import dev.nikomaru.raceassist.utils.i18n.LogDataType
-import dev.nikomaru.raceassist.utils.i18n.web.RegisterWebAccountData
+import dev.nikomaru.raceassist.utils.event.LogDataType
+import dev.nikomaru.raceassist.utils.event.web.RegisterWebAccountData
 import kotlinx.coroutines.Dispatchers
 import org.apache.commons.lang.RandomStringUtils
 import org.bukkit.command.CommandSender
@@ -56,7 +56,9 @@ class WebCommand {
                 it[UserAuthData.hashedPassword] = hashedPassword
             }
         }
+        //TODO event call
         RegisterWebAccountData(LogDataType.WEB, ZonedDateTime.now(), uuid)
+
         sender.sendRichMessage("パスワードは $password です <yellow><click:copy_to_clipboard:'$password'>クリックでコピー</click></yellow>")
     }
 

@@ -18,12 +18,9 @@
 package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
-import dev.nikomaru.raceassist.data.files.PlaceSettingData.getReverse
-import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.Utils.getCentralPoint
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
-import dev.nikomaru.raceassist.utils.i18n.Lang
+import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -31,16 +28,35 @@ import org.bukkit.entity.Player
 class PlaceDegreeCommand {
     @CommandPermission("raceassist.commands.place.degree")
     @CommandMethod("degree <operatePlaceId>")
-    suspend fun degree(sender: CommandSender, @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String) {
+    suspend fun degree(
+        sender: CommandSender,
+        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (!RaceUtils.hasRaceControlPermission(placeId, sender)) return
-        val centralXPoint = getCentralPoint(placeId, true) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
-        val centralYPoint = getCentralPoint(placeId, false) ?: return sender.sendMessage(Lang.getComponent("no-exist-central-point", sender.locale()))
-        val reverse = getReverse(placeId)
+        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
+        val placeManager = RaceAssist.api.getPlaceManager(placeId) ?: return sender.sendMessage(
+            Lang.getComponent(
+                "no-exist-place",
+                sender.locale()
+            )
+        )
+        val centralXPoint = placeManager.getCentralPointX() ?: return sender.sendMessage(
+            Lang.getComponent(
+                "no-exist-central-point",
+                sender.locale()
+            )
+        )
+        val centralYPoint = placeManager.getCentralPointY() ?: return sender.sendMessage(
+            Lang.getComponent(
+                "no-exist-central-point",
+                sender.locale()
+            )
+        )
+        val reverse = placeManager.getReverse()
         val nowX = sender.location.blockX
         val nowY = sender.location.blockZ
         val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
@@ -72,7 +88,7 @@ class PlaceDegreeCommand {
             }
         }
         sender.sendMessage(Lang.getComponent("to-set-degree", sender.locale(), degree))
-        PlaceSettingData.setGoalDegree(placeId, degree)
+        placeManager.setGoalDegree(degree)
 
     }
 }

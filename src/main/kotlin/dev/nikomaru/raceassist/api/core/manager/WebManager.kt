@@ -15,19 +15,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.i18n
+package dev.nikomaru.raceassist.api.core.manager
 
-import java.time.ZonedDateTime
+import dev.nikomaru.raceassist.data.database.UserAuthData
+import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.utils.Utils.toUUID
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
-interface LogData {
+class WebManager {
+    fun getAvailable(): Boolean {
+        return Config.config.webAPI != null
+    }
 
-    val type: LogDataType
-    val executor: UUID?
-    val date: ZonedDateTime
+    suspend fun getRegisteredPlayers(): List<UUID> {
+        return newSuspendedTransaction {
+            UserAuthData.selectAll().map {
+                it[UserAuthData.uuid].toUUID()
+            }
+        }
+    }
 
-    fun <T : LogData> sendPlayerMessage(data: T)
-    suspend fun <T : LogData> sendDiscordWebhook(data: T)
-    suspend fun <T : LogData> sendWebRecordBody(data: T)
-    suspend fun <T : LogData> sendConsoleMessage(data: T)
 }
