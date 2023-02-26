@@ -15,15 +15,19 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event.web
+package dev.nikomaru.raceassist.event.web
 
-import dev.nikomaru.raceassist.utils.event.EventData
-import dev.nikomaru.raceassist.utils.event.LogDataType
-import java.time.ZonedDateTime
-import java.util.*
+import dev.nikomaru.raceassist.event.LogDataType
+import org.bukkit.OfflinePlayer
+import org.bukkit.event.Event
+import org.bukkit.event.HandlerList
 
-data class RegisterWebAccountData(
-    override val type: LogDataType,
-    override val date: ZonedDateTime = ZonedDateTime.now(),
-    override val executor: UUID
-) : EventData
+class WebAccountCreateEvent(val type: LogDataType, val executor: OfflinePlayer) : Event(true) {
+    override fun getHandlers(): HandlerList {
+        return HANDLER_LIST;
+    }
+
+    companion object {
+        private val HANDLER_LIST = HandlerList()
+    }
+}

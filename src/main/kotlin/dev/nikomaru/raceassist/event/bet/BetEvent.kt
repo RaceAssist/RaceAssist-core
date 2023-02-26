@@ -15,17 +15,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event.bet
+package dev.nikomaru.raceassist.event.bet
 
-import dev.nikomaru.raceassist.utils.event.EventData
-import dev.nikomaru.raceassist.utils.event.LogDataType
-import java.time.ZonedDateTime
-import java.util.*
+import dev.nikomaru.raceassist.event.LogDataType
+import org.bukkit.OfflinePlayer
+import org.bukkit.event.Event
+import org.bukkit.event.HandlerList
 
-data class ChangeAvailableBetData(
-    override val type: LogDataType,
+class BetEvent(
+    val type: LogDataType,
     val raceId: String,
-    override val executor: UUID?,
-    val available: Boolean,
-    override val date: ZonedDateTime = ZonedDateTime.now(),
-) : EventData
+    val executor: OfflinePlayer,
+    val jockey: OfflinePlayer,
+    val betAmount: Int
+) :
+    Event(true) {
+    override fun getHandlers(): HandlerList {
+        return HANDLER_LIST;
+    }
+
+    companion object {
+        private val HANDLER_LIST = HandlerList()
+    }
+}

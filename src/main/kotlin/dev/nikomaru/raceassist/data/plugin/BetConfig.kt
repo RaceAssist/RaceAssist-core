@@ -15,18 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event.bet
+package dev.nikomaru.raceassist.data.plugin
 
-import dev.nikomaru.raceassist.data.database.BetListData
-import dev.nikomaru.raceassist.utils.event.EventData
-import dev.nikomaru.raceassist.utils.event.LogDataType
-import java.time.ZonedDateTime
-import java.util.*
+import kotlinx.serialization.Serializable
 
-data class DeleteBetData(
-    override val type: LogDataType,
-    override val executor: UUID?,
-    override val date: ZonedDateTime = ZonedDateTime.now(),
-    val raceId: String,
-    val deleteBetDataList: ArrayList<BetListData>
-) : EventData
+@Serializable
+data class BetConfig(
+    val available: Boolean = false,
+    val returnPercent: Int = 75,
+    val spreadSheetId: String? = null,
+    val betUnit: Int = 100,
+    val autoReturn: Boolean = false,
+    val money: Double = 0.0,
+)

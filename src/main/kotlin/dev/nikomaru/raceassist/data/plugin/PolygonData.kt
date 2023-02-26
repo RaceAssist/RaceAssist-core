@@ -15,13 +15,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event
+package dev.nikomaru.raceassist.data.plugin
 
-import java.time.ZonedDateTime
-import java.util.*
+import kotlinx.serialization.Serializable
 
-interface EventData {
-    val type: LogDataType
-    val executor: UUID?
-    val date: ZonedDateTime
-}
+@Serializable
+data class PolygonData(val points: ArrayList<Pair<Int, Int>>)
