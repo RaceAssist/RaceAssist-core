@@ -20,32 +20,28 @@ package dev.nikomaru.raceassist.bet.event
 import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest
 import com.google.api.services.sheets.v4.model.ValueRange
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.data.database.BetList.rowNum
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
+import dev.nikomaru.raceassist.utils.Utils.toUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import net.milkbowl.vault.economy.Economy
 import org.bukkit.Material
-import org.bukkit.OfflinePlayer
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.time.LocalDateTime
 import java.util.*
 
 class BetGuiClickEvent : Listener {
@@ -267,7 +263,7 @@ class BetGuiClickEvent : Listener {
             44 -> {
                 //accept
 
-                if (VaultAPI.getEconomy().getBalance(player) < (getAllBet(raceId, player) * betUnit)) {
+                if (betManager.getBalance() < (getAllBet(raceId, player) * betUnit)) {
                     noticeNoMoney(event, slot, player)
                     return
                 }
@@ -279,36 +275,13 @@ class BetGuiClickEvent : Listener {
                 player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1f)
                 player.closeInventory()
 
-                val eco: Economy = VaultAPI.getEconomy()
-                val raceManager = RaceAssist.api.getRaceManager(raceId)!!
-                val owner = raceManager.getOwner()
-
                 newSuspendedTransaction(Dispatchers.Default) {
-                    var row = getMaxRow(raceId)
-                    val iterator = BetUtils.tempBetDataList.iterator()
-                    while (iterator.hasNext()) {
-                        val temp = iterator.next()
-                        if (temp.raceId == raceId && temp.player == player && temp.betPerUnit != 0) {
-                            BetList.insert { bet ->
-                                bet[BetList.raceId] = raceId
-                                bet[playerName] = player.name
-                                bet[playerUUID] = player.uniqueId.toString()
-                                bet[jockey] = temp.jockey.name.toString()
-                                bet[jockeyUUID] = temp.jockey.uniqueId.toString()
-                                bet[betting] = temp.betPerUnit * betUnit
-                                bet[timeStamp] = LocalDateTime.now()
-                                bet[rowNum] = row + 1
-                            }
-                            betProcess(player, row, temp.betPerUnit, temp.jockey, eco, owner, raceId)
-                            row++
-                        }
+                    BetUtils.tempBetDataList.stream().filter {
+                        it.raceId == raceId && it.player == player && it.betPerUnit != 0
+                    }.forEach {
+                        betManager.pushBet(it.player, it.jockey, it.betPerUnit)
                     }
-                    while (iterator.hasNext()) {
-                        val it = iterator.next()
-                        if (it.raceId == raceId && it.player == player) {
-                            iterator.remove()
-                        }
-                    }
+                    BetUtils.tempBetDataList.removeIf { it.raceId == raceId && it.player == player }
                 }
                 putSheetsData(raceId)
             }
@@ -321,51 +294,6 @@ class BetGuiClickEvent : Listener {
         acceptMeta.lore(acceptLore)
         accept.itemMeta = acceptMeta
         event.inventory.setItem(44, accept)
-    }
-
-    private suspend fun getMaxRow(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        var maxRow = 0
-        BetList.select { BetList.raceId eq raceId }.forEach {
-            if (it[rowNum] > maxRow) {
-                maxRow = it[rowNum]
-            }
-        }
-        maxRow
-    }
-
-    private fun betProcess(
-        player: Player,
-        row: Int,
-        bet: Int,
-        jockey: OfflinePlayer,
-        eco: Economy,
-        owner: OfflinePlayer,
-        raceId: String
-    ) {
-        val betManager = RaceAssist.api.getBetManager(raceId)!!
-
-        player.sendMessage(
-            Lang.getComponent(
-                "bet-complete-message-player",
-                player.locale(),
-                row + 1,
-                jockey.name.toString(),
-                bet * betManager.getBetUnit()
-            )
-        )
-        eco.withdrawPlayer(player, bet * betManager.getBetUnit().toDouble())
-
-        if (owner.isOnline) {
-            (owner as Player).sendMessage(
-                Lang.getComponent(
-                    "bet-complete-message-owner",
-                    player.locale(),
-                    player.name,
-                    bet * betManager.getBetUnit()
-                )
-            )
-        }
-        eco.depositPlayer(owner, bet * betManager.getBetUnit().toDouble())
     }
 
     private suspend fun noticeNoBet(event: InventoryClickEvent, slot: Int, player: Player) {
@@ -432,8 +360,8 @@ class BetGuiClickEvent : Listener {
             newSuspendedTransaction(Dispatchers.Default) {
                 BetList.select { BetList.raceId eq raceId }.forEach {
                     i++
-                    val player = it[BetList.playerName]
-                    val jockey = it[BetList.jockey]
+                    val player = it[BetList.playerUniqueId].toUUID().toOfflinePlayer().name
+                    val jockey = it[BetList.jockeyUniqueId].toUUID().toOfflinePlayer().name
                     val betting = it[BetList.betting]
                     val timeStamp = it[BetList.timeStamp]
                     data.add(

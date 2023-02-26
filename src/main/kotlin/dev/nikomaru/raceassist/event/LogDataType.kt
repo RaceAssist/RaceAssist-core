@@ -15,10 +15,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event
+package dev.nikomaru.raceassist.event
 
 enum class LogDataType {
     BET, PLACE, RACE, WEB, HORSE,
 }
-// プレイヤーに対してもメッセージを送る場合targetを使用しplayerについても記録したい場合明示的に分け同じものを格納
-// 時刻はZonedDateTimeを使用する

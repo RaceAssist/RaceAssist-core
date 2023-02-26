@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.utils.event
+package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import kotlinx.coroutines.Dispatchers

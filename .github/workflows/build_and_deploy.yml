@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     permissions:
-      contents: write  # for release-drafter/release-drafter to create a github release
+      contents: write  # for release-drafter/release-drafter to create a GitHub release
       pull-requests: write  # for release-drafter/release-drafter to add label to PR
 
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
         run: |
           before="${{ steps.release-drafter.outputs.tag_name }}"
           after="${before//v/}"
-          sed -i -e "s/miencraft_plugin_version/$after/i" './build.gradle.kts'
+          sed -i -e "s/minecraft_plugin_version/$after/i" './build.gradle.kts'
           cat ./build.gradle.kts
 
       - name: Change wrapper permissions

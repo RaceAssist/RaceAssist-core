@@ -19,7 +19,6 @@ package dev.nikomaru.raceassist.race.commands.place
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -39,7 +38,8 @@ class PlaceCreateCommand {
 
         RaceAssist.api.getDataManager().createPlace(placeId, sender)
 
-        sender.sendMessage(Lang.getComponent("to-create-new-placeId", sender.locale()))
+
+        sender.sendMessage("<color:green> $placeId を作成しました。")
 
     }
 }

@@ -19,21 +19,31 @@ package dev.nikomaru.raceassist.api.core.manager
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.Bet
+import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.data.database.BetList
+import dev.nikomaru.raceassist.data.database.BetList.rowUniqueId
 import dev.nikomaru.raceassist.data.files.RaceUtils.getRaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
+import dev.nikomaru.raceassist.data.plugin.BetConfig
+import dev.nikomaru.raceassist.event.LogDataType
+import dev.nikomaru.raceassist.event.bet.BetEvent
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.web.api.BetError
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.bukkit.OfflinePlayer
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
+import java.util.*
 
 class BetManager(val raceId: String) {
 
-    private lateinit var betConfig: Bet
 
     init {
-        plugin.launch {
-            withContext(Dispatchers.IO) {
-                betConfig = getRaceConfig(raceId).bet
-            }
+        runBlocking {
+            betConfig[raceId] = getRaceConfig(raceId).betConfig
         }
     }
 
@@ -43,7 +53,8 @@ class BetManager(val raceId: String) {
      * @return ベットの可用性
      */
     fun getAvailable(): Boolean {
-        return betConfig.available
+
+        return betConfig[raceId]!!.available
     }
 
     /**
@@ -52,7 +63,8 @@ class BetManager(val raceId: String) {
      */
 
     fun getReturnPercent(): Int {
-        return betConfig.returnPercent
+
+        return betConfig[raceId]!!.returnPercent
     }
 
     /**
@@ -61,7 +73,8 @@ class BetManager(val raceId: String) {
      */
 
     fun getReturnSpreadSheetId(): String? {
-        return betConfig.spreadSheetId
+
+        return betConfig[raceId]!!.spreadSheetId
     }
 
     /**
@@ -70,7 +83,8 @@ class BetManager(val raceId: String) {
      */
 
     fun getBetUnit(): Int {
-        return betConfig.betUnit
+
+        return betConfig[raceId]!!.betUnit
     }
 
     /**
@@ -79,7 +93,7 @@ class BetManager(val raceId: String) {
      */
 
     fun setAvailable(available: Boolean) {
-        betConfig = betConfig.copy(available = available)
+        betConfig[raceId] = betConfig[raceId]!!.copy(available = available)
         save()
     }
 
@@ -88,7 +102,8 @@ class BetManager(val raceId: String) {
      * @param returnPercent ベットの返却率
      */
     fun setReturnPercent(returnPercent: Int) {
-        betConfig = betConfig.copy(returnPercent = returnPercent)
+
+        betConfig[raceId] = betConfig[raceId]!!.copy(returnPercent = returnPercent)
         save()
     }
 
@@ -98,7 +113,8 @@ class BetManager(val raceId: String) {
      */
 
     fun setSpreadSheetId(spreadSheetId: String) {
-        betConfig = betConfig.copy(spreadSheetId = spreadSheetId)
+
+        betConfig[raceId] = betConfig[raceId]!!.copy(spreadSheetId = spreadSheetId)
         save()
     }
 
@@ -108,8 +124,91 @@ class BetManager(val raceId: String) {
      */
 
     fun setBetUnit(betUnit: Int) {
-        betConfig = betConfig.copy(betUnit = betUnit)
+        betConfig[raceId] = betConfig[raceId]!!.copy(betUnit = betUnit)
         save()
+    }
+
+    /**
+     * レースの預金残高を取得します。
+     * @return レースの預金残高
+     */
+
+    fun getBalance(): Double {
+        return betConfig[raceId]!!.money
+    }
+
+    /**
+     * プレイヤーからお金を引き、レースの預金残高に加算します。
+     * @param player プレイヤー
+     * @param amount 引き出す金額
+     *
+     */
+    fun withdrawFromPlayer(player: OfflinePlayer, amount: Double) {
+        runBlocking {
+            VaultAPI.getEconomy().withdrawPlayer(player, amount)
+            betConfig[raceId] = betConfig[raceId]!!.copy(money = betConfig[raceId]!!.money + amount)
+            save()
+        }
+    }
+
+    /**
+     * レースの預金残高からお金を引き、プレイヤーに加算します。
+     * @param player プレイヤー
+     * @param amount 引き出す金額
+     */
+    fun depositToPlayer(player: OfflinePlayer, amount: Double) {
+        runBlocking {
+            VaultAPI.getEconomy().depositPlayer(player, amount)
+            betConfig[raceId] = betConfig[raceId]!!.copy(money = betConfig[raceId]!!.money - amount)
+            save()
+        }
+    }
+
+    /**
+     *
+     *
+     */
+
+    fun pushBet(player: OfflinePlayer, jockey: OfflinePlayer, multiple: Int): Triple<BetError?, UUID?, Int> {
+        val uniqueId = UUID.randomUUID()
+        val price = multiple * getBetUnit()
+        val eco = VaultAPI.getEconomy()
+
+        if (eco.getBalance(player) < price) {
+            player.player?.sendMessage("no money")
+            return Triple(BetError.NO_MONEY, null, 0)
+        }
+        if (!getAvailable()) {
+            player.player?.sendMessage("not available")
+            return Triple(BetError.NOT_AVAILABLE, null, 0)
+        }
+
+
+        transaction {
+            BetList.insert { bet ->
+                bet[BetList.raceId] = raceId
+                bet[BetList.playerUniqueId] = player.uniqueId.toString()
+                bet[BetList.jockeyUniqueId] = jockey.uniqueId.toString()
+                bet[BetList.betting] = price
+                bet[BetList.timeStamp] = LocalDateTime.now()
+                bet[BetList.rowUniqueId] = uniqueId.toString()
+            }
+        }
+
+        val onlinePlayer = player.player
+        onlinePlayer?.sendMessage(
+            Lang.getComponent(
+                "bet-complete-message-player",
+                onlinePlayer.locale(),
+                rowUniqueId.toString(),
+                jockey.name.toString(),
+                price
+            )
+        )
+
+        withdrawFromPlayer(player, price.toDouble())
+        BetEvent(LogDataType.BET, raceId, player, jockey, price).callEvent()
+        return Triple(null, uniqueId, price)
     }
 
     /**
@@ -119,10 +218,13 @@ class BetManager(val raceId: String) {
     private fun save() {
         plugin.launch {
             withContext(Dispatchers.IO) {
-                getRaceConfig(raceId).copy(bet = betConfig).save()
+                getRaceConfig(raceId).copy(betConfig = betConfig[raceId]!!).save()
             }
         }
     }
 
+    companion object {
+        val betConfig = hashMapOf<String, BetConfig>()
+    }
 
 }

@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import kotlinx.serialization.decodeFromString

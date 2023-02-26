@@ -19,10 +19,10 @@ package dev.nikomaru.raceassist.race.commands.race
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
-import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Horse

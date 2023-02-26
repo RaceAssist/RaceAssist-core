@@ -10,7 +10,6 @@ plugins {
     kotlin("jvm") version "1.6.0"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("xyz.jpenilla.run-paper") version "1.0.6"
-    id("org.sonarqube") version "3.3"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
     kotlin("plugin.serialization") version "1.6.10"
     id("org.jetbrains.dokka") version "1.7.20"
@@ -85,17 +84,14 @@ dependencies {
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
     implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
 
-    bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
-
-    implementation("com.github.doyaaaaaken", "kotlin-csv-jvm", "1.7.0")
-
-    compileOnly("xyz.jpenilla", "squaremap-api", "1.1.8")
     implementation(kotlin("stdlib-jdk8"))
 }
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
+
+val pluginGroup = "dev.nikomaru.raceassist.core"
 
 tasks {
     compileKotlin {
@@ -106,15 +102,15 @@ tasks {
         kotlinOptions.jvmTarget = "17"
     }
     shadowJar {
-        relocate("cloud.commandframework", "dev.nikomaru.receassist.core.shaded.cloud")
-        relocate("io.leangen.geantyref", "dev.nikomaru.receassist.core.shaded.typetoken")
-        relocate("com.github.stefvanschie.inventoryframework", "dev.nikomaru.receassist.inventoryframework")
+        relocate("cloud.commandframework", "$pluginGroup.shaded.cloud")
+        relocate("io.leangen.geantyref", "$pluginGroup.shaded.typetoken")
+        relocate("com.github.stefvanschie.inventoryframework", "$pluginGroup.inventoryframework")
     }
     build {
         dependsOn(shadowJar)
     }
     runServer {
-        minecraftVersion("1.19.2")
+        minecraftVersion("1.19.3")
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
@@ -124,8 +120,9 @@ tasks {
 
 bukkit {
     name = "RaceAssist"
-    version = "miencraft_plugin_version"
-    website = "https://github.com/Nlkomaru/RaceAssist-core"
+    //minecraft_plugin_version
+    version = "minecraft_plugin_version"
+    website = "https://docs-raceassist.nikomaru.dev/"
 
     main = "dev.nikomaru.raceassist.RaceAssist"
 
@@ -221,3 +218,41 @@ tasks.withType<DokkaTask>().configureEach {
     }
 }
 
+
+tasks.register("depsize") {
+    description = "Prints dependencies for \"default\" configuration"
+    doLast {
+        listConfigurationDependencies(configurations["default"])
+    }
+}
+
+tasks.register("depsize-all-configurations") {
+    description = "Prints dependencies for all available configurations"
+    doLast {
+        configurations
+            .filter { it.isCanBeResolved }
+            .forEach { listConfigurationDependencies(it) }
+    }
+}
+
+fun listConfigurationDependencies(configuration: Configuration) {
+    val formatStr = "%,10.2f"
+
+    val size = configuration.map { it.length() / (1024.0 * 1024.0) }.sum()
+
+    val out = StringBuffer()
+    out.append("\nConfiguration name: \"${configuration.name}\"\n")
+    if (size > 0) {
+        out.append("Total dependencies size:".padEnd(65))
+        out.append("${String.format(formatStr, size)} Mb\n\n")
+
+        configuration.sortedBy { -it.length() }
+            .forEach {
+                out.append(it.name.padEnd(65))
+                out.append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
+            }
+    } else {
+        out.append("No dependencies found")
+    }
+    println(out)
+}

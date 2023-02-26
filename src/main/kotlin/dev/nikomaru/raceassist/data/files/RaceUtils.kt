@@ -18,24 +18,17 @@
 package dev.nikomaru.raceassist.data.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
+import dev.nikomaru.raceassist.data.plugin.RaceConfig
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.utils.Utils
-import dev.nikomaru.raceassist.utils.Utils.toUUID
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
-import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
-import java.awt.Polygon
-import java.io.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.encodeToJsonElement
 import java.util.*
 
 object RaceUtils {
@@ -121,104 +114,5 @@ object RaceUtils {
 }
 
 
-@Serializable
-data class RaceConfig(
-    val raceId: String,
-    val raceName: String,
-    val placeId: String,
-    val bet: Bet,
-    val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
-    val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
-    val jockeys: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer> = arrayListOf(),
-    val lap: Int = 0,
-    val replacement: HashMap<@Serializable(with = UUIDSerializer::class) UUID, String> = hashMapOf(),
-    val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID> = hashMapOf(),
-)
 
 
-@Serializable
-data class PlaceConfig(
-    val placeId: String,
-    val centralX: Int?,
-    val centralY: Int?,
-    val goalDegree: Int,
-    val reverse: Boolean,
-    val inside: @Serializable(with = PolygonSerializer::class) Polygon,
-    val outside: @Serializable(with = PolygonSerializer::class) Polygon,
-    val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
-    val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
-)
-
-@Serializable
-data class Bet(
-    val available: Boolean = false,
-    val returnPercent: Int = 75,
-    val spreadSheetId: String? = null,
-    val betUnit: Int = 100,
-    val autoReturn: Boolean = false,
-)
-
-// UUID <==> String
-object UUIDSerializer : KSerializer<UUID> {
-    override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return decoder.decodeString().toUUID()
-    }
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-}
-
-// OfflinePlayer <==> UUID
-object OfflinePlayerSerializer : KSerializer<OfflinePlayer> {
-    override val descriptor = PrimitiveSerialDescriptor("OfflinePlayer", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): OfflinePlayer {
-        return Bukkit.getOfflinePlayer(decoder.decodeString().toUUID())
-    }
-
-    override fun serialize(encoder: Encoder, value: OfflinePlayer) {
-        encoder.encodeString(value.uniqueId.toString())
-    }
-}
-
-// Polygon <==> List<List<Int>,List<Int>>
-object PolygonSerializer : KSerializer<Polygon> {
-    override val descriptor = PrimitiveSerialDescriptor("Polygon", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: Polygon) {
-        require(encoder is JsonEncoder)
-        val points: ArrayList<Pair<Int, Int>> = ArrayList()
-        for (i in 0 until value.npoints) {
-            points.add(Pair(value.xpoints[i], value.ypoints[i]))
-        }
-        val encode = PolygonData(points)
-        encoder.encodeJsonElement(json.encodeToJsonElement(encode))
-    }
-
-    override fun deserialize(decoder: Decoder): Polygon {
-        require(decoder is JsonDecoder)
-        val element = decoder.decodeJsonElement()
-        val polygonData = json.decodeFromJsonElement<PolygonData>(element)
-
-        val polygon = Polygon()
-
-        polygonData.points.forEach {
-            polygon.addPoint(it.first, it.second)
-        }
-
-        return polygon
-    }
-}
-
-@Serializable
-data class PolygonData(val points: ArrayList<Pair<Int, Int>>)
-
-@OptIn(ExperimentalSerializationApi::class)
-val json = Json {
-    isLenient = true
-    prettyPrint = true
-    explicitNulls = false
-}

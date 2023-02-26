@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.utils.event.Lang.mm
+import dev.nikomaru.raceassist.utils.Lang.mm
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|raceassist")

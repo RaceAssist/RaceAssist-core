@@ -21,9 +21,9 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.race.utils.InsideCircuit
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 

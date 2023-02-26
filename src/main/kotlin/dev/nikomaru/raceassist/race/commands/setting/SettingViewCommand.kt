@@ -51,10 +51,10 @@ class SettingViewCommand {
         sender.sendMessage("reverce = ${placeData.reverse}")
         sender.sendMessage("goalDegree = ${placeData.goalDegree}")
         sender.sendMessage("-----bet-----")
-        sender.sendMessage("bet-available = ${raceData.bet.available}")
-        sender.sendMessage("bet-returnPercent = ${raceData.bet.returnPercent}")
-        sender.sendMessage("bet-spreadSheetId = ${raceData.bet.spreadSheetId}")
-        sender.sendMessage("bet-betUnit = ${raceData.bet.betUnit}")
+        sender.sendMessage("bet-available = ${raceData.betConfig.available}")
+        sender.sendMessage("bet-returnPercent = ${raceData.betConfig.returnPercent}")
+        sender.sendMessage("bet-spreadSheetId = ${raceData.betConfig.spreadSheetId}")
+        sender.sendMessage("bet-betUnit = ${raceData.betConfig.betUnit}")
 
     }
 

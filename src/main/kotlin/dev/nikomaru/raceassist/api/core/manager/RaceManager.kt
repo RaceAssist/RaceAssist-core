@@ -19,11 +19,12 @@ package dev.nikomaru.raceassist.api.core.manager
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.RaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.data.plugin.RaceConfig
+import dev.nikomaru.raceassist.utils.Lang
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -33,11 +34,10 @@ import java.util.*
 
 class RaceManager(val raceId: String) {
 
-    private lateinit var raceConfig: RaceConfig
 
     init {
-        plugin.launch {
-            raceConfig = RaceUtils.getRaceConfig(raceId)
+        runBlocking {
+            raceConfig[raceId] = RaceUtils.getRaceConfig(raceId)
         }
     }
 
@@ -49,42 +49,17 @@ class RaceManager(val raceId: String) {
     fun copyRace(newRaceId: String, owner: OfflinePlayer) {
         plugin.launch {
             withContext(Dispatchers.IO) {
-                val afterBetData = raceConfig.bet.copy(available = false)
-                val afterData = raceConfig.copy(
+                val afterBetData = raceConfig[raceId]!!.betConfig.copy(available = false)
+                val afterData = raceConfig[raceId]!!.copy(
                     raceId = newRaceId,
                     owner = owner,
                     staff = arrayListOf(owner),
-                    bet = afterBetData,
+                    betConfig = afterBetData,
                     jockeys = arrayListOf()
                 )
                 afterData.save()
             }
         }
-    }
-
-    /**
-     * レースのオーナーを取得します。
-     * @return オーナー
-     */
-    fun getOwner(): OfflinePlayer {
-        return raceConfig.owner
-    }
-
-    /**
-     * レースのスタッフを取得します。
-     * @return スタッフのリスト
-     */
-    fun getJockeys(): ArrayList<OfflinePlayer> {
-        return raceConfig.jockeys
-    }
-
-    /**
-     * レースのスタッフにプレイヤーが含まれているか確認します。
-     * @param player プレイヤー
-     */
-
-    fun existStaff(player: OfflinePlayer): Boolean {
-        return player in raceConfig.staff || player == raceConfig.owner
     }
 
     /**
@@ -105,38 +80,79 @@ class RaceManager(val raceId: String) {
     }
 
     /**
-     * レースの騎手と馬のUUIDを取得します。
-     * @return 騎手と馬のUUIDのMap
-     */
-
-    fun getHorse(): HashMap<UUID, UUID> {
-        return raceConfig.horse
-    }
-
-    /**
      * レースの競技場Idを取得します。
      * @return 競技場Id
      */
 
     fun getPlaceId(): String {
-        return raceConfig.placeId
+        return raceConfig[raceId]!!.placeId
+    }
+
+
+    /**
+     * レースのオーナーを取得します。
+     * @return オーナー
+     */
+    fun getOwner(): OfflinePlayer {
+        return raceConfig[raceId]!!.owner
     }
 
     /**
-     * レースのラップ数を取得します。
-     * @return ラップ数
+     * レースのスタッフを取得します。
+     * @return スタッフのリスト
      */
-
-    fun getLap(): Int {
-        return raceConfig.lap
+    fun getJockeys(): ArrayList<OfflinePlayer> {
+        return raceConfig[raceId]!!.jockeys
     }
 
     /**
-     * 騎手と名前の置き換えを取得します。
-     * @return 騎手と名前の置き換え
+     * レースのスタッフを取得します。
+     * @return スタッフのリスト
      */
-    fun getReplacement(): HashMap<UUID, String> {
-        return raceConfig.replacement
+
+    fun getStaffs(): ArrayList<OfflinePlayer> {
+        return raceConfig[raceId]!!.staff
+    }
+
+    /**
+     * レースのスタッフを追加します。
+     * @param player 追加するプレイヤー
+     * @return 追加できたかどうか(存在したらfalse)
+     */
+
+    fun addStaff(player: OfflinePlayer): Boolean {
+
+        if (player in raceConfig[raceId]!!.staff) {
+            return false
+        }
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(staff = raceConfig[raceId]!!.staff.apply { add(player) })
+        save()
+        return true
+    }
+
+    /**
+     * レースのスタッフを削除します。
+     * @param player 削除するプレイヤー
+     * @return 削除できたかどうか(存在しなかったらfalse)
+     */
+
+    fun removeStaff(player: OfflinePlayer): Boolean {
+        if (player !in raceConfig[raceId]!!.staff) {
+            return false
+        }
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(staff = raceConfig[raceId]!!.staff.apply { remove(player) })
+        save()
+        return true
+    }
+
+
+    /**
+     * レースのスタッフにプレイヤーが含まれているか確認します。
+     * @param player プレイヤー
+     */
+
+    fun existStaff(player: OfflinePlayer): Boolean {
+        return player in raceConfig[raceId]!!.staff || player == raceConfig[raceId]!!.owner
     }
 
     /**
@@ -144,7 +160,7 @@ class RaceManager(val raceId: String) {
      * @param jockey 追加する騎手
      */
     fun addJockey(jockey: OfflinePlayer) {
-        raceConfig = raceConfig.copy(jockeys = raceConfig.jockeys.apply { add(jockey) })
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(jockeys = raceConfig[raceId]!!.jockeys.apply { add(jockey) })
         save()
     }
 
@@ -154,19 +170,27 @@ class RaceManager(val raceId: String) {
      */
 
     fun removeJockey(jockey: OfflinePlayer) {
-        raceConfig = raceConfig.copy(jockeys = raceConfig.jockeys.apply { remove(jockey) })
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(jockeys = raceConfig[raceId]!!.jockeys.apply { remove(jockey) })
         save()
     }
 
+
     /**
-     * レースのコンフィグを保存します。
+     * レースのラップ数を取得します。
+     * @return ラップ数
      */
-    private fun save() {
-        plugin.launch {
-            withContext(Dispatchers.IO) {
-                raceConfig.save()
-            }
-        }
+
+    fun getLap(): Int {
+        return raceConfig[raceId]!!.lap
+    }
+
+
+    /**
+     * 騎手と名前の置き換えを取得します。
+     * @return 騎手と名前の置き換え
+     */
+    fun getReplacement(): HashMap<UUID, String> {
+        return raceConfig[raceId]!!.replacement
     }
 
     /**
@@ -175,7 +199,12 @@ class RaceManager(val raceId: String) {
      */
 
     fun addReplacement(uniqueId: UUID, replacement: String) {
-        raceConfig = raceConfig.copy(replacement = raceConfig.replacement.apply { put(uniqueId, replacement) })
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(replacement = raceConfig[raceId]!!.replacement.apply {
+            put(
+                uniqueId,
+                replacement
+            )
+        })
         save()
     }
 
@@ -185,8 +214,24 @@ class RaceManager(val raceId: String) {
      */
 
     fun removeReplacement(uniqueId: UUID) {
-        raceConfig = raceConfig.copy(replacement = raceConfig.replacement.apply { remove(uniqueId) })
+        raceConfig[raceId] =
+            raceConfig[raceId]!!.copy(replacement = raceConfig[raceId]!!.replacement.apply { remove(uniqueId) })
         save()
+    }
+
+
+    fun deleteReplacement() {
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(replacement = hashMapOf())
+        save()
+    }
+
+    /**
+     * レースの騎手と馬のUUIDを取得します。
+     * @return 騎手と馬のUUIDのMap
+     */
+
+    fun getHorse(): HashMap<UUID, UUID> {
+        return raceConfig[raceId]!!.horse
     }
 
     /**
@@ -195,7 +240,8 @@ class RaceManager(val raceId: String) {
      */
 
     fun removeHorse(uniqueId: UUID) {
-        raceConfig = raceConfig.copy(horse = raceConfig.horse.apply { remove(uniqueId) })
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(horse = raceConfig[raceId]!!.horse.apply { remove(uniqueId) })
+        save()
     }
 
     /**
@@ -203,47 +249,66 @@ class RaceManager(val raceId: String) {
      */
 
     fun deleteHorse() {
-        raceConfig = raceConfig.copy(horse = hashMapOf())
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(horse = hashMapOf())
+        save()
     }
 
-    fun setHorse(player: UUID, horse: UUID) {
-        raceConfig = raceConfig.copy(horse = raceConfig.horse.apply { put(player, horse) })
+    /**
+     * レースの競技場を設定します。
+     * @param placeId 競技場
+     */
+    fun setPlaceId(placeId: String) {
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(placeId = placeId)
+        save()
     }
+
+    /**
+     * レースのLapを設定します。
+     * @param lap Lap
+     */
 
     fun setLap(lap: Int) {
-        raceConfig = raceConfig.copy(lap = lap)
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(lap = lap)
+        save()
     }
 
-    fun setPlaceId(placeId: String) {
-        raceConfig = raceConfig.copy(placeId = placeId)
-    }
+    /**
+     * 騎手と名前の置き換えを設定します。
+     * @param player 騎手
+     * @param replacement 置き換える名前
+     */
 
     fun setReplacement(player: UUID, replacement: String) {
-        raceConfig = raceConfig.copy(replacement = raceConfig.replacement.apply { put(player, replacement) })
+        raceConfig[raceId] =
+            raceConfig[raceId]!!.copy(replacement = raceConfig[raceId]!!.replacement.apply { put(player, replacement) })
+        save()
     }
 
-    fun deleteReplacement() {
-        raceConfig = raceConfig.copy(replacement = hashMapOf())
+    /**
+     * 騎手と馬のUUIDを設定します。
+     * @param player 騎手
+     * @param horse 馬
+     */
+
+    fun setHorse(player: UUID, horse: UUID) {
+        raceConfig[raceId] = raceConfig[raceId]!!.copy(horse = raceConfig[raceId]!!.horse.apply { put(player, horse) })
+        save()
     }
 
-    fun addStaff(player: OfflinePlayer): Boolean {
-        if (player in raceConfig.staff) {
-            return false
+
+    /**
+     * レースのコンフィグを保存します。
+     */
+    private fun save() {
+        plugin.launch {
+            withContext(Dispatchers.IO) {
+                raceConfig[raceId]!!.save()
+            }
         }
-        raceConfig = raceConfig.copy(staff = raceConfig.staff.apply { add(player) })
-        return true
     }
 
-    fun removeStaff(player: OfflinePlayer): Boolean {
-        if (player !in raceConfig.staff) {
-            return false
-        }
-        raceConfig = raceConfig.copy(staff = raceConfig.staff.apply { remove(player) })
-        return true
-    }
-
-    fun getStaffs(): ArrayList<OfflinePlayer> {
-        return raceConfig.staff
+    companion object {
+        val raceConfig = hashMapOf<String, RaceConfig>()
     }
 
 

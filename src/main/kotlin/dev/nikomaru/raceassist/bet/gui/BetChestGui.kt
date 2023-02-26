@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.bet.gui
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils.getOdds
 import dev.nikomaru.raceassist.bet.GuiComponent
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextColor
@@ -53,7 +53,7 @@ class BetChestGui {
         for (i in 0 until 45) {
             gui.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         }
-        // IFに置き換えるよてい https://github.com/stefvanschie/IF
+        //TODO IFに置き換えるよてい https://github.com/stefvanschie/IF
         for (i in 0 until players.size) {
             val item = ItemStack(Material.PLAYER_HEAD, 1)
             val meta: SkullMeta = item.itemMeta as SkullMeta

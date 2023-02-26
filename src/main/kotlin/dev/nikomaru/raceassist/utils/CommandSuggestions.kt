@@ -19,10 +19,15 @@ package dev.nikomaru.raceassist.utils
 
 import cloud.commandframework.annotations.suggestions.Suggestions
 import cloud.commandframework.context.CommandContext
+import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.data.database.BetList
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.io.File
 
 open class CommandSuggestions {
@@ -72,7 +77,6 @@ open class CommandSuggestions {
 
     @Suggestions("operatePlaceId")
     fun suggestOperatePlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
-
         val list = runBlocking {
             val placeIds = ArrayList<String>()
             File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
@@ -96,6 +100,19 @@ open class CommandSuggestions {
     @Suggestions("betType")
     fun suggestBetType(sender: CommandContext<CommandSender>, input: String?): List<String> {
         return listOf("on", "off")
+    }
+
+    @Suggestions("betUniqueId")
+    fun suggestBetUniqueId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = ArrayList<String>()
+        plugin.launch {
+            newSuspendedTransaction {
+                BetList.selectAll().forEach {
+                    list.add(it[BetList.rowUniqueId].toString())
+                }
+            }
+        }
+        return list
     }
 
 }

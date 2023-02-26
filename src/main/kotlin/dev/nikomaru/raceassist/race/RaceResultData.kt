@@ -17,8 +17,8 @@
 
 package dev.nikomaru.raceassist.race
 
-import dev.nikomaru.raceassist.data.files.PolygonSerializer
-import dev.nikomaru.raceassist.data.files.UUIDSerializer
+import dev.nikomaru.raceassist.data.utils.PolygonSerializer
+import dev.nikomaru.raceassist.data.utils.UUIDSerializer
 import dev.nikomaru.raceassist.horse.data.KZonedDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.awt.Polygon

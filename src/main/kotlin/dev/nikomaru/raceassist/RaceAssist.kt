@@ -47,7 +47,6 @@ import dev.nikomaru.raceassist.utils.*
 import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import dev.nikomaru.raceassist.utils.event.Lang
 import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.*
@@ -116,7 +115,7 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
                 url = "jdbc:mysql://${Config.config.mySQL!!.url}",
                 driver = "com.mysql.cj.jdbc.Driver",
                 user = Config.config.mySQL!!.username,
-                password = Config.config.mySQL!!.password
+                password = Config.config.mySQL!!.password,
             )
 
             transaction {
@@ -231,9 +230,9 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
                     string += "$argument "
                 }
                 string = StringUtils.removeEnd(string, " ")
-                commandList.add("` $string ` <br>")
+                commandList.add("コマンド : ` $string ` <br>")
                 permissionList.add("\"${command.commandPermission}\"")
-                commandList.add("permission: ` ${command.commandPermission} ` <br>")
+                commandList.add("権限 : ` ${command.commandPermission} ` <br>")
                 commandList.add("")
             }
             println(permissionList)
@@ -256,6 +255,7 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
 
         lateinit var api: RaceAssistAPI
             private set
+
     }
 
     override fun getBetManager(raceId: String): BetManager? {
@@ -286,6 +286,7 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
     override fun getDataManager(): DataManager {
         return DataManager()
     }
+
 }
 
 

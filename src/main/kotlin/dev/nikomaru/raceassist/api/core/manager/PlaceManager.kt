@@ -15,17 +15,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@file:Suppress("MemberVisibilityCanBePrivate", "MemberVisibilityCanBePrivate", "MemberVisibilityCanBePrivate")
 
 package dev.nikomaru.raceassist.api.core.manager
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceConfig
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.data.files.RaceUtils.getPlaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Utils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -33,25 +34,22 @@ import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import java.awt.Polygon
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 
-@Suppress("MemberVisibilityCanBePrivate", "MemberVisibilityCanBePrivate", "MemberVisibilityCanBePrivate")
-class PlaceManager(val placeId: String) {
-
-    private lateinit var placeConfig: PlaceConfig
+class PlaceManager(private val placeId: String) {
 
     init {
-        plugin.launch {
-            placeConfig = RaceUtils.getPlaceConfig(placeId)
+        runBlocking {
+            placeConfig[placeId] = getPlaceConfig(placeId)
         }
     }
-
 
     /**
      * 競技場の中心点のX座標を取得します。
      * @return 競技場の中心点のX座標
      */
     fun getCentralPointX(): Int? {
-        return placeConfig.centralX
+        return placeConfig[placeId]!!.centralX
     }
 
     /**
@@ -60,7 +58,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getCentralPointY(): Int? {
-        return placeConfig.centralY
+        return placeConfig[placeId]!!.centralY
     }
 
     /**
@@ -69,7 +67,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getGoalDegree(): Int {
-        return placeConfig.goalDegree
+        return placeConfig[placeId]!!.goalDegree
     }
 
     /**
@@ -78,7 +76,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getReverse(): Boolean {
-        return placeConfig.reverse
+        return placeConfig[placeId]!!.reverse
     }
 
     /**
@@ -87,7 +85,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getInside(): Polygon {
-        return placeConfig.inside
+        return placeConfig[placeId]!!.inside
     }
 
 
@@ -106,7 +104,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getOutside(): Polygon {
-        return placeConfig.outside
+        return placeConfig[placeId]!!.outside
     }
 
     /**
@@ -127,12 +125,21 @@ class PlaceManager(val placeId: String) {
     }
 
     /**
+     * 競技場の画像を取得します。
+     * @return　競技場の画像のbase64
+     */
+
+    fun getImage(): String? {
+        return placeConfig[placeId]!!.image
+    }
+
+    /**
      * 競技場のオーナーを取得します。
      * @return 競技場のオーナー
      */
 
     fun getOwner(): OfflinePlayer {
-        return placeConfig.owner
+        return placeConfig[placeId]!!.owner
     }
 
     /**
@@ -141,7 +148,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun getStaffs(): List<OfflinePlayer> {
-        return placeConfig.staff
+        return placeConfig[placeId]!!.staff
     }
 
     fun calculateLength(): Double {
@@ -165,7 +172,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setCentralPointX(x: Int) {
-        placeConfig = placeConfig.copy(centralX = x)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(centralX = x)
         save()
     }
 
@@ -175,7 +182,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setCentralPointY(y: Int) {
-        placeConfig = placeConfig.copy(centralY = y)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(centralY = y)
         save()
     }
 
@@ -185,7 +192,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setGoalDegree(degree: Int) {
-        placeConfig = placeConfig.copy(goalDegree = degree)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(goalDegree = degree)
         save()
     }
 
@@ -195,7 +202,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setReverse(reverse: Boolean) {
-        placeConfig = placeConfig.copy(reverse = reverse)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(reverse = reverse)
         save()
     }
 
@@ -205,7 +212,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setInside(polygon: Polygon) {
-        placeConfig = placeConfig.copy(inside = polygon)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(inside = polygon)
         save()
     }
 
@@ -215,8 +222,26 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setOutside(polygon: Polygon) {
-        placeConfig = placeConfig.copy(outside = polygon)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(outside = polygon)
+        plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable { refreshImage() })
         save()
+    }
+
+    fun refreshImage() {
+        val rectangle = getOutside().bounds2D
+        lateinit var image: String
+        plugin.launch {
+            withContext(Dispatchers.IO) {
+                image = Utils.createImage(
+                    rectangle.minX.roundToInt() - 10,
+                    rectangle.maxX.roundToInt() + 10,
+                    rectangle.minY.roundToInt() - 10,
+                    rectangle.maxY.roundToInt() + 10
+                )
+                placeConfig[placeId] = placeConfig[placeId]!!.copy(image = image)
+                save()
+            }
+        }
     }
 
     /**
@@ -225,7 +250,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setOwner(owner: OfflinePlayer) {
-        placeConfig = placeConfig.copy(owner = owner)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(owner = owner)
         save()
     }
 
@@ -235,7 +260,8 @@ class PlaceManager(val placeId: String) {
      */
 
     fun existStaff(player: OfflinePlayer): Boolean {
-        return player in placeConfig.staff || player == placeConfig.owner
+
+        return player in placeConfig[placeId]!!.staff || player == placeConfig[placeId]!!.owner
     }
 
     /**
@@ -244,7 +270,7 @@ class PlaceManager(val placeId: String) {
      */
 
     fun setStaffs(staffs: ArrayList<OfflinePlayer>) {
-        placeConfig = placeConfig.copy(staff = staffs)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(staff = staffs)
         save()
     }
 
@@ -254,10 +280,10 @@ class PlaceManager(val placeId: String) {
      */
 
     fun addStaff(player: OfflinePlayer): Boolean {
-        val staffs = placeConfig.staff
+        val staffs = placeConfig[placeId]!!.staff
         if (player in staffs) return false
         staffs.add(player)
-        placeConfig = placeConfig.copy(staff = staffs)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(staff = staffs)
         save()
         return true
     }
@@ -268,10 +294,10 @@ class PlaceManager(val placeId: String) {
      */
 
     fun removeStaff(player: OfflinePlayer): Boolean {
-        val staffs = placeConfig.staff
+        val staffs = placeConfig[placeId]!!.staff
         if (player !in staffs) return false
         staffs.remove(player)
-        placeConfig = placeConfig.copy(staff = staffs)
+        placeConfig[placeId] = placeConfig[placeId]!!.copy(staff = staffs)
         save()
         return true
     }
@@ -293,6 +319,7 @@ class PlaceManager(val placeId: String) {
         return true
     }
 
+
     /**
      * 競技場の設定を保存します。
      */
@@ -300,9 +327,13 @@ class PlaceManager(val placeId: String) {
     private fun save() {
         plugin.launch {
             withContext(Dispatchers.IO) {
-                placeConfig.save()
+                placeConfig[placeId]!!.save()
             }
         }
+    }
+
+    companion object {
+        val placeConfig: HashMap<String, PlaceConfig> = HashMap()
     }
 
 

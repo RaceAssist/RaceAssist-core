@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.bet
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack

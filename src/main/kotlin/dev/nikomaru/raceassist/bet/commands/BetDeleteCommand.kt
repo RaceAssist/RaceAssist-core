@@ -20,9 +20,7 @@ package dev.nikomaru.raceassist.bet.commands
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.utils.event.Lang
-import dev.nikomaru.raceassist.utils.event.LogDataType
-import dev.nikomaru.raceassist.utils.event.bet.DeleteBetData
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -45,12 +43,6 @@ class BetDeleteCommand {
         sender.sendMessage(Lang.getComponent("bet-remove-race", sender.locale(), raceId))
         //TODO event call
 
-        val data = DeleteBetData(
-            type = LogDataType.BET,
-            raceId = raceId,
-            executor = sender.uniqueId,
-            deleteBetDataList = deleteDataList
-        )
 
     }
 

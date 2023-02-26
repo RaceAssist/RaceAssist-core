@@ -58,7 +58,7 @@ interface RaceAssistAPI {
     fun getWebManager(): WebManager?
 
     /**
-     * Createマネージャーを取得します。
+     * Dataマネージャーを取得します。
      */
 
     fun getDataManager(): DataManager

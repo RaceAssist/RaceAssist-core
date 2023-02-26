@@ -22,12 +22,13 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.data.files.*
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.displayLap
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import dev.nikomaru.raceassist.utils.Utils.judgeLap
 import dev.nikomaru.raceassist.utils.Utils.stop
+import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import dev.nikomaru.raceassist.utils.event.Lang
 import kotlinx.coroutines.*
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
@@ -116,7 +117,11 @@ class RaceDebugCommand {
                 val calculateLap = async(Dispatchers.Default) {
                     currentLap += judgeLap(goalDegree, beforeDegree, currentDegree, threshold)
                     passBorders += judgeLap(0, beforeDegree, currentDegree, threshold)
-                    displayLap(currentLap, beforeLap, sender, lap)
+                    plugin.launch {
+                        async(Dispatchers.async) {
+                            displayLap(currentLap, beforeLap, sender, lap)
+                        }
+                    }
                     beforeDegree = currentDegree
                     totalDegree = currentDegree + (passBorders * 360)
                 }

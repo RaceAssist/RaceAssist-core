@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.horse.events
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump

@@ -17,6 +17,7 @@
 package dev.nikomaru.raceassist.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -37,6 +38,7 @@ object Config {
     @OptIn(ExperimentalSerializationApi::class)
     fun reload() {
         load()
+        WebAPI.stopServer()
         plugin.settingWebAPI()
     }
 

@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 data class BetListData(
-    val rowNum: Int,
+    val rowUniqueId: UUID,
     val timeStamp: LocalDateTime,
     val playerUUID: UUID,
     val jockeyUUID: UUID,

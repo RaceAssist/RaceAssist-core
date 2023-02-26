@@ -15,10 +15,25 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.web.data
+package dev.nikomaru.raceassist.data.plugin
 
+import dev.nikomaru.raceassist.data.utils.OfflinePlayerSerializer
+import dev.nikomaru.raceassist.data.utils.PolygonSerializer
 import kotlinx.serialization.Serializable
-
+import org.bukkit.OfflinePlayer
+import java.awt.Polygon
 
 @Serializable
-data class History(val raceId: String, val rank: Int)
+data class PlaceConfig(
+    val placeId: String,
+    val placeName: String?,
+    val centralX: Int?,
+    val centralY: Int?,
+    val goalDegree: Int,
+    val reverse: Boolean,
+    val inside: @Serializable(with = PolygonSerializer::class) Polygon,
+    val outside: @Serializable(with = PolygonSerializer::class) Polygon,
+    val image: String?,
+    val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
+    val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+)

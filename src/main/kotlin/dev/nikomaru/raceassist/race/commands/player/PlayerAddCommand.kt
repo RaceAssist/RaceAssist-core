@@ -19,8 +19,8 @@ package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
-import dev.nikomaru.raceassist.utils.event.Lang
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender

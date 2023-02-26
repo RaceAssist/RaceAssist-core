@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.race.commands.setting
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.event.Lang
+import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -31,8 +31,8 @@ class SettingCopyCommand {
     @CommandMethod("copy <raceId1> <raceId2>")
     suspend fun copy(
         sender: CommandSender,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId1") raceId1: String,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId2", suggestions = "raceId") raceId2: String
+        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId1", suggestions = "raceId") raceId1: String,
+        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId2") raceId2: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

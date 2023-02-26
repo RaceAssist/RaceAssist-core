@@ -18,10 +18,10 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.Bet
-import dev.nikomaru.raceassist.data.files.PlaceConfig
-import dev.nikomaru.raceassist.data.files.RaceConfig
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.plugin.BetConfig
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
+import dev.nikomaru.raceassist.data.plugin.RaceConfig
+import dev.nikomaru.raceassist.data.utils.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.encodeToJsonElement
@@ -46,7 +46,8 @@ class DataManager {
             return@withContext false
         }
 
-        val placeConfig = PlaceConfig(placeId, null, null, 0, false, Polygon(), Polygon(), owner, arrayListOf(owner))
+        val placeConfig =
+            PlaceConfig(placeId, placeId, null, null, 0, false, Polygon(), Polygon(), null, owner, arrayListOf(owner))
         val json = json.encodeToJsonElement(placeConfig)
         val string = json.toString()
 
@@ -74,14 +75,13 @@ class DataManager {
             if (file.exists()) {
                 return@withContext false
             }
-            val raceName = raceId.split("-")[0]
 
-            val bet = Bet()
+            val betConfig = BetConfig()
             val raceConfig = RaceConfig(
                 raceId,
-                raceName,
+                raceId,
                 placeId,
-                bet,
+                betConfig,
                 owner,
                 arrayListOf(owner),
                 arrayListOf(),

@@ -18,7 +18,6 @@
 package dev.nikomaru.raceassist.utils
 
 import dev.nikomaru.raceassist.utils.coroutines.async
-import dev.nikomaru.raceassist.utils.event.Lang
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
@@ -35,7 +34,6 @@ import net.kyori.adventure.title.Title.title
 import org.bukkit.Bukkit
 import org.bukkit.HeightMap
 import org.bukkit.OfflinePlayer
-import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Horse
 import org.bukkit.entity.Player
@@ -102,28 +100,36 @@ object Utils {
         }
     }
 
-    private fun getBlockColor(x: Int, z: Int, world: World): String {
-        val block = world.getHighestBlockAt(x, z, HeightMap.WORLD_SURFACE)
-        val key = block.blockData.material.key.asString()
-        val color = mapColor.getProperty(key) ?: "#000000"
-        if (color == "#000000") {
-            println(key)
-        }
-        return color
-    }
 
-    suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.IO) {
+    suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.async) {
         val image = BufferedImage(abs(x1 - x2) + 9, abs(y1 - y2) + 9, BufferedImage.TYPE_3BYTE_BGR)
 
         val sizeX = abs(x1 - x2) + 8
         val sizeY = abs(y1 - y2) + 8
+        val world = Bukkit.getWorld("world")!!
+        val notExist = hashSetOf<String>()
+
+        val size = sizeX * sizeY
+        var count = 0L
+        var displayCount = size / 10
         for (x in min(x1, x2) - 4..max(x1, x2) + 4) {
             for (y in min(y1, y2) - 4..max(y1, y2) + 4) {
                 val relativeX = sizeX - (x - (min(x1, x2) - 4))
                 val relativeY = sizeY - (y - (min(y1, y2) - 4))
-                val hex = getBlockColor(x, y, Bukkit.getWorld("world")!!).replace("#", "")
+                val block = world.getHighestBlockAt(x, y, HeightMap.WORLD_SURFACE)
+                val key = block.blockData.material.key.asString()
+                val color = mapColor.getProperty(key) ?: run {
+                    notExist.add(key)
+                    "#000000"
+                }
+                val hex = color.replace("#", "")
                 val rgb = hex.toInt(16)
                 image.setRGB(relativeX, relativeY, rgb)
+                count++
+                if (count >= displayCount) {
+                    displayCount += size / 10
+                    Bukkit.getLogger().info("Image creating : ${count * 100 / size}%")
+                }
             }
         }
 

@@ -19,11 +19,13 @@ package dev.nikomaru.raceassist.race
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.api.core.manager.RaceManager
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.RaceAudience
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
@@ -32,7 +34,6 @@ import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import dev.nikomaru.raceassist.utils.event.Lang
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
@@ -217,10 +218,10 @@ class RaceJudgement(private val raceId: String, private val executor: CommandSen
         val uuidToName = jockeys.associate { it.uniqueId to it.name } as HashMap<UUID, String>
 
         val rectangleData = RectangleData(
-            outsidePolygon.bounds2D.minX.roundToInt() - 4,
-            outsidePolygon.bounds2D.minY.roundToInt() - 4,
-            outsidePolygon.bounds2D.maxX.roundToInt() + 4,
-            outsidePolygon.bounds2D.maxY.roundToInt() + 4
+            outsidePolygon.bounds2D.minX.roundToInt() - 10,
+            outsidePolygon.bounds2D.minY.roundToInt() - 10,
+            outsidePolygon.bounds2D.maxX.roundToInt() + 10,
+            outsidePolygon.bounds2D.maxY.roundToInt() + 10
         )
         val horses: HashMap<UUID, UUID> = HashMap()
         jockeys.forEach {
@@ -490,7 +491,11 @@ class RaceJudgement(private val raceId: String, private val executor: CommandSen
             currentLap[uuid] =
                 currentLap[uuid]!! + Utils.judgeLap(goalDegree, beforeDegree[uuid], currentDegree, threshold)
             passBorders[uuid] = passBorders[uuid]!! + Utils.judgeLap(0, beforeDegree[uuid], currentDegree, threshold)
-            Utils.displayLap(currentLap[uuid], beforeLap, player, lap)
+            plugin.launch {
+                async(Dispatchers.async) {
+                    Utils.displayLap(currentLap[uuid], beforeLap, player, lap)
+                }
+            }
             beforeDegree[uuid] = currentDegree
             totalDegree[uuid] = currentDegree + (passBorders[uuid]!! * 360)
 
@@ -574,7 +579,11 @@ class RaceJudgement(private val raceId: String, private val executor: CommandSen
         }
 
         for (i in 0 until finishJockeys.size) {
-            audiences.sendMessageI18n("to-notice-ranking-message", i + 1, Bukkit.getPlayer(finishJockeys[i])?.name!!)
+            audiences.sendMessageI18n(
+                "to-notice-ranking-message",
+                i + 1,
+                Bukkit.getPlayer(finishJockeys[i])?.name!!
+            )
         }
 
 

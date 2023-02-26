@@ -17,7 +17,7 @@
 
 package dev.nikomaru.raceassist.horse.data
 
-import dev.nikomaru.raceassist.data.files.UUIDSerializer
+import dev.nikomaru.raceassist.data.utils.UUIDSerializer
 import dev.nikomaru.raceassist.web.data.History
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

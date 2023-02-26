@@ -20,8 +20,6 @@ package dev.nikomaru.raceassist.web
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.utils.Utils.passwordHash
-import dev.nikomaru.raceassist.utils.event.LogDataType
-import dev.nikomaru.raceassist.utils.event.web.RegisterWebAccountData
 import kotlinx.coroutines.Dispatchers
 import org.apache.commons.lang.RandomStringUtils
 import org.bukkit.command.CommandSender
@@ -29,7 +27,6 @@ import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.time.ZonedDateTime
 
 @CommandMethod("ra|RaceAssist web")
 @CommandPermission("raceassist.commands.web")
@@ -45,7 +42,7 @@ class WebCommand {
             UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
         }
         if (exist) {
-            sender.sendMessage("すでに登録されています リセットする場合は /ra web resetを実行してください")
+            sender.sendMessage("すでに登録されています /ra web resetを実行して削除した後もう一度実行してください")
             return
         }
         val password = RandomStringUtils.randomAlphanumeric(20)
@@ -56,8 +53,6 @@ class WebCommand {
                 it[UserAuthData.hashedPassword] = hashedPassword
             }
         }
-        //TODO event call
-        RegisterWebAccountData(LogDataType.WEB, ZonedDateTime.now(), uuid)
 
         sender.sendRichMessage("パスワードは $password です <yellow><click:copy_to_clipboard:'$password'>クリックでコピー</click></yellow>")
     }
@@ -75,14 +70,10 @@ class WebCommand {
             sender.sendRichMessage("登録されていません まずは /ra web registerを実行してください")
             return
         }
-        val password = RandomStringUtils.randomAlphanumeric(20)
-        val hashedPassword = passwordHash(password)
         newSuspendedTransaction(Dispatchers.IO) {
-            UserAuthData.update({ UserAuthData.uuid eq uuid.toString() }) {
-                it[UserAuthData.hashedPassword] = hashedPassword
-            }
+            UserAuthData.deleteWhere { UserAuthData.uuid eq uuid.toString() }
         }
-        sender.sendRichMessage("パスワードは $password です <yellow><click:copy_to_clipboard:'$password'>クリックでコピー</click></yellow>")
+        sender.sendRichMessage("ログインパスワードの削除が完了しました。")
     }
 
 }
