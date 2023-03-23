@@ -275,7 +275,7 @@ class RaceJudgement(private val raceId: String, private val executor: CommandSen
     }
 
     private suspend fun sendResultWebHook(raceResultData: RaceResultData) {
-        Config.config.resultWebhook.forEach {
+        Config.config.webAPI?.recordUrl?.forEach {
             var editUrl = it.url
             if (editUrl.last() != '/') {
                 editUrl += "/"

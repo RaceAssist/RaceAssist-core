@@ -18,7 +18,9 @@ package dev.nikomaru.raceassist.files
 
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.web.api.WebAPI
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -52,7 +54,7 @@ object Config {
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf())
         val recordHorse = RecordHorse(13.5, 3.8)
         val configData =
-            ConfigData(version, 40, 200, discordWebHook, spreadSheet, recordHorse, arrayListOf(), null, 600000, null)
+            ConfigData(version, 40, 200, discordWebHook, spreadSheet, recordHorse, null, 600000, null)
 
         val string = json.encodeToString(configData)
 

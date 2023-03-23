@@ -23,7 +23,7 @@ import java.util.*
 data class BetListData(
     val rowUniqueId: UUID,
     val timeStamp: LocalDateTime,
-    val playerUUID: UUID,
-    val jockeyUUID: UUID,
+    val playerUniqueId: UUID,
+    val jockeyUniqueId: UUID,
     val betting: Int
 )

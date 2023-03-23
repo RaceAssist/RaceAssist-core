@@ -156,7 +156,7 @@ object HorseUtils {
         }
 
         withContext(Dispatchers.IO) {
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"
@@ -189,7 +189,7 @@ object HorseUtils {
         withContext(Dispatchers.IO) {
             val dataString = json.encodeToString(afterData)
             file.writeText(dataString)
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"

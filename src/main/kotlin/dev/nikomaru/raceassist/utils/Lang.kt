@@ -76,5 +76,4 @@ object Lang {
         return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
     }
 
-
 }

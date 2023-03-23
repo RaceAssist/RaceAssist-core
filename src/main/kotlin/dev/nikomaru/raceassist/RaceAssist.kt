@@ -32,6 +32,7 @@ import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.horse.events.HorseKillEvent
@@ -207,6 +208,7 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
             parse(ReloadCommand())
 
             parse(OwnerDeleteCommand())
+            parse(HorseDetectCommand())
 
         }
         if (Config.config.webAPI != null) {

@@ -22,12 +22,10 @@ import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.kyori.adventure.title.Title.title
@@ -223,15 +221,8 @@ object Utils {
     }
 
     val client = HttpClient(Java) {
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.INFO
-        }
         install(ContentNegotiation) {
-            json(Json {
-                isLenient = true
-                prettyPrint = true
-            })
+            json(dev.nikomaru.raceassist.data.utils.json)
         }
         Charsets {
             register(Charsets.UTF_8)

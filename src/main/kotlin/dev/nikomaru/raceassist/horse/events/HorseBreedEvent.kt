@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcMaxHealth
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.saveData
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import io.ktor.client.request.*
@@ -31,6 +32,8 @@ import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.sound.Sound
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Horse
 import org.bukkit.event.EventHandler
@@ -52,6 +55,9 @@ class HorseBreedEvent : Listener {
         }
         val mother = event.mother as Horse
         val father = event.father as Horse
+
+        mother.saveData()
+        father.saveData()
 
         val data = HorseData(
             horse.uniqueId,
@@ -80,8 +86,9 @@ class HorseBreedEvent : Listener {
 
         withContext(Dispatchers.IO) { file.writeText(dataString) }
 
+
         withContext(Dispatchers.IO) {
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"
@@ -98,6 +105,12 @@ class HorseBreedEvent : Listener {
                 }
             }
         }
+
+        val url = Config.config.webAPI?.webPage?.run {
+            if (this.last() == '/') this + "horse/${horse.uniqueId}" else this + "/horse/${horse.uniqueId}"
+        } ?: ""
+        event.breeder?.sendRichMessage("UUID : ${horse.uniqueId} の馬のデータを記録しました <click:open_url:'$url'><yellow>[</yellow>クリックで開く<yellow>]</yellow></click>")
+        event.breeder?.playSound(Sound.sound(Key.key("block.note_block.bell"), Sound.Source.BLOCK, 1f, 1f))
     }
 
 }

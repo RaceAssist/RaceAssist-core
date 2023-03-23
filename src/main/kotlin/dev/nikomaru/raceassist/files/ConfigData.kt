@@ -27,7 +27,6 @@ data class ConfigData(
     val discordWebHook: DiscordWebHook,
     val spreadSheet: SpreadSheet,
     val recordHorse: RecordHorse,
-    val resultWebhook: ArrayList<ResultWebhook>,
     val webAPI: WebAPI?,
     val raceLimitMilliSecond: Long,
     val mySQL: MySQL?,
@@ -45,8 +44,6 @@ data class DiscordWebHook(
 @Serializable
 data class RecordHorse(val minSpeed: Double, val minJump: Double)
 
-@Serializable
-data class ResultWebhook(val url: String, val name: String, val password: String)
 
 @Serializable
 data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
@@ -57,7 +54,8 @@ data class WebAPI(
     val sslPort: Int,
     val sslSetting: SslSetting,
     val jwtConfig: JWTConfig?,
-    val recordUrl: ArrayList<RecordLog>
+    val recordUrl: ArrayList<RecordLog>,
+    val webPage: String? = null
 )
 
 @Serializable

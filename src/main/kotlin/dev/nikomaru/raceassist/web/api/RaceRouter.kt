@@ -30,6 +30,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
 import org.bukkit.command.CommandSender
 
 object RaceRouter {
@@ -37,7 +38,7 @@ object RaceRouter {
         route("/race") {
             get("/list") {
                 val list = arrayListOf<String>()
-                RaceAssist.plugin.dataFolder.resolve("RaceData").listFiles().forEach {
+                RaceAssist.plugin.dataFolder.resolve("RaceData").listFiles()?.forEach {
                     list.add(it.nameWithoutExtension)
                 }
                 return@get call.respond(hashMapOf("data" to RaceList(list)))
@@ -93,6 +94,7 @@ object RaceRouter {
 
 }
 
+@Serializable
 data class RaceList(
     val list: ArrayList<String>
 )

@@ -38,7 +38,7 @@ object PlaceRouter {
         route("/place") {
             get("/list") {
                 val list = arrayListOf<String>()
-                RaceAssist.plugin.dataFolder.resolve("PlaceData").listFiles().forEach {
+                RaceAssist.plugin.dataFolder.resolve("PlaceData").listFiles()?.forEach {
                     list.add(it.nameWithoutExtension)
                 }
                 call.respond(hashMapOf("data" to PlaceList(list)))

@@ -122,7 +122,7 @@ bukkit {
     name = "RaceAssist"
     //minecraft_plugin_version
     version = "minecraft_plugin_version"
-    website = "https://docs-raceassist.nikomaru.dev/"
+    website = "https://docs-raceassist.ikomaru.dev/"
 
     main = "dev.nikomaru.raceassist.RaceAssist"
 

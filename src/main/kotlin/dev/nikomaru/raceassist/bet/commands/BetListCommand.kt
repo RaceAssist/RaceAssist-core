@@ -42,8 +42,8 @@ class BetListCommand {
             return
         }
         list.forEach {
-            val jockeyName = Bukkit.getOfflinePlayer(it.jockeyUUID).name
-            val betPlayerName = Bukkit.getOfflinePlayer(it.playerUUID).name
+            val jockeyName = Bukkit.getOfflinePlayer(it.jockeyUniqueId).name
+            val betPlayerName = Bukkit.getOfflinePlayer(it.playerUniqueId).name
             sender.sendMessage(
                 Lang.getComponent(
                     "bet-list-detail-message",
