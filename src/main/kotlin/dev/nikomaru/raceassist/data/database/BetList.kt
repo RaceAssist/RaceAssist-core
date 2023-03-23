@@ -21,12 +21,10 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 
 object BetList : Table() {
-    val rowNum = integer("rowNum")
+    val rowUniqueId = varchar("rowNum", 40)
     val raceId = varchar("raceId", 30)
     val timeStamp = datetime("timeStamp")
-    val playerName = varchar("playerName", 16)
-    val playerUUID = varchar("playerUUID", 40)
-    val jockey = varchar("jockey", 16)
-    val jockeyUUID = varchar("jockeyUUID", 40)
-    val betting = integer("betting")
+    val playerUniqueId = varchar("playerUUID", 40)
+    val jockeyUniqueId = varchar("jockeyUUID", 40)
+    val betting = integer("betting") // 賭けられた金額 3単位*1000 なら 3000
 }

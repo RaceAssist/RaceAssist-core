@@ -17,42 +17,46 @@
 
 package dev.nikomaru.raceassist.utils
 
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.coroutines.async
-import kotlinx.coroutines.*
+import io.ktor.client.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.kyori.adventure.title.Title.title
-import okhttp3.OkHttpClient
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.HeightMap
+import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Horse
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.awt.image.BufferedImage
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.*
-import java.util.concurrent.*
 import javax.imageio.ImageIO
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.min
 
 object Utils {
 
     val audience: HashMap<String, ArrayList<UUID>> = HashMap()
     val canSetInsideCircuit = HashMap<UUID, Boolean>()
     val canSetOutsideCircuit = HashMap<UUID, Boolean>()
-    val circuitRaceId = HashMap<UUID, String>()
+    val circuitPlaceId = HashMap<UUID, String>()
     val canSetCentral = HashMap<UUID, Boolean>()
     val centralPlaceId = HashMap<UUID, String>()
     var stop = HashMap<String, Boolean>()
     lateinit var mapColor: Properties
-
-    suspend fun getInsideRaceExist(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        PlaceSettingData.getInsidePolygon(raceId).npoints > 0
-    }
 
     suspend fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {
         if (currentLap == null || beforeLap == null) {
@@ -65,45 +69,65 @@ object Utils {
         withContext(Dispatchers.async) {
             if (currentLap > beforeLap) {
                 if (currentLap == lap - 1) {
-                    player.showTitle(title((Lang.getComponent("last-lap", player.locale())),
-                        Lang.getComponent("one-step-forward-lap", player.locale())))
+                    player.showTitle(
+                        title(
+                            (Lang.getComponent("last-lap", player.locale())),
+                            Lang.getComponent("one-step-forward-lap", player.locale())
+                        )
+                    )
                 } else {
-                    player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                        Lang.getComponent("one-step-forward-lap", player.locale())))
+                    player.showTitle(
+                        title(
+                            Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                            Lang.getComponent("one-step-forward-lap", player.locale())
+                        )
+                    )
                 }
                 delay(count)
                 player.clearTitle()
             } else if (currentLap < beforeLap) {
-                player.showTitle(title(Lang.getComponent("now-lap", player.locale(), currentLap, lap),
-                    Lang.getComponent("one-step-backwards-lap", player.locale())))
+                player.showTitle(
+                    title(
+                        Lang.getComponent("now-lap", player.locale(), currentLap, lap),
+                        Lang.getComponent("one-step-backwards-lap", player.locale())
+                    )
+                )
                 delay(count)
                 player.clearTitle()
             }
         }
     }
 
-    private fun getBlockColor(x: Int, z: Int, world: World): String {
-        val block = world.getHighestBlockAt(x, z, HeightMap.WORLD_SURFACE)
-        val key = block.blockData.material.key.asString()
-        val color = mapColor.getProperty(key) ?: "#000000"
-        if (color == "#000000") {
-            println(key)
-        }
-        return color
-    }
 
-    suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.IO) {
+    suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.async) {
         val image = BufferedImage(abs(x1 - x2) + 9, abs(y1 - y2) + 9, BufferedImage.TYPE_3BYTE_BGR)
 
         val sizeX = abs(x1 - x2) + 8
         val sizeY = abs(y1 - y2) + 8
+        val world = Bukkit.getWorld("world")!!
+        val notExist = hashSetOf<String>()
+
+        val size = sizeX * sizeY
+        var count = 0L
+        var displayCount = size / 10
         for (x in min(x1, x2) - 4..max(x1, x2) + 4) {
             for (y in min(y1, y2) - 4..max(y1, y2) + 4) {
-                val relectiveX = sizeX - (x - (min(x1, x2) - 4))
-                val relectiveY = sizeY - (y - (min(y1, y2) - 4))
-                val hex = getBlockColor(x, y, Bukkit.getWorld("world")!!).replace("#", "")
+                val relativeX = sizeX - (x - (min(x1, x2) - 4))
+                val relativeY = sizeY - (y - (min(y1, y2) - 4))
+                val block = world.getHighestBlockAt(x, y, HeightMap.WORLD_SURFACE)
+                val key = block.blockData.material.key.asString()
+                val color = mapColor.getProperty(key) ?: run {
+                    notExist.add(key)
+                    "#000000"
+                }
+                val hex = color.replace("#", "")
                 val rgb = hex.toInt(16)
-                image.setRGB(relectiveX, relectiveY, rgb)
+                image.setRGB(relativeX, relativeY, rgb)
+                count++
+                if (count >= displayCount) {
+                    displayCount += size / 10
+                    Bukkit.getLogger().info("Image creating : ${count * 100 / size}%")
+                }
             }
         }
 
@@ -159,8 +183,8 @@ object Utils {
         return 0
     }
 
-    fun getRaceDegree(Y: Double, X: Double): Int {
-        val degree = Math.toDegrees(atan2(Y, X)).toInt()
+    fun getRaceDegree(y: Double, x: Double): Int {
+        val degree = Math.toDegrees(atan2(y, x)).toInt()
         return if (degree < 0) {
             360 + degree
         } else {
@@ -168,25 +192,11 @@ object Utils {
         }
     }
 
-    suspend fun getPolygon(raceId: String, inside: Boolean) = newSuspendedTransaction(Dispatchers.IO) {
-        if (inside) {
-            PlaceSettingData.getInsidePolygon(raceId)
-        } else {
-            PlaceSettingData.getOutsidePolygon(raceId)
-        }
-    }
 
     fun CommandSender.locale(): Locale {
         return if (this is Player) this.locale() else Locale.getDefault()
     }
 
-    suspend fun getCentralPoint(raceId: String, xPoint: Boolean): Int? = newSuspendedTransaction(Dispatchers.IO) {
-        if (xPoint) {
-            PlaceSettingData.getCentralXPoint(raceId)
-        } else {
-            PlaceSettingData.getCentralYPoint(raceId)
-        }
-    }
 
     fun String.toUUID(): UUID {
         return UUID.fromString(this)
@@ -210,7 +220,13 @@ object Utils {
         return PlainTextComponentSerializer.plainText().serialize(this)
     }
 
-    val client =
-        OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS).build()
+    val client = HttpClient(Java) {
+        install(ContentNegotiation) {
+            json(dev.nikomaru.raceassist.data.utils.json)
+        }
+        Charsets {
+            register(Charsets.UTF_8)
+        }
+    }
 
 }

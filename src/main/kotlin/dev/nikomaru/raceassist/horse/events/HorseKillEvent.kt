@@ -26,7 +26,7 @@ import org.bukkit.event.entity.EntityDeathEvent
 
 class HorseKillEvent : Listener {
     @EventHandler
-    suspend fun horseKillEvent(event: EntityDeathEvent) {
+    suspend fun horseDeathEvent(event: EntityDeathEvent) {
 
         val entity = event.entity
         if (entity.type != EntityType.HORSE) {

@@ -18,8 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
@@ -31,26 +30,31 @@ class PlayerAddCommand {
 
     @CommandPermission("raceassist.commands.player.add")
     @CommandMethod("add <operateRaceId> <playerName>")
-    suspend fun addPlayer(sender: CommandSender,
+    suspend fun addPlayer(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
+
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
 
         val locale = sender.locale()
 
         val jockey: OfflinePlayer =
-            Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+            Bukkit.getOfflinePlayerIfCached(playerName)
+                ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
 
 
-        if (RaceSettingData.getJockeys(raceId).contains(jockey)) {
+        if (raceManager.getJockeys().contains(jockey)) {
             sender.sendMessage(Lang.getComponent("already-exist-this-user", locale))
             return
         }
-        if (RaceSettingData.getJockeys(raceId).size > 7) {
+        if (raceManager.getJockeys().size > 7) {
             sender.sendMessage(Lang.getComponent("max-player-is-eight", locale))
             return
         }
-        RaceSettingData.addJockey(raceId, jockey)
+        raceManager.addJockey(jockey)
         sender.sendMessage(Lang.getComponent("player-add-to-race-group", locale, jockey.name.toString(), raceId))
 
     }

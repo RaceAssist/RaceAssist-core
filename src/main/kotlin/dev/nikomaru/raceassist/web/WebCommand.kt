@@ -42,7 +42,7 @@ class WebCommand {
             UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
         }
         if (exist) {
-            sender.sendMessage("すでに登録されています リセットする場合は /ra web resetを実行してください")
+            sender.sendMessage("すでに登録されています /ra web resetを実行して削除した後もう一度実行してください")
             return
         }
         val password = RandomStringUtils.randomAlphanumeric(20)
@@ -53,6 +53,7 @@ class WebCommand {
                 it[UserAuthData.hashedPassword] = hashedPassword
             }
         }
+
         sender.sendRichMessage("パスワードは $password です <yellow><click:copy_to_clipboard:'$password'>クリックでコピー</click></yellow>")
     }
 
@@ -69,14 +70,10 @@ class WebCommand {
             sender.sendRichMessage("登録されていません まずは /ra web registerを実行してください")
             return
         }
-        val password = RandomStringUtils.randomAlphanumeric(20)
-        val hashedPassword = passwordHash(password)
         newSuspendedTransaction(Dispatchers.IO) {
-            UserAuthData.update({ UserAuthData.uuid eq uuid.toString() }) {
-                it[UserAuthData.hashedPassword] = hashedPassword
-            }
+            UserAuthData.deleteWhere { UserAuthData.uuid eq uuid.toString() }
         }
-        sender.sendRichMessage("パスワードは $password です <yellow><click:copy_to_clipboard:'$password'>クリックでコピー</click></yellow>")
+        sender.sendRichMessage("ログインパスワードの削除が完了しました。")
     }
 
 }

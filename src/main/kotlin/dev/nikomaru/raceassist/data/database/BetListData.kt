@@ -20,4 +20,10 @@ package dev.nikomaru.raceassist.data.database
 import java.time.LocalDateTime
 import java.util.*
 
-data class BetListData(val rowNum: Int, val timeStamp: LocalDateTime, val playerUUID: UUID, val jockeyUUID: UUID, val betting: Int)
+data class BetListData(
+    val rowUniqueId: UUID,
+    val timeStamp: LocalDateTime,
+    val playerUniqueId: UUID,
+    val jockeyUniqueId: UUID,
+    val betting: Int
+)

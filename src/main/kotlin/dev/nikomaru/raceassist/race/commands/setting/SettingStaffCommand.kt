@@ -18,8 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
@@ -30,16 +29,20 @@ import org.bukkit.command.CommandSender
 class SettingStaffCommand {
 
     @CommandMethod("staff add <operateRaceId> <playerName>")
-    suspend fun addStaff(sender: CommandSender,
+    suspend fun addStaff(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
 
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
 
         val locale = sender.locale()
-        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        val target = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
 
-        if (RaceSettingData.addStaff(raceId, target)) {
+        if (raceManager.addStaff(target)) {
             sender.sendMessage(Lang.getComponent("add-staff", locale))
         } else {
             sender.sendMessage(Lang.getComponent("already-added-staff", locale))
@@ -48,18 +51,22 @@ class SettingStaffCommand {
     }
 
     @CommandMethod("staff remove <operateRaceId> <playerName>")
-    suspend fun removeStaff(sender: CommandSender,
+    suspend fun removeStaff(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
 
         val locale = sender.locale()
-        val target = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-        if (RaceSettingData.getOwner(raceId) == target) {
+        val target = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        if (raceManager.getOwner() == target) {
             return sender.sendMessage(Lang.getComponent("cant-remove-yourself-staff", locale))
         }
 
-        if (RaceSettingData.removeStaff(raceId, target)) {
+        if (raceManager.removeStaff(target)) {
             sender.sendMessage(Lang.getComponent("delete-staff", locale))
         } else {
             sender.sendMessage(Lang.getComponent("not-find-staff", locale))
@@ -68,9 +75,13 @@ class SettingStaffCommand {
     }
 
     @CommandMethod("staff list <operateRaceId>")
-    suspend fun listStaff(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        RaceSettingData.getStaffs(raceId).forEach {
+    suspend fun listStaff(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+    ) {
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
+        raceManager.getStaffs().forEach {
             sender.sendMessage(it.name.toString())
         }
 

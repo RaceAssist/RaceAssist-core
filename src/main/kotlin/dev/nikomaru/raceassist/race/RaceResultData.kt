@@ -17,8 +17,8 @@
 
 package dev.nikomaru.raceassist.race
 
-import dev.nikomaru.raceassist.data.files.PolygonSerializer
-import dev.nikomaru.raceassist.data.files.UUIDSerializer
+import dev.nikomaru.raceassist.data.utils.PolygonSerializer
+import dev.nikomaru.raceassist.data.utils.UUIDSerializer
 import dev.nikomaru.raceassist.horse.data.KZonedDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.awt.Polygon
@@ -26,7 +26,8 @@ import java.time.ZonedDateTime
 import java.util.*
 
 @Serializable
-data class RaceResultData(val ver: String = "1.0",
+data class RaceResultData(
+    val ver: String = "1.0",
     val raceId: String,
     val administrator: String,
     val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID>,
@@ -42,7 +43,8 @@ data class RaceResultData(val ver: String = "1.0",
     val insidePolygon: @Serializable(with = PolygonSerializer::class) Polygon,
     val outsidePolygon: @Serializable(with = PolygonSerializer::class) Polygon,
     val currentRaceData: ArrayList<CurrentRaceData>,
-    var image: String?)
+    var image: String?
+)
 
 @Serializable
 data class CurrentRaceData(
@@ -51,11 +53,13 @@ data class CurrentRaceData(
 )
 
 @Serializable
-data class PlayerRaceData(val uuid: @Serializable(with = UUIDSerializer::class) UUID,
+data class PlayerRaceData(
+    val uuid: @Serializable(with = UUIDSerializer::class) UUID,
     val finish: Boolean,
     val distance: Int?,
     val blockX: Int?,
-    val blockY: Int?)
+    val blockY: Int?
+)
 
 @Serializable
 data class RectangleData(val x1: Int, val y1: Int, val x2: Int, val y2: Int)

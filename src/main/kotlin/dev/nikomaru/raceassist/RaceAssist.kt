@@ -24,11 +24,15 @@ import cloud.commandframework.meta.SimpleCommandMeta
 import cloud.commandframework.paper.PaperCommandManager
 import com.github.shynixn.mccoroutine.bukkit.*
 import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.api.core.RaceAssistAPI
+import dev.nikomaru.raceassist.api.core.manager.*
 import dev.nikomaru.raceassist.bet.commands.*
 import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.horse.events.HorseKillEvent
@@ -41,6 +45,7 @@ import dev.nikomaru.raceassist.race.commands.race.*
 import dev.nikomaru.raceassist.race.commands.setting.*
 import dev.nikomaru.raceassist.race.event.*
 import dev.nikomaru.raceassist.utils.*
+import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import dev.nikomaru.raceassist.web.WebCommand
@@ -57,12 +62,13 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.*
 
-class RaceAssist : SuspendingJavaPlugin() {
+class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun onEnableAsync() {
         // Plugin startup logic
         plugin = this
+        api = this
         Lang.load()
         Config.load()
         settingDatabase()
@@ -93,7 +99,12 @@ class RaceAssist : SuspendingJavaPlugin() {
     private suspend fun loadResources() {
         withContext(Dispatchers.IO) {
             val conf = Properties()
-            conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("MapColorDefault.properties")!!, "UTF-8"))
+            conf.load(
+                InputStreamReader(
+                    this.javaClass.classLoader.getResourceAsStream("MapColorDefault.properties")!!,
+                    "UTF-8"
+                )
+            )
             Utils.mapColor = conf
         }
     }
@@ -101,16 +112,21 @@ class RaceAssist : SuspendingJavaPlugin() {
     private fun settingDatabase() {
         if (Config.config.mySQL != null) {
             Class.forName("com.mysql.cj.jdbc.Driver")
-            Database.connect(url = "jdbc:mysql://${Config.config.mySQL!!.url}",
+            Database.connect(
+                url = "jdbc:mysql://${Config.config.mySQL!!.url}",
                 driver = "com.mysql.cj.jdbc.Driver",
                 user = Config.config.mySQL!!.username,
-                password = Config.config.mySQL!!.password)
+                password = Config.config.mySQL!!.password,
+            )
 
             transaction {
                 SchemaUtils.create(BetList, UserAuthData)
             }
         } else {
-            Database.connect(url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db", driver = "org.sqlite.JDBC")
+            Database.connect(
+                url = "jdbc:sqlite:${plugin.dataFolder}${File.separator}RaceAssist.db",
+                driver = "org.sqlite.JDBC"
+            )
 
             transaction {
                 SchemaUtils.create(BetList)
@@ -122,14 +138,17 @@ class RaceAssist : SuspendingJavaPlugin() {
     override fun onDisable() {
         // Plugin shutdown logic
         WebAPI.stopServer()
+        client.close()
     }
 
     private fun setCommand() {
 
-        val commandManager: PaperCommandManager<CommandSender> = PaperCommandManager(this,
+        val commandManager: PaperCommandManager<CommandSender> = PaperCommandManager(
+            this,
             AsynchronousCommandExecutionCoordinator.newBuilder<CommandSender>().build(),
             java.util.function.Function.identity(),
-            java.util.function.Function.identity())
+            java.util.function.Function.identity()
+        )
 
 
         if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
@@ -189,6 +208,7 @@ class RaceAssist : SuspendingJavaPlugin() {
             parse(ReloadCommand())
 
             parse(OwnerDeleteCommand())
+            parse(HorseDetectCommand())
 
         }
         if (Config.config.webAPI != null) {
@@ -202,19 +222,19 @@ class RaceAssist : SuspendingJavaPlugin() {
             val commandFile = File("D:\\Desktop\\commands.txt")
             val commandList = mutableListOf<String>()
             val permissionList = hashSetOf<String>()
-            commandManager.commands.stream().forEach { command ->
+            commandManager.commands().stream().forEach { command ->
                 var string = ""
                 command.arguments.forEach {
-                    val argment = when (it::class.java.simpleName) {
+                    val argument = when (it::class.java.simpleName) {
                         "CommandArgument" -> "<${it.name}>"
                         else -> it.name
                     }
-                    string += "$argment "
+                    string += "$argument "
                 }
                 string = StringUtils.removeEnd(string, " ")
-                commandList.add("` $string ` <br>")
+                commandList.add("コマンド : ` $string ` <br>")
                 permissionList.add("\"${command.commandPermission}\"")
-                commandList.add("permission: ` ${command.commandPermission} ` <br>")
+                commandList.add("権限 : ` ${command.commandPermission} ` <br>")
                 commandList.add("")
             }
             println(permissionList)
@@ -234,7 +254,41 @@ class RaceAssist : SuspendingJavaPlugin() {
     companion object {
         lateinit var plugin: RaceAssist
             private set
+
+        lateinit var api: RaceAssistAPI
+            private set
+
     }
+
+    override fun getBetManager(raceId: String): BetManager? {
+        if (!RaceUtils.existsRace(raceId)) return null
+        return BetManager(raceId)
+    }
+
+    override fun getHorseManager(): HorseManager {
+        return HorseManager()
+    }
+
+    override fun getPlaceManager(placeId: String): PlaceManager? {
+        if (!RaceUtils.existsPlace(placeId)) return null
+        return PlaceManager(placeId)
+    }
+
+    override fun getRaceManager(raceId: String): RaceManager? {
+        if (!RaceUtils.existsRace(raceId)) return null
+        return RaceManager(raceId)
+    }
+
+    override fun getWebManager(): WebManager? {
+        if (Config.config.webAPI == null) return null
+
+        return WebManager()
+    }
+
+    override fun getDataManager(): DataManager {
+        return DataManager()
+    }
+
 }
 
 

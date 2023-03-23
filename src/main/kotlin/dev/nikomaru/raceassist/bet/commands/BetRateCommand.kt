@@ -19,8 +19,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils.hasRaceControlPermission
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
@@ -30,12 +29,16 @@ class BetRateCommand {
     @CommandPermission("raceassist.commands.bet.rate")
     @CommandMethod("rate <operateRaceId> <rate>")
     @CommandDescription("レースの賭けのレートを設定します")
-    suspend fun setRate(sender: CommandSender,
+    fun setRate(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int) {
+        @Argument(value = "rate") @Range(min = "0", max = "100") rate: Int
+    ) {
         val locale = sender.locale()
-        if (!hasRaceControlPermission(raceId, sender)) return
-        BetSettingData.setReturnPercent(raceId, rate)
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
+        val betManager = RaceAssist.api.getBetManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        betManager.setReturnPercent(rate)
         sender.sendMessage(Lang.getComponent("change-bet-rate-message", locale, raceId, rate))
     }
 }

@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.bet
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
-import dev.nikomaru.raceassist.data.files.BetSettingData
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -32,34 +32,58 @@ object GuiComponent {
         return Component.text("レース賭け自販機")
     }
 
-    suspend fun onceUp(locale: Locale, raceId: String): ItemStack {
+    fun onceUp(locale: Locale, raceId: String): ItemStack {
         val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
         val onceUpMeta: ItemMeta = onceUp.itemMeta
-        onceUpMeta.displayName(Lang.getComponent("to-bet-one-unit", locale, BetSettingData.getBetUnit(raceId)))
+        onceUpMeta.displayName(
+            Lang.getComponent(
+                "to-bet-one-unit",
+                locale,
+                RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
+            )
+        )
         onceUp.itemMeta = onceUpMeta
         return onceUp
     }
 
-    suspend fun onceDown(locale: Locale, raceId: String): ItemStack {
+    fun onceDown(locale: Locale, raceId: String): ItemStack {
         val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
         val onceDownMeta: ItemMeta = onceDown.itemMeta
-        onceDownMeta.displayName(Lang.getComponent("to-cancel-bet-one-unit", locale, BetSettingData.getBetUnit(raceId)))
+        onceDownMeta.displayName(
+            Lang.getComponent(
+                "to-cancel-bet-one-unit",
+                locale,
+                RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
+            )
+        )
         onceDown.itemMeta = onceDownMeta
         return onceDown
     }
 
-    suspend fun tenTimesUp(locale: Locale, raceId: String): ItemStack {
+    fun tenTimesUp(locale: Locale, raceId: String): ItemStack {
         val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
         val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-        tenTimesUpMeta.displayName(Lang.getComponent("to-bet-ten-unit", locale, BetSettingData.getBetUnit(raceId) * 10))
+        tenTimesUpMeta.displayName(
+            Lang.getComponent(
+                "to-bet-ten-unit",
+                locale,
+                RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
+            )
+        )
         tenTimesUp.itemMeta = tenTimesUpMeta
         return tenTimesUp
     }
 
-    suspend fun tenTimesDown(locale: Locale, raceId: String): ItemStack {
+    fun tenTimesDown(locale: Locale, raceId: String): ItemStack {
         val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
         val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-        tenTimesDownMeta.displayName(Lang.getComponent("to-cancel-bet-ten-unit", locale, BetSettingData.getBetUnit(raceId) * 10))
+        tenTimesDownMeta.displayName(
+            Lang.getComponent(
+                "to-cancel-bet-ten-unit",
+                locale,
+                RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
+            )
+        )
         tenTimesDown.itemMeta = tenTimesDownMeta
         return tenTimesDown
     }

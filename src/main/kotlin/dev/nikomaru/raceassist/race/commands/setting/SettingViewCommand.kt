@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -29,9 +29,12 @@ class SettingViewCommand {
 
     @CommandMethod("view <operateRaceId>")
     @CommandPermission("raceassist.commands.setting.view")
-    suspend fun view(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
-        if (!RaceSettingData.existsRace(raceId)) return
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+    suspend fun view(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+    ) {
+        val raceManager = RaceAssist.api.getRaceManager(raceId) ?: return
+        if (!raceManager.senderHasControlPermission(sender)) return
         val raceData = RaceUtils.getRaceConfig(raceId)
         val placeData = RaceUtils.getPlaceConfig(raceId)
         sender.sendMessage("raceId = ${raceData.raceId}")
@@ -48,10 +51,10 @@ class SettingViewCommand {
         sender.sendMessage("reverce = ${placeData.reverse}")
         sender.sendMessage("goalDegree = ${placeData.goalDegree}")
         sender.sendMessage("-----bet-----")
-        sender.sendMessage("bet-avaiable = ${raceData.bet.available}")
-        sender.sendMessage("bet-returnPercent = ${raceData.bet.returnPercent}")
-        sender.sendMessage("bet-spreadSheetId = ${raceData.bet.spreadSheetId}")
-        sender.sendMessage("bet-betUnit = ${raceData.bet.betUnit}")
+        sender.sendMessage("bet-available = ${raceData.betConfig.available}")
+        sender.sendMessage("bet-returnPercent = ${raceData.betConfig.returnPercent}")
+        sender.sendMessage("bet-spreadSheetId = ${raceData.betConfig.spreadSheetId}")
+        sender.sendMessage("bet-betUnit = ${raceData.betConfig.betUnit}")
 
     }
 

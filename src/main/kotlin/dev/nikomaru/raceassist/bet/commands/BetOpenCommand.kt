@@ -18,10 +18,9 @@
 package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
@@ -39,19 +38,17 @@ class BetOpenCommand {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        if (!RaceSettingData.existsRace(raceId)) {
-            sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
-            return
-        }
-        if (!BetSettingData.getAvailable(raceId)) {
+        val betManager = RaceAssist.api.getBetManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        if (!betManager.getAvailable()) {
             sender.sendMessage(Lang.getComponent("now-cannot-bet-race", sender.locale()))
             return
         }
-        BetUtils.removeTempBetData(sender)
+        BetUtils.removePlayerTempBetData(sender)
         withContext(Dispatchers.minecraft) {
             sender.openInventory(BetChestGui().getGUI(sender, raceId))
         }
-        BetUtils.initializeTempBetData(raceId, sender)
+        BetUtils.initializePlayerTempBetData(raceId, sender)
     }
 
 }

@@ -17,7 +17,7 @@
 
 package dev.nikomaru.raceassist.race.event
 
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetCentral
 import dev.nikomaru.raceassist.utils.Utils.centralPlaceId
@@ -36,8 +36,9 @@ class SetCentralPointEvent : Listener {
             return
         }
 
-        PlaceSettingData.setCentralXPoint(centralPlaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockX ?: 0)
-        PlaceSettingData.setCentralYPoint(centralPlaceId[event.player.uniqueId]!!, event.clickedBlock?.location?.blockZ ?: 0)
+        val placeManager = RaceAssist.api.getPlaceManager(centralPlaceId[event.player.uniqueId]!!)!!
+        placeManager.setCentralPointX(event.clickedBlock?.location?.blockX ?: 0)
+        placeManager.setCentralPointY(event.clickedBlock?.location?.blockZ ?: 0)
 
         event.player.sendMessage(Lang.getComponent("to-set-this-point-central", event.player.locale()))
         canSetCentral.remove(event.player.uniqueId)

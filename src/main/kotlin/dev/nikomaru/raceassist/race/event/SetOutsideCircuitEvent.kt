@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.race.event
 import dev.nikomaru.raceassist.race.utils.OutsideCircuit
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
+import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -43,9 +43,11 @@ class SetOutsideCircuitEvent : Listener {
             return
         }
 
-        OutsideCircuit.outsideCircuit(player,
-            circuitRaceId[player.uniqueId]!!,
+        OutsideCircuit.outsideCircuit(
+            player,
+            circuitPlaceId[player.uniqueId]!!,
             Objects.requireNonNull(event.clickedBlock)!!.x,
-            event.clickedBlock!!.z)
+            event.clickedBlock!!.z
+        )
     }
 }

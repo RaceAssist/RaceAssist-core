@@ -18,20 +18,19 @@
 package dev.nikomaru.raceassist.horse.utlis
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.web.data.History
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Horse
 import java.time.ZonedDateTime
@@ -109,7 +108,7 @@ object HorseUtils {
             return null
         }
         val data = json.decodeFromString<HorseData>(file.readText())
-        return data.deathData
+        return data.deathDate
     }
 
     fun Horse.isMatchStatus(): Boolean {
@@ -133,7 +132,8 @@ object HorseUtils {
                 lastRecordDate = ZonedDateTime.now(),
             )
         } else {
-            data = HorseData(this.uniqueId,
+            data = HorseData(
+                this.uniqueId,
                 null,
                 this.ownerUniqueId,
                 null,
@@ -147,25 +147,30 @@ object HorseUtils {
                 this.customName()?.toPlainText(),
                 null,
                 ZonedDateTime.now(),
-                null)
+                null
+            )
         }
         val dataString = json.encodeToString(data)
         withContext(Dispatchers.async) {
             file.writeText(dataString)
         }
 
-        val body: RequestBody = dataString.toRequestBody("application/json; charset=utf-8".toMediaType())
         withContext(Dispatchers.IO) {
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"
                 }
-                editUrl += "v1/horse/push/"
+                editUrl += "v1/horse/push/$uuid"
 
-                val request: Request =
-                    Request.Builder().url(editUrl + uuid).header("Authorization", Credentials.basic(it.name, it.password)).post(body).build()
-                Utils.client.newCall(request).execute().body?.close()
+                Utils.client.post(editUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody(data)
+                    headers {
+                        val token = Base64.getEncoder().encodeToString("${it.name}:${it.password}".toByteArray())
+                        append("Authorization", "Basic $token")
+                    }
+                }
             }
         }
     }
@@ -179,23 +184,27 @@ object HorseUtils {
         }
 
         val beforeData = json.decodeFromString<HorseData>(file.readText())
-        val afterData = beforeData.copy(deathData = ZonedDateTime.now())
+        val afterData = beforeData.copy(deathDate = ZonedDateTime.now())
 
         withContext(Dispatchers.IO) {
             val dataString = json.encodeToString(afterData)
             file.writeText(dataString)
-            val body: RequestBody = dataString.toRequestBody("application/json; charset=utf-8".toMediaType())
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"
                 }
-                editUrl += "v1/horse/push/"
+                editUrl += "v1/horse/push/${horse.uniqueId}"
 
-                val request: Request =
-                    Request.Builder().url(editUrl + horse.uniqueId).header("Authorization", Credentials.basic(it.name, it.password)).post(body)
-                        .build()
-                Utils.client.newCall(request).execute().body?.close()
+
+                Utils.client.post(editUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody(afterData)
+                    headers {
+                        val token = Base64.getEncoder().encodeToString("${it.name}:${it.password}".toByteArray())
+                        append("Authorization", "Basic $token")
+                    }
+                }
             }
         }
 

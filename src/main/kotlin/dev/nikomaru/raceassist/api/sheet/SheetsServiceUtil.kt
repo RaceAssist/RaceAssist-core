@@ -29,7 +29,11 @@ object SheetsServiceUtil {
     @Throws(IOException::class, GeneralSecurityException::class)
     fun getSheetsService(spreadsheetId: String): Sheets? {
         val credential: Credential = GoogleAuthorizeUtil.authorize(spreadsheetId) ?: return null
-        return Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), credential)
+        return Sheets.Builder(
+            GoogleNetHttpTransport.newTrustedTransport(),
+            GsonFactory.getDefaultInstance(),
+            credential
+        )
             .setApplicationName("RaceAssist").build()
     }
 }

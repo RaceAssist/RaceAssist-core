@@ -19,6 +19,7 @@ package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.utils.Lang
 import org.bukkit.command.CommandSender
@@ -28,21 +29,24 @@ import org.bukkit.entity.Player
 class SettingLapCommand {
     @CommandPermission("raceassist.commands.setting.lap")
     @CommandMethod("lap <operateRaceId> <lap>")
-    suspend fun setLap(sender: CommandSender,
+    suspend fun setLap(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int) {
+        @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
 
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
 
         if (lap < 1) {
             sender.sendMessage(Lang.getComponent("to-need-enter-over-1", sender.locale()))
             return
         }
-        RaceSettingData.setLap(raceId, lap)
+        raceManager.setLap(lap)
         sender.sendMessage(Lang.getComponent("to-set-lap", sender.locale()))
 
     }

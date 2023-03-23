@@ -18,8 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.player
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
@@ -29,13 +28,17 @@ import org.bukkit.command.CommandSender
 class PlayerRemoveCommand {
     @CommandPermission("raceassist.commands.player.remove")
     @CommandMethod("remove <operateRaceId> <playerName>")
-    suspend fun removePlayer(sender: CommandSender,
+    suspend fun removePlayer(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String) {
+        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+    ) {
         val locale = sender.locale()
-        val player = Bukkit.getOfflinePlayerIfCached(playerName) ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        RaceSettingData.removeJockey(raceId, player)
+        val player = Bukkit.getOfflinePlayerIfCached(playerName)
+            ?: return sender.sendMessage(Lang.getComponent("player-add-not-exist", locale))
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
+        raceManager.removeJockey(player)
         sender.sendMessage(Lang.getComponent("to-delete-player-from-race-group", locale, raceId))
 
     }

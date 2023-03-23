@@ -18,26 +18,29 @@
 package dev.nikomaru.raceassist.horse.events
 
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.json
+import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
 import dev.nikomaru.raceassist.horse.data.HorseData
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcJump
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcMaxHealth
 import dev.nikomaru.raceassist.horse.utlis.HorseUtils.getCalcSpeed
-import dev.nikomaru.raceassist.utils.Utils.client
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.saveData
+import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.toPlainText
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.sound.Sound
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Horse
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityBreedEvent
 import java.time.ZonedDateTime
+import java.util.*
 
 class HorseBreedEvent : Listener {
     @EventHandler
@@ -53,7 +56,11 @@ class HorseBreedEvent : Listener {
         val mother = event.mother as Horse
         val father = event.father as Horse
 
-        val data = HorseData(horse.uniqueId,
+        mother.saveData()
+        father.saveData()
+
+        val data = HorseData(
+            horse.uniqueId,
             event.breeder?.uniqueId,
             null,
             mother.uniqueId,
@@ -67,7 +74,8 @@ class HorseBreedEvent : Listener {
             horse.customName()?.toPlainText(),
             ZonedDateTime.now(),
             ZonedDateTime.now(),
-            null)
+            null
+        )
 
         if (!RaceAssist.plugin.dataFolder.resolve("horse").exists()) {
             RaceAssist.plugin.dataFolder.resolve("horse").mkdirs()
@@ -78,21 +86,31 @@ class HorseBreedEvent : Listener {
 
         withContext(Dispatchers.IO) { file.writeText(dataString) }
 
-        val body: RequestBody = dataString.toRequestBody("application/json; charset=utf-8".toMediaType())
+
         withContext(Dispatchers.IO) {
-            Config.config.resultWebhook.forEach {
+            Config.config.webAPI?.recordUrl?.forEach {
                 var editUrl = it.url
                 if (editUrl.last() != '/') {
                     editUrl += "/"
                 }
-                editUrl += "v1/horse/push/"
+                editUrl += "v1/horse/push/${horse.uniqueId}"
 
-                val request: Request =
-                    Request.Builder().url(editUrl + horse.uniqueId).header("Authorization", Credentials.basic(it.name, it.password)).post(body)
-                        .build()
-                client.newCall(request).execute().body?.close()
+                Utils.client.post(editUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody(data)
+                    headers {
+                        val token = Base64.getEncoder().encodeToString("${it.name}:${it.password}".toByteArray())
+                        append("Authorization", "Basic $token")
+                    }
+                }
             }
         }
+
+        val url = Config.config.webAPI?.webPage?.run {
+            if (this.last() == '/') this + "horse/${horse.uniqueId}" else this + "/horse/${horse.uniqueId}"
+        } ?: ""
+        event.breeder?.sendRichMessage("UUID : ${horse.uniqueId} の馬のデータを記録しました <click:open_url:'$url'><yellow>[</yellow>クリックで開く<yellow>]</yellow></click>")
+        event.breeder?.playSound(Sound.sound(Key.key("block.note_block.bell"), Sound.Source.BLOCK, 1f, 1f))
     }
 
 }

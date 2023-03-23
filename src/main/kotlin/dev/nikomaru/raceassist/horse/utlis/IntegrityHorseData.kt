@@ -23,7 +23,6 @@ object IntegrityHorseData {
     }
 
     // Load horse data and subsequently confirm its existence.
-    suspend fun confirmHorseData() {
-
+    fun confirmHorseData() {
     }
 }

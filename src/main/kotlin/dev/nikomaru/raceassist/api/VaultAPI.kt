@@ -29,7 +29,8 @@ object VaultAPI {
         if (getServer().pluginManager.getPlugin("Vault") == null) {
             return false
         }
-        val rsp: RegisteredServiceProvider<Economy> = getServer().servicesManager.getRegistration(Economy::class.java) ?: return false
+        val rsp: RegisteredServiceProvider<Economy> =
+            getServer().servicesManager.getRegistration(Economy::class.java) ?: return false
         econ = rsp.provider
         return true
     }

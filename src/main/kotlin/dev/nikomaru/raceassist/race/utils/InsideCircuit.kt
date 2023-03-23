@@ -16,11 +16,11 @@
  */
 package dev.nikomaru.raceassist.race.utils
 
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
-import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
+import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.awt.Polygon
@@ -39,7 +39,8 @@ object InsideCircuit {
     }
 
     suspend fun finish(player: Player) {
-        PlaceSettingData.setInsidePolygon(circuitRaceId[player.uniqueId]!!, insidePolygonMap[circuitRaceId[player.uniqueId]]!!)
-        insidePolygonMap.remove(circuitRaceId[player.uniqueId])
+        val placeManager = RaceAssist.api.getPlaceManager(circuitPlaceId[player.uniqueId]!!)!!
+        placeManager.setInside(insidePolygonMap[circuitPlaceId[player.uniqueId]]!!)
+        insidePolygonMap.remove(circuitPlaceId[player.uniqueId])
     }
 }

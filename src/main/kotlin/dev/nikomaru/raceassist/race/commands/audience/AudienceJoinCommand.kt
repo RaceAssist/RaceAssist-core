@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.audience
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
+import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.audience
 import org.bukkit.command.CommandSender
@@ -34,7 +34,7 @@ class AudienceJoinCommand {
             return
         }
 
-        if (!RaceSettingData.existsRace(raceId)) {
+        if (!RaceUtils.existsRace(raceId)) {
             sender.sendMessage(Lang.getComponent("not-found-this-race", sender.locale()))
             return
         }

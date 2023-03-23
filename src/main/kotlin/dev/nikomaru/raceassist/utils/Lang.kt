@@ -38,7 +38,12 @@ object Lang {
 
             lang.forEach { locale ->
                 val conf = Properties()
-                conf.load(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!, "UTF-8"))
+                conf.load(
+                    InputStreamReader(
+                        this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!,
+                        "UTF-8"
+                    )
+                )
                 langList[locale] = conf
             }
 

@@ -18,8 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
-import dev.nikomaru.raceassist.data.files.RaceSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -28,13 +27,17 @@ class SettingDeleteCommand {
     @CommandPermission("raceassist.commands.setting.delete")
     @CommandMethod("delete <operateRaceId>")
     @Confirmation
-    suspend fun delete(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+    suspend fun delete(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return
         }
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        RaceSettingData.deleteRace(raceId)
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
+        RaceAssist.api.getDataManager().deleteRace(raceId)
 
     }
 }

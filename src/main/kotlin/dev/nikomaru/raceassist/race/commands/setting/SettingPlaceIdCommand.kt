@@ -18,6 +18,7 @@
 package dev.nikomaru.raceassist.race.commands.setting
 
 import cloud.commandframework.annotations.*
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.*
 import org.bukkit.command.CommandSender
 
@@ -26,11 +27,14 @@ class SettingPlaceIdCommand {
 
     @CommandPermission("raceassist.commands.setting.placeId")
     @CommandMethod("placeId <operateRaceId> <placeId>")
-    suspend fun setPlaceId(sender: CommandSender,
+    suspend fun setPlaceId(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "placeId", suggestions = "placeId") placeId: String) {
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        RaceSettingData.setPlaceId(raceId, placeId)
+        @Argument(value = "placeId", suggestions = "placeId") placeId: String
+    ) {
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
+        raceManager.setPlaceId(placeId)
         sender.sendRichMessage("$raceId の placeId を $placeId に設定しました。")
     }
 

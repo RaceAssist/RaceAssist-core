@@ -1,4 +1,6 @@
+
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -8,12 +10,12 @@ plugins {
     kotlin("jvm") version "1.6.0"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("xyz.jpenilla.run-paper") version "1.0.6"
-    id("org.sonarqube") version "3.3"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
     kotlin("plugin.serialization") version "1.6.10"
+    id("org.jetbrains.dokka") version "1.7.20"
 }
 
-group = "dev.nikomaru"
+group = "dev.nikomaru.raceassist"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -28,8 +30,10 @@ repositories {
 
 val cloudVersion = "1.7.1"
 val exposedVersion = "0.38.2"
-val ktorVersion = "2.1.0"
+val ktorVersion = "2.1.1"
 dependencies {
+
+
     compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
 
     library(kotlin("stdlib"))
@@ -54,6 +58,10 @@ dependencies {
     implementation("io.ktor", "ktor-server-auth", ktorVersion)
     implementation("io.ktor", "ktor-server-auth-jwt", ktorVersion)
     implementation("io.ktor", "ktor-network-tls-certificates", ktorVersion)
+    implementation("io.ktor", "ktor-client-core", ktorVersion)
+    implementation("io.ktor", "ktor-client-java", ktorVersion)
+    implementation("io.ktor", "ktor-client-logging", ktorVersion)
+    implementation("io.ktor", "ktor-client-content-negotiation", ktorVersion)
 
     implementation("ch.qos.logback", "logback-classic", "1.2.11")
 
@@ -76,17 +84,14 @@ dependencies {
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
     implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
 
-    implementation("com.squareup.okhttp3", "okhttp", "4.10.0")
-
-    bukkitLibrary("com.google.code.gson", "gson", "2.8.7")
-
-    compileOnly("xyz.jpenilla", "squaremap-api", "1.1.8")
     implementation(kotlin("stdlib-jdk8"))
 }
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
+
+val pluginGroup = "dev.nikomaru.raceassist.core"
 
 tasks {
     compileKotlin {
@@ -97,35 +102,43 @@ tasks {
         kotlinOptions.jvmTarget = "17"
     }
     shadowJar {
-        relocate("cloud.commandframework", "dev.nikomaru.receassist.shaded.cloud")
-        relocate("io.leangen.geantyref", "dev.nikomaru.receassist.shaded.typetoken")
-        relocate("com.github.stefvanschie.inventoryframework", "dev.nikomaru.receassist.inventoryframework")
+        relocate("cloud.commandframework", "$pluginGroup.shaded.cloud")
+        relocate("io.leangen.geantyref", "$pluginGroup.shaded.typetoken")
+        relocate("com.github.stefvanschie.inventoryframework", "$pluginGroup.inventoryframework")
     }
     build {
         dependsOn(shadowJar)
     }
     runServer {
-        minecraftVersion("1.19.2")
+        minecraftVersion("1.19.3")
+    }
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
     }
 }
 
 
 bukkit {
     name = "RaceAssist"
-    version = "miencraft_plugin_version"
-    website = "https://github.com/Nlkomaru/RaceAssist-core"
+    //minecraft_plugin_version
+    version = "minecraft_plugin_version"
+    website = "https://docs-raceassist.ikomaru.dev/"
 
     main = "dev.nikomaru.raceassist.RaceAssist"
 
     apiVersion = "1.19"
     depend = listOf("Vault")
-    libraries = listOf("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0", "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0")
+    libraries = listOf(
+        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0",
+        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0"
+    )
 
 
     permissions {
         register("RaceAssist.admin") {
             default = Default.OP
-            children = listOf("raceassist.commands.audience.leave",
+            children = listOf(
+                "raceassist.commands.audience.leave",
                 "raceassist.commands.place.degree",
                 "raceassist.commands.bet.sheet",
                 "raceassist.commands.race.start",
@@ -162,7 +175,8 @@ bukkit {
                 "raceassist.commands.bet.rate",
                 "raceassist.commands.player.replacement",
                 "raceassist.commands.audience.join",
-                "raceassist.command.help")
+                "raceassist.command.help"
+            )
         }
         register("RaceAssist.user") {
             default = Default.TRUE
@@ -183,4 +197,62 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
+}
+
+tasks.withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+        configureEach {
+            perPackageOption {
+                matchingRegex.set(".*")
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set("dev.nikomaru.raceassist.api.core.*")
+                suppress.set(false)
+            }
+            perPackageOption {
+                matchingRegex.set(".*\\.data.*")
+                suppress.set(false)
+            }
+        }
+    }
+}
+
+
+tasks.register("depsize") {
+    description = "Prints dependencies for \"default\" configuration"
+    doLast {
+        listConfigurationDependencies(configurations["default"])
+    }
+}
+
+tasks.register("depsize-all-configurations") {
+    description = "Prints dependencies for all available configurations"
+    doLast {
+        configurations
+            .filter { it.isCanBeResolved }
+            .forEach { listConfigurationDependencies(it) }
+    }
+}
+
+fun listConfigurationDependencies(configuration: Configuration) {
+    val formatStr = "%,10.2f"
+
+    val size = configuration.map { it.length() / (1024.0 * 1024.0) }.sum()
+
+    val out = StringBuffer()
+    out.append("\nConfiguration name: \"${configuration.name}\"\n")
+    if (size > 0) {
+        out.append("Total dependencies size:".padEnd(65))
+        out.append("${String.format(formatStr, size)} Mb\n\n")
+
+        configuration.sortedBy { -it.length() }
+            .forEach {
+                out.append(it.name.padEnd(65))
+                out.append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
+            }
+    } else {
+        out.append("No dependencies found")
+    }
+    println(out)
 }

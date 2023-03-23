@@ -19,8 +19,7 @@ package dev.nikomaru.raceassist.bet.commands
 
 import cloud.commandframework.annotations.*
 import cloud.commandframework.annotations.specifier.Range
-import dev.nikomaru.raceassist.data.files.BetSettingData
-import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
@@ -31,12 +30,16 @@ class BetUnitCommand {
     @CommandPermission("raceassist.commands.bet.unit")
     @CommandMethod("unit <operateRaceId> <unit>")
     @CommandDescription("最小の賭け単位を設定します")
-    suspend fun setUnit(sender: CommandSender,
+    fun setUnit(
+        sender: CommandSender,
         @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "unit") @Range(min = "1", max = "100000") unit: Int) {
+        @Argument(value = "unit") @Range(min = "1", max = "100000") unit: Int
+    ) {
         val locale = sender.locale()
-        if (!RaceUtils.hasRaceControlPermission(raceId, sender)) return
-        BetSettingData.setBetUnit(raceId, unit)
+        if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
+        val betManager = RaceAssist.api.getBetManager(raceId)
+            ?: return sender.sendMessage(Lang.getComponent("no-exist-this-raceid-race", sender.locale()))
+        betManager.setBetUnit(unit)
         sender.sendMessage(Lang.getComponent("change-bet-unit-message", locale, raceId, unit))
     }
 }

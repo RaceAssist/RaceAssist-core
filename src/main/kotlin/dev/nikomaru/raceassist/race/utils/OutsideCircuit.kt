@@ -16,11 +16,11 @@
  */
 package dev.nikomaru.raceassist.race.utils
 
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.PlaceSettingData
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
-import dev.nikomaru.raceassist.utils.Utils.circuitRaceId
+import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.awt.Polygon
@@ -28,15 +28,15 @@ import java.awt.Polygon
 object OutsideCircuit {
     private var outsidePolygonMap = HashMap<String, Polygon>()
     private var insidePolygonMap = HashMap<String, Polygon>()
-    suspend fun outsideCircuit(player: Player, raceId: String, x: Int, z: Int) {
-        outsidePolygonMap.putIfAbsent(raceId, Polygon())
-        insidePolygonMap.putIfAbsent(raceId, PlaceSettingData.getInsidePolygon(raceId))
+    suspend fun outsideCircuit(player: Player, placeId: String, x: Int, z: Int) {
+        outsidePolygonMap.putIfAbsent(placeId, Polygon())
+        insidePolygonMap.putIfAbsent(placeId, RaceAssist.api.getPlaceManager(placeId)!!.getInside())
 
-        if (insidePolygonMap[raceId]!!.contains(x, z)) {
+        if (insidePolygonMap[placeId]!!.contains(x, z)) {
             player.sendActionBar(Lang.getComponent("to-click-inside-point", player.locale()))
             return
         }
-        outsidePolygonMap[raceId]!!.addPoint(x, z)
+        outsidePolygonMap[placeId]!!.addPoint(x, z)
         player.sendActionBar(Lang.getComponent("to-click-next-point", player.locale(), x, z))
         canSetOutsideCircuit.remove(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
@@ -45,7 +45,8 @@ object OutsideCircuit {
     }
 
     suspend fun finish(player: Player) {
-        PlaceSettingData.setOutsidePolygon(circuitRaceId[player.uniqueId]!!, outsidePolygonMap[circuitRaceId[player.uniqueId]]!!)
-        outsidePolygonMap.remove(circuitRaceId[player.uniqueId])
+        RaceAssist.api.getPlaceManager(circuitPlaceId[player.uniqueId]!!)!!
+            .setOutside(outsidePolygonMap[circuitPlaceId[player.uniqueId]]!!)
+        outsidePolygonMap.remove(circuitPlaceId[player.uniqueId])
     }
 }
