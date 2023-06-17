@@ -36,7 +36,7 @@ dependencies {
 
     compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
 
-    library(kotlin("stdlib"))
+    library("org.jetbrains.kotlin:kotlin-stdlib:1.8.20-RC")
 
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7")
 
@@ -84,7 +84,7 @@ dependencies {
     implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
     implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
 
-    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20-RC")
 }
 
 java {

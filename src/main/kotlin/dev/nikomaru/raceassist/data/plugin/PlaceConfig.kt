@@ -27,6 +27,7 @@ import java.awt.Polygon
 data class PlaceConfig(
     val placeId: String,
     val placeName: String?,
+    val placeImageUrl: String?,
     val centralX: Int?,
     val centralY: Int?,
     val goalDegree: Int,
