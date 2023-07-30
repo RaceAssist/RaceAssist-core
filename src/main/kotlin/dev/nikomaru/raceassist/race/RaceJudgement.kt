@@ -154,11 +154,15 @@ class RaceJudgement(private val raceId: String, private val executor: CommandSen
         threshold = Config.config.threshold
         lap = raceManager.getLap()
         reverse = placeManager.getReverse()
-        innerCircumference = getInnerCircumference(insidePolygon)
-
 
         insidePolygon = placeManager.getInside()
         outsidePolygon = placeManager.getOutside()
+        
+        innerCircumference = getInnerCircumference(insidePolygon)
+
+
+        
+        
 
         limit = Config.config.raceLimitMilliSecond
 
