@@ -1,18 +1,18 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package dev.nikomaru.raceassist.web.api
@@ -32,13 +32,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import org.bukkit.command.CommandSender
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-object RaceRouter {
+object RaceRouter : KoinComponent {
+    val plugin: RaceAssist by inject()
     fun Route.raceRouter() {
         route("/race") {
             get("/list") {
                 val list = arrayListOf<String>()
-                RaceAssist.plugin.dataFolder.resolve("RaceData").listFiles()?.forEach {
+                plugin.dataFolder.resolve("RaceData").listFiles()?.forEach {
                     list.add(it.nameWithoutExtension)
                 }
                 return@get call.respond(hashMapOf("data" to RaceList(list)))
@@ -71,7 +74,7 @@ object RaceRouter {
                     "Missing id",
                     status = HttpStatusCode.BadRequest
                 )
-                val raceManager = RaceAssist.plugin.getRaceManager(raceId) ?: return@post call.respondText(
+                val raceManager = plugin.getRaceManager(raceId) ?: return@post call.respondText(
                     "Race not found",
                     status = HttpStatusCode.NotFound
                 )

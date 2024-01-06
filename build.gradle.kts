@@ -1,5 +1,5 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -29,20 +29,31 @@ repositories {
 
 
 
+
 dependencies {
+    val paperVersion = "1.20.4-R0.1-SNAPSHOT"
     val cloudVersion = "1.8.3"
     val exposedVersion = "0.42.0"
     val ktorVersion = "2.3.7"
 
     val koinVersion = "3.5.3"
+    val ifVersion = "0.10.11"
     val junitVersion = "5.10.1"
     val mockkVersion = "1.13.8"
     val mockBukkitVersion = "3.58.0"
+    val sqliteVersion = "3.44.1.0"
+    val mysqlVersion = "8.0.33"
+    val vaultVersion = "1.7"
+    val protocolLibVersion = "5.2.0-SNAPSHOT"
+    val kotlinxDataTimeVersion = "0.4.0"
+    val kotlinxSerializationVersion = "1.6.0-RC"
+    val mccoroutineVersion = "2.14.0"
+    val kotlinCoroutinesVersion = "1.7.3"
 
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$paperVersion")
 
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
+    compileOnly("com.github.MilkBowl:VaultAPI:$vaultVersion")
+    compileOnly("com.comphenix.protocol:ProtocolLib:$protocolLibVersion")
 
     implementation("cloud.commandframework:cloud-core:$cloudVersion")
     implementation("cloud.commandframework:cloud-kotlin-extensions:$cloudVersion")
@@ -51,9 +62,11 @@ dependencies {
     implementation("cloud.commandframework:cloud-kotlin-coroutines-annotations:$cloudVersion")
     implementation("cloud.commandframework:cloud-kotlin-coroutines:$cloudVersion")
 
-    implementation("com.github.stefvanschie.inventoryframework:IF:0.10.11")
+    implementation("com.github.stefvanschie.inventoryframework:IF:$ifVersion")
 
-    library("mysql:mysql-connector-java:8.0.33")
+    library("mysql:mysql-connector-java:$mysqlVersion")
+
+    library("org.xerial:sqlite-jdbc:$sqliteVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -69,20 +82,18 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.3.14")
 
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion") // implementation
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:$kotlinxDataTimeVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-hocon:$kotlinxSerializationVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0-RC")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-hocon:1.6.0-RC")
-
-    library("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.13.0")
-    library("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.13.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:$mccoroutineVersion")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:$mccoroutineVersion")
 
     library("com.google.api-client:google-api-client:1.35.1")
     library("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
@@ -95,6 +106,13 @@ dependencies {
     library("com.google.code.gson:gson:2.10.1")
 
     implementation("io.insert-koin:koin-core:$koinVersion")
+
+    testImplementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:$mccoroutineVersion")
+    testImplementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:$mccoroutineVersion")
+
+    testImplementation("com.comphenix.protocol:ProtocolLib:$protocolLibVersion")
+
+    testImplementation("org.xerial:sqlite-jdbc:$sqliteVersion")
 
     testImplementation("com.github.seeseemelk:MockBukkit-v1.20:$mockBukkitVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
@@ -137,6 +155,14 @@ tasks {
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
+    }
+    test {
+        useJUnitPlatform()
+        testLogging {
+            showStandardStreams = true
+            events("passed", "skipped", "failed")
+            exceptionFormat = TestExceptionFormat.FULL
+        }
     }
 }
 

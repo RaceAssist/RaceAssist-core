@@ -1,19 +1,22 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
+
 
 package dev.nikomaru.raceassist.race
 
@@ -21,7 +24,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.shynixn.mccoroutine.bukkit.launch
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
@@ -55,6 +58,8 @@ import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.ScoreboardManager
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.awt.Polygon
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -67,7 +72,8 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 class PlainRaceJudgement(override val raceId: String, override val executor: CommandSender) :
-    RaceJudgement(raceId, executor) {
+    RaceJudgement(raceId, executor), KoinComponent {
+    val plugin: RaceAssist by inject()
 
     private var threshold = 0
 
@@ -444,14 +450,11 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
             val beforeLap = currentLap[uuid]
 
             //ラップの計算
-            currentLap[uuid] =
-                currentLap[uuid]!! + Utils.judgeLap(
-                    goalDegree, beforeDegree[uuid]?.toInt(),
-                    currentDegree.toInt(), threshold
-                )
+            currentLap[uuid] = currentLap[uuid]!! + Utils.judgeLap(
+                goalDegree, beforeDegree[uuid]?.toInt(), currentDegree.toInt(), threshold
+            )
             passBorders[uuid] = passBorders[uuid]!! + Utils.judgeLap(
-                0, beforeDegree[uuid]?.toInt(),
-                currentDegree.toInt(), threshold
+                0, beforeDegree[uuid]?.toInt(), currentDegree.toInt(), threshold
             )
             plugin.launch {
                 async(Dispatchers.async) {
@@ -482,12 +485,8 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
                     player.showTitle(
                         Title.title(
                             Lang.getComponent(
-                                "player-ranking",
-                                player.locale(),
-                                jockeyCount - jockeys.size,
-                                jockeyCount
-                            ),
-                            Component.text("")
+                                "player-ranking", player.locale(), jockeyCount - jockeys.size, jockeyCount
+                            ), Component.text("")
                         )
                     )
                 }
@@ -543,9 +542,7 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
 
         for (i in 0 until finishJockeys.size) {
             audiences.sendMessageI18n(
-                "to-notice-ranking-message",
-                i + 1,
-                Bukkit.getPlayer(finishJockeys[i])?.name!!
+                "to-notice-ranking-message", i + 1, Bukkit.getPlayer(finishJockeys[i])?.name!!
             )
         }
 

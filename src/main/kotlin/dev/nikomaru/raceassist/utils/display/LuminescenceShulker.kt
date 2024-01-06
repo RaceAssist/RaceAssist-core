@@ -1,6 +1,24 @@
+/*
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.nikomaru.raceassist.utils.display
 
 import com.comphenix.protocol.PacketType
+import com.comphenix.protocol.ProtocolManager
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.wrappers.WrappedDataValue
 import com.comphenix.protocol.wrappers.WrappedDataWatcher
@@ -12,11 +30,14 @@ import kotlinx.coroutines.withContext
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.*
 import kotlin.random.Random
 
 
-class LuminescenceShulker {
+class LuminescenceShulker : KoinComponent {
+    val protocolManager: ProtocolManager by inject()
 
     private val ids = arrayListOf<Int>()
 
@@ -76,8 +97,8 @@ class LuminescenceShulker {
                     }
                     shulkerEffectPacket.dataValueCollectionModifier.write(0, wrappedDataValueList)
 
-                    RaceAssist.protocolManager.sendServerPacket(it, shulkerPacket)
-                    RaceAssist.protocolManager.sendServerPacket(it, shulkerEffectPacket)
+                    protocolManager.sendServerPacket(it, shulkerPacket)
+                    protocolManager.sendServerPacket(it, shulkerEffectPacket)
                 }
             }
         }
@@ -88,7 +109,7 @@ class LuminescenceShulker {
             val shulkerDeadPacket = PacketContainer(PacketType.Play.Server.ENTITY_DESTROY)
             shulkerDeadPacket.intLists.write(0, ids)
 
-            RaceAssist.protocolManager.sendServerPacket(it, shulkerDeadPacket)
+            protocolManager.sendServerPacket(it, shulkerDeadPacket)
         }
         ids.clear()
     }
