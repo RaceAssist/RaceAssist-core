@@ -1,18 +1,18 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package dev.nikomaru.raceassist
 
@@ -71,36 +71,52 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.apache.commons.lang.StringUtils
+import org.bukkit.Server
 import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.GlobalContext
+import org.koin.dsl.module
 import java.io.File
 import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.util.*
 
-class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
+open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
+
+    val plugin: RaceAssist by inject()
+    val injectServer: Server by inject()
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun onEnableAsync() {
         // Plugin startup logic
-        plugin = this
         api = this
-        protocolManager = ProtocolLibrary.getProtocolManager()
+        setupKoin()
         Lang.load()
         Config.load()
         settingDatabase()
         setCommand()
         loadResources()
-        registerEvents()
+//        registerEvents()
         HorsePacketSendEvent()
         withContext(Dispatchers.minecraft) {
             VaultAPI.setupEconomy()
         }
         settingWebAPI()
+    }
+
+    private fun setupKoin() {
+        val appModule = module {
+            single<RaceAssist> { this@RaceAssist }
+            single<Server> { server }
+            single<ProtocolManager> { ProtocolLibrary.getProtocolManager() }
+        }
+
+        GlobalContext.getOrNull() ?: GlobalContext.startKoin {
+            modules(appModule)
+        }
     }
 
     fun settingWebAPI() {
@@ -240,65 +256,22 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
                 parse(WebCommand())
             }
         }
-
-
-
-        commandManager.command(commandManager.commandBuilder("ra-help").handler { context ->
-            var string = ""
-            commandManager.createCommandHelpHandler().allCommands
-                .forEach { command ->
-                    string += """
-                    コマンド : ` ${command.syntaxString} `
-                    説明 : ${command.description}
-                    権限 : ${command.command.commandPermission}
-                    
-                """.trimIndent()
-                }
-            context.sender.sendRichMessage(string)
-        })
-
-        val debug = true
-        if (debug) {
-            val commandFile = File("C:\\Desktop\\command.txt")
-            if (!commandFile.exists()) {
-                commandFile.createNewFile()
-            }
-            var commandString = ""
-
-            commandManager.createCommandHelpHandler().allCommands
-                .forEach { command ->
-                    commandString += """
-                    コマンド : `${command.syntaxString}`
-                    説明 : ${command.description}
-                    権限 : ${command.command.commandPermission}
-                    
-                """.trimIndent()
-                    print(commandString)
-                }
-            commandFile.writeText(commandString, StandardCharsets.UTF_8)
-        }
     }
 
     private fun registerEvents() {
-        server.pluginManager.registerSuspendingEvents(SetInsideCircuitEvent(), this)
-        server.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), this)
-        server.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), this)
-        server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
-        server.pluginManager.registerSuspendingEvents(HorseBreedEvent(), this)
-        server.pluginManager.registerSuspendingEvents(HorseKillEvent(), this)
-        server.pluginManager.registerSuspendingEvents(HorseTamedEvent(), this)
+        injectServer.pluginManager.registerSuspendingEvents(SetInsideCircuitEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(HorseBreedEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(HorseKillEvent(), plugin)
+        injectServer.pluginManager.registerSuspendingEvents(HorseTamedEvent(), plugin)
     }
 
-    companion object {
-        lateinit var plugin: RaceAssist
-            private set
 
+    companion object {
         lateinit var api: RaceAssistAPI
             private set
-
-        lateinit var protocolManager: ProtocolManager
-            private set
-
     }
 
     override fun getBetManager(raceId: String): BetManager? {

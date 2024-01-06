@@ -1,18 +1,18 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package dev.nikomaru.raceassist.horse.utlis
@@ -32,11 +32,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Horse
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.math.pow
 
-object HorseUtils {
+object HorseUtils : KoinComponent {
+    val plugin: RaceAssist by inject()
 
     fun Horse.getCalcSpeed(): Double {
         return this.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)!!.value * 42.162962963
@@ -52,7 +55,7 @@ object HorseUtils {
 
     fun Horse.getMotherUniqueId(): UUID? {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return null
         }
@@ -62,7 +65,7 @@ object HorseUtils {
 
     fun Horse.getFatherUniqueId(): UUID? {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return null
         }
@@ -72,7 +75,7 @@ object HorseUtils {
 
     fun Horse.getBreaderUniqueId(): UUID? {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return null
         }
@@ -82,7 +85,7 @@ object HorseUtils {
 
     fun Horse.getHistories(): ArrayList<History> {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return arrayListOf()
         }
@@ -92,7 +95,7 @@ object HorseUtils {
 
     fun Horse.getBirthDate(): ZonedDateTime? {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return null
         }
@@ -102,7 +105,7 @@ object HorseUtils {
 
     fun Horse.getDeathDate(): ZonedDateTime? {
         val uuid = this.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         if (!file.exists()) {
             return null
         }
@@ -117,7 +120,7 @@ object HorseUtils {
     suspend fun Horse.saveData() {
         val uuid = this.uniqueId
 
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("$uuid.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("$uuid.json")
         lateinit var data: HorseData
 
         if (file.exists()) {
@@ -173,7 +176,7 @@ object HorseUtils {
 
     suspend fun updateKilledHorse(horse: Horse) {
         val uuid = horse.uniqueId
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("${uuid}.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("${uuid}.json")
 
         if (!file.exists()) {
             return

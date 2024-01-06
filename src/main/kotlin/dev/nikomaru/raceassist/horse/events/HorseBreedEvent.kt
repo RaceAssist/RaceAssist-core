@@ -1,18 +1,18 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package dev.nikomaru.raceassist.horse.events
@@ -39,10 +39,14 @@ import org.bukkit.entity.Horse
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityBreedEvent
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.time.ZonedDateTime
 import java.util.*
 
-class HorseBreedEvent : Listener {
+class HorseBreedEvent : Listener, KoinComponent {
+    val plugin: RaceAssist by inject()
+
     @EventHandler
     suspend fun onHorseBreed(event: EntityBreedEvent) {
         if (event.entity.type != EntityType.HORSE) {
@@ -77,11 +81,11 @@ class HorseBreedEvent : Listener {
             null
         )
 
-        if (!RaceAssist.plugin.dataFolder.resolve("horse").exists()) {
-            RaceAssist.plugin.dataFolder.resolve("horse").mkdirs()
+        if (!plugin.dataFolder.resolve("horse").exists()) {
+            plugin.dataFolder.resolve("horse").mkdirs()
         }
 
-        val file = RaceAssist.plugin.dataFolder.resolve("horse").resolve("${horse.uniqueId}.json")
+        val file = plugin.dataFolder.resolve("horse").resolve("${horse.uniqueId}.json")
         val dataString = json.encodeToString(data)
 
         withContext(Dispatchers.IO) { file.writeText(dataString) }

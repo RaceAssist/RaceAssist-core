@@ -1,3 +1,20 @@
+/*
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.nikomaru.raceassist.api.core.manager
 
 import com.github.shynixn.mccoroutine.bukkit.launch
@@ -16,11 +33,15 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.awt.Polygon
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
-sealed class PlaceManager(val placeId: String) {
+sealed class PlaceManager(val placeId: String) : KoinComponent {
+    val plugin: RaceAssist by inject()
+
     class PlainPlaceManager(placeId: String) : PlaceManager(placeId) {
 
         init {
@@ -208,14 +229,14 @@ sealed class PlaceManager(val placeId: String) {
 
         fun setOutside(polygon: Polygon) {
             plainPlaceConfig[placeId] = plainPlaceConfig[placeId]!!.copy(outside = polygon)
-            RaceAssist.plugin.server.scheduler.runTaskAsynchronously(RaceAssist.plugin, Runnable { refreshImage() })
+            plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable { refreshImage() })
             save()
         }
 
         fun refreshImage() {
             val rectangle = getOutside().bounds2D
             lateinit var image: String
-            RaceAssist.plugin.launch {
+            plugin.launch {
                 withContext(Dispatchers.IO) {
                     image = Utils.createImage(
                         rectangle.minX.roundToInt() - 10,
@@ -309,7 +330,7 @@ sealed class PlaceManager(val placeId: String) {
          */
 
         private fun save() {
-            RaceAssist.plugin.launch {
+            plugin.launch {
                 withContext(Dispatchers.IO) {
                     plainPlaceConfig[placeId]!!.save()
                 }
@@ -437,14 +458,14 @@ sealed class PlaceManager(val placeId: String) {
 
         fun setOutside(polygon: Polygon) {
             planeVectorPlaceConfig[placeId] = planeVectorPlaceConfig[placeId]!!.copy(outside = polygon)
-            RaceAssist.plugin.server.scheduler.runTaskAsynchronously(RaceAssist.plugin, Runnable { refreshImage() })
+            plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable { refreshImage() })
             save()
         }
 
         fun refreshImage() {
             val rectangle = getOutside().bounds2D
             lateinit var image: String
-            RaceAssist.plugin.launch {
+            plugin.launch {
                 withContext(Dispatchers.IO) {
                     image = Utils.createImage(
                         rectangle.minX.roundToInt() - 10,
@@ -539,7 +560,7 @@ sealed class PlaceManager(val placeId: String) {
          */
 
         private fun save() {
-            RaceAssist.plugin.launch {
+            plugin.launch {
                 withContext(Dispatchers.IO) {
                     planeVectorPlaceConfig[placeId]!!.save()
                 }

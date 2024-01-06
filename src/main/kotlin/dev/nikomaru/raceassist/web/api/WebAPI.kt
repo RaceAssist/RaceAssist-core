@@ -1,18 +1,18 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package dev.nikomaru.raceassist.web.api
@@ -55,11 +55,16 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.java.KoinJavaComponent.get
+import org.koin.java.KoinJavaComponent.inject
 import java.security.KeyStore
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
-object WebAPI {
+object WebAPI : KoinComponent {
+    val plugin: RaceAssist by inject()
 
     private val jwtConfig = Config.config.webAPI?.jwtConfig!!
     val myRealm = jwtConfig.realm
@@ -70,7 +75,7 @@ object WebAPI {
     private lateinit var originalServer: NettyApplicationEngine
 
     fun settingServer() {
-        val keyStoreFile = RaceAssist.plugin.dataFolder.resolve("keystore.jks")
+        val keyStoreFile = plugin.dataFolder.resolve("keystore.jks")
         val keystore =
             KeyStore.getInstance(keyStoreFile, Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray())
 
@@ -102,6 +107,9 @@ object WebAPI {
 }
 
 private fun Application.module() {
+    //inject the plugin instance
+    val plugin: RaceAssist by inject(RaceAssist::class.java)
+
     install(ContentNegotiation) {
         json()
     }
@@ -155,7 +163,7 @@ private fun Application.module() {
             jwtPlaceRouter()
             jwtLoginRouter(jwkProvider)
         }
-        staticFiles(".well-known",RaceAssist.plugin.dataFolder,"jwks.json")
+        staticFiles(".well-known", plugin.dataFolder, "jwks.json")
     }
 }
 

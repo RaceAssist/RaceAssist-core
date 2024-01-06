@@ -1,29 +1,32 @@
 /*
- *     Copyright © 2021-2022 Nikomaru <nikomaru@nikomaru.dev>
+ * Copyright © 2021-2024 Nikomaru <nikomaru@nikomaru.dev>
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package dev.nikomaru.raceassist.files
 
-import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.File
 
-object Config {
+object Config : KoinComponent {
+    val plugin: RaceAssist by inject()
     lateinit var config: ConfigData
     const val version: String = "2.0.0"
 
@@ -57,11 +60,9 @@ object Config {
 
         val string = json.encodeToString(configData)
 
-        plugin.logger.warning("aaaaaaa")
-
         if (!file.exists()) {
             file.createNewFile()
-            println(file.toString() + "を作成しました。")
+            println(file.name + "を作成しました。")
             file.writeText(string)
         } else {
             val verNode = json.decodeFromString<ConfigData>(file.readText()).version
