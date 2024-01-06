@@ -29,7 +29,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Horse
@@ -112,10 +111,7 @@ object HorseUtils {
     }
 
     fun Horse.isMatchStatus(): Boolean {
-        if (this.getCalcSpeed() < Config.config.recordHorse.minSpeed && this.getCalcJump() < Config.config.recordHorse.minJump) {
-            return false
-        }
-        return true
+        return !(this.getCalcSpeed() < Config.config.recordHorse.minSpeed && this.getCalcJump() < Config.config.recordHorse.minJump)
     }
 
     suspend fun Horse.saveData() {

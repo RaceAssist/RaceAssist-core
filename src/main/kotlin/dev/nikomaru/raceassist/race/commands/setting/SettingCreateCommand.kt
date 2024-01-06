@@ -17,10 +17,14 @@
 
 package dev.nikomaru.raceassist.race.commands.setting
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.Regex
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -31,7 +35,7 @@ class SettingCreateCommand {
     suspend fun create(
         sender: CommandSender,
         @Argument(value = "raceId") @Regex(value = "[^_]+_\\d+$") raceId: String,
-        @Argument(value = "placeId", suggestions = "placeId") placeId: String
+        @Argument(value = "placeId", suggestions = SuggestionId.PLACE_ID) placeId: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

@@ -186,12 +186,12 @@ class BetManager(val raceId: String) {
 
         transaction {
             BetList.insert { bet ->
-                bet[BetList.raceId] = raceId
-                bet[BetList.playerUniqueId] = player.uniqueId.toString()
-                bet[BetList.jockeyUniqueId] = jockey.uniqueId.toString()
-                bet[BetList.betting] = price
-                bet[BetList.timeStamp] = LocalDateTime.now()
-                bet[BetList.rowUniqueId] = uniqueId.toString()
+                bet[raceId] = raceId
+                bet[playerUniqueId] = player.uniqueId.toString()
+                bet[jockeyUniqueId] = jockey.uniqueId.toString()
+                bet[betting] = price
+                bet[timeStamp] = LocalDateTime.now()
+                bet[rowUniqueId] = uniqueId.toString()
             }
         }
 

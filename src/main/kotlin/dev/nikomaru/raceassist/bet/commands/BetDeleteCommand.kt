@@ -21,6 +21,7 @@ import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -32,7 +33,7 @@ class BetDeleteCommand {
     @CommandDescription("レースに対して賭けられているものを削除します")
     suspend fun delete(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

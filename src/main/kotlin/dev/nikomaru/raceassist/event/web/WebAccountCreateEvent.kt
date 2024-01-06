@@ -24,7 +24,7 @@ import org.bukkit.event.HandlerList
 
 class WebAccountCreateEvent(val type: LogDataType, val executor: OfflinePlayer) : Event(true) {
     override fun getHandlers(): HandlerList {
-        return HANDLER_LIST;
+        return HANDLER_LIST
     }
 
     companion object {

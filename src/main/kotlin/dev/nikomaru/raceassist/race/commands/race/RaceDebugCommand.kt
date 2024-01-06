@@ -17,25 +17,32 @@
 
 package dev.nikomaru.raceassist.race.commands.race
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
-import dev.nikomaru.raceassist.data.files.*
+import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.displayLap
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import dev.nikomaru.raceassist.utils.Utils.judgeLap
 import dev.nikomaru.raceassist.utils.Utils.stop
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.bukkit.scoreboard.*
+import org.bukkit.scoreboard.DisplaySlot
+import org.bukkit.scoreboard.Objective
+import org.bukkit.scoreboard.ScoreboardManager
 import kotlin.math.roundToInt
 
 @CommandMethod("ra|RaceAssist race")
@@ -45,7 +52,7 @@ class RaceDebugCommand {
     @CommandMethod("debug <operateRaceId>")
     suspend fun debug(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
@@ -56,7 +63,8 @@ class RaceDebugCommand {
             val raceManager = RaceAssist.api.getRaceManager(raceId)
             if (raceManager?.senderHasControlPermission(sender) != true) return@launch
             val placeId = raceManager.getPlaceId()
-            val placeManager = RaceAssist.api.getPlaceManager(placeId) ?: return@launch
+            val placeManager =
+                RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager? ?: return@launch
             if (!placeManager.getTrackExist()) {
                 sender.sendMessage(Lang.getComponent("no-exist-race", locale))
                 return@launch
@@ -78,11 +86,11 @@ class RaceDebugCommand {
                 placeManager.getCentralPointY()
                     ?: return@launch sender.sendMessage(Lang.getComponent("no-exist-central-point", locale))
             val goalDegree: Int = placeManager.getGoalDegree()
-            var beforeDegree = 0
+            var beforeDegree = 0.0
             var currentLap = 0
             var counter = 0
             var passBorders = 0
-            var totalDegree = 0
+            var totalDegree = 0.0
             val lengthCircle = placeManager.calculateLength()
 
             for (timer in 0..4) {
@@ -115,8 +123,8 @@ class RaceDebugCommand {
 
                 val beforeLap = currentLap
                 val calculateLap = async(Dispatchers.Default) {
-                    currentLap += judgeLap(goalDegree, beforeDegree, currentDegree, threshold)
-                    passBorders += judgeLap(0, beforeDegree, currentDegree, threshold)
+                    currentLap += judgeLap(goalDegree, beforeDegree.toInt(), currentDegree.toInt(), threshold)
+                    passBorders += judgeLap(0, beforeDegree.toInt(), currentDegree.toInt(), threshold)
                     plugin.launch {
                         async(Dispatchers.async) {
                             displayLap(currentLap, beforeLap, sender, lap)

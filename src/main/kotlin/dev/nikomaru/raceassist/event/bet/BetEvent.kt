@@ -31,7 +31,7 @@ class BetEvent(
 ) :
     Event(true) {
     override fun getHandlers(): HandlerList {
-        return HANDLER_LIST;
+        return HANDLER_LIST
     }
 
     companion object {

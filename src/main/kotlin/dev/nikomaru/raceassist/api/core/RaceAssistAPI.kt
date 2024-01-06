@@ -37,12 +37,14 @@ interface RaceAssistAPI {
 
     fun getHorseManager(): HorseManager
 
+
     /**
      * PlaceIdを指定して、Placeマネージャーを取得します。
      * @param placeId PlaceId
      */
 
     fun getPlaceManager(placeId: String): PlaceManager?
+
 
     /**
      * raceIdを指定して、Raceマネージャーを取得します。
@@ -64,4 +66,5 @@ interface RaceAssistAPI {
     fun getDataManager(): DataManager
 
 
+    fun getPlaceType(placeId: String): PlaceType?
 }

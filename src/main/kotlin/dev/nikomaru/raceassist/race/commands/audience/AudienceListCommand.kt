@@ -17,9 +17,12 @@
 
 package dev.nikomaru.raceassist.race.commands.audience
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
@@ -29,7 +32,10 @@ import org.bukkit.command.CommandSender
 class AudienceListCommand {
     @CommandPermission("raceassist.commands.audience.list")
     @CommandMethod("list <operateRaceId>")
-    fun list(sender: CommandSender, @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String) {
+    fun list(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+    ) {
         val locale = sender.locale()
 
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return

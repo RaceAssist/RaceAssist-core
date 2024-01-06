@@ -27,6 +27,7 @@ import java.util.*
 data class RaceConfig(
     val raceId: String,
     val raceName: String,
+    val raceImageUrl: String?,
     val placeId: String,
     val betConfig: BetConfig,
     val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,

@@ -17,9 +17,12 @@
 
 package dev.nikomaru.raceassist.race.commands.setting
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
+import dev.nikomaru.raceassist.utils.SuggestionId
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import java.util.*
@@ -31,12 +34,12 @@ class SettingViewCommand {
     @CommandPermission("raceassist.commands.setting.view")
     suspend fun view(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId) ?: return
         if (!raceManager.senderHasControlPermission(sender)) return
         val raceData = RaceUtils.getRaceConfig(raceId)
-        val placeData = RaceUtils.getPlaceConfig(raceId)
+        val placeData = RaceUtils.getPlainPlaceConfig(raceId)
         sender.sendMessage("raceId = ${raceData.raceId}")
         sender.sendMessage("raceName = ${raceData.raceName}")
         sender.sendMessage("owner = ${raceData.owner.name}")

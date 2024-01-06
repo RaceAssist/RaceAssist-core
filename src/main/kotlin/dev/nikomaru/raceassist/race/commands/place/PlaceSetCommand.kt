@@ -17,9 +17,13 @@
 
 package dev.nikomaru.raceassist.race.commands.place
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
@@ -32,7 +36,7 @@ class PlaceSetCommand {
     @CommandMethod("set <operatePlaceId> <type>")
     fun set(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String,
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String,
         @Argument(value = "type", suggestions = "placeType") type: String
     ) {
         if (sender !is Player) {
@@ -40,7 +44,8 @@ class PlaceSetCommand {
             return
         }
 
-        if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
+        val placeManager = RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager?
+        if (placeManager?.senderHasControlPermission(sender) != true) return
 
         if (canSetOutsideCircuit[sender.uniqueId] != null || canSetInsideCircuit[sender.uniqueId] != null) {
             sender.sendMessage(Lang.getComponent("already-setting-mode", sender.locale()))
@@ -50,7 +55,7 @@ class PlaceSetCommand {
             canSetInsideCircuit[sender.uniqueId] = true
             sender.sendMessage(Lang.getComponent("to-be-inside-set-mode", sender.locale()))
         } else if (type == "out") {
-            if (RaceAssist.api.getPlaceManager(placeId)?.getInsideRaceExist() != true) {
+            if (!placeManager.getInsideRaceExist()) {
                 sender.sendMessage(Lang.getComponent("no-inside-course-set", sender.locale()))
                 return
             }

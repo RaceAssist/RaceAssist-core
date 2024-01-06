@@ -22,8 +22,9 @@ import cloud.commandframework.context.CommandContext
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.database.BetList
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.selectAll
@@ -32,7 +33,7 @@ import java.io.File
 
 open class CommandSuggestions {
 
-    @Suggestions("playerName")
+    @Suggestions(SuggestionId.PLAYER_NAME)
     fun suggestPlayerName(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = ArrayList<String>()
         Bukkit.getServer().onlinePlayers.forEach {
@@ -41,29 +42,58 @@ open class CommandSuggestions {
         return list
     }
 
-    @Suggestions("raceId")
+    @Suggestions(SuggestionId.RACE_ID)
     fun suggestRaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = ArrayList<String>()
-        File(RaceAssist.plugin.dataFolder, "RaceData").listFiles()?.forEach {
+        File(plugin.dataFolder, "RaceData").listFiles()?.forEach {
             list.add(it.nameWithoutExtension)
         }
         return list
     }
 
-    @Suggestions("placeId")
+    @Suggestions(SuggestionId.PLACE_ID)
     fun suggestPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = ArrayList<String>()
-        File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+        File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
             list.add(it.nameWithoutExtension)
         }
         return list
     }
 
-    @Suggestions("operateRaceId")
+    @Suggestions(SuggestionId.PLAIN_PLACE_ID)
+    fun suggestPlainPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = ArrayList<String>()
+        File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+            val placeId = it.nameWithoutExtension
+            RaceAssist.api.getPlaceType(placeId)?.let { placeType ->
+                if (placeType == PlaceType.PLAIN) {
+                    list.add(placeId)
+                }
+            }
+        }
+        return list
+    }
+
+    @Suggestions(SuggestionId.PLANE_VECTOR_PLACE_ID)
+    fun suggestPlaneVectorPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = ArrayList<String>()
+        File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+            val placeId = it.nameWithoutExtension
+            RaceAssist.api.getPlaceType(placeId)?.let { placeType ->
+                if (placeType == PlaceType.PLANE_VECTOR) {
+                    list.add(placeId)
+                }
+            }
+        }
+        return list
+    }
+
+
+    @Suggestions(SuggestionId.OPERATE_RACE_ID)
     fun suggestOperateRaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = runBlocking {
             val raceIds = ArrayList<String>()
-            File(RaceAssist.plugin.dataFolder, "RaceData").listFiles()?.forEach {
+            File(plugin.dataFolder, "RaceData").listFiles()?.forEach {
                 val raceId = it.nameWithoutExtension
                 if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender.sender) == true) {
                     raceIds.add(raceId)
@@ -75,11 +105,11 @@ open class CommandSuggestions {
         return list
     }
 
-    @Suggestions("operatePlaceId")
+    @Suggestions(SuggestionId.OPERATE_PLACE_ID)
     fun suggestOperatePlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
         val list = runBlocking {
             val placeIds = ArrayList<String>()
-            File(RaceAssist.plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+            File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
                 val placeId = it.nameWithoutExtension
                 if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender.sender) == true) {
                     placeIds.add(placeId)
@@ -87,8 +117,44 @@ open class CommandSuggestions {
             }
             placeIds
         }
+        return list
+    }
 
+    @Suggestions(SuggestionId.OPERATE_PLAIN_PLACE_ID)
+    fun suggestOperatePlainPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = runBlocking {
+            val placeIds = ArrayList<String>()
+            File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+                val placeId = it.nameWithoutExtension
+                if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender.sender) == true) {
+                    RaceAssist.api.getPlaceType(placeId)?.let { placeType ->
+                        if (placeType == PlaceType.PLAIN) {
+                            placeIds.add(placeId)
+                        }
+                    }
+                }
+            }
+            placeIds
+        }
+        return list
+    }
 
+    @Suggestions(SuggestionId.OPERATE_PLANE_VECTOR_PLACE_ID)
+    fun suggestOperatePlaneVectorPlaceId(sender: CommandContext<CommandSender>, input: String?): List<String> {
+        val list = runBlocking {
+            val placeIds = ArrayList<String>()
+            File(plugin.dataFolder, "PlaceData").listFiles()?.forEach {
+                val placeId = it.nameWithoutExtension
+                if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender.sender) == true) {
+                    RaceAssist.api.getPlaceType(placeId)?.let { placeType ->
+                        if (placeType == PlaceType.PLANE_VECTOR) {
+                            placeIds.add(placeId)
+                        }
+                    }
+                }
+            }
+            placeIds
+        }
         return list
     }
 
@@ -116,5 +182,7 @@ open class CommandSuggestions {
     }
 
 }
+
+
 
 

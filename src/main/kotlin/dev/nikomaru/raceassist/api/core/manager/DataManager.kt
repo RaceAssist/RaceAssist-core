@@ -18,8 +18,9 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.plugin.BetConfig
-import dev.nikomaru.raceassist.data.plugin.PlaceConfig
+import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
 import kotlinx.coroutines.Dispatchers
@@ -46,9 +47,23 @@ class DataManager {
             return@withContext false
         }
 
-        val placeConfig =
-            PlaceConfig(placeId, placeId, null, null, 0, false, Polygon(), Polygon(), null, owner, arrayListOf(owner))
-        val json = json.encodeToJsonElement(placeConfig)
+        val plainPlaceConfig =
+            PlainPlaceConfig(
+                PlaceType.PLAIN,
+                placeId,
+                placeId,
+                null,
+                null,
+                null,
+                0,
+                false,
+                Polygon(),
+                Polygon(),
+                null,
+                owner,
+                arrayListOf(owner)
+            )
+        val json = json.encodeToJsonElement(plainPlaceConfig)
         val string = json.toString()
 
         file.createNewFile()
@@ -78,19 +93,20 @@ class DataManager {
 
             val betConfig = BetConfig()
             val raceConfig = RaceConfig(
-                raceId,
-                raceId,
-                placeId,
-                betConfig,
-                owner,
-                arrayListOf(owner),
-                arrayListOf(),
-                0,
-                hashMapOf(),
-                hashMapOf()
+                raceId = raceId,
+                raceName = raceId,
+                raceImageUrl = null,
+                placeId = placeId,
+                betConfig = betConfig,
+                owner = owner,
+                staff = arrayListOf(owner),
+                jockeys = arrayListOf(),
+                lap = 0,
+                replacement = hashMapOf(),
+                horse = hashMapOf()
             )
-            val json = json.encodeToJsonElement(raceConfig)
-            val string = json.toString()
+            val jsonString = json.encodeToJsonElement(raceConfig)
+            val string = jsonString.toString()
 
             file.createNewFile()
             val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))
