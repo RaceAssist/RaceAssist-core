@@ -17,11 +17,13 @@
 
 package dev.nikomaru.raceassist.race.commands.setting
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.data.files.*
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -31,7 +33,7 @@ class SettingLapCommand {
     @CommandMethod("lap <operateRaceId> <lap>")
     suspend fun setLap(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
         @Argument(value = "lap") @Range(min = "1", max = "100") lap: Int
     ) {
         if (sender !is Player) {

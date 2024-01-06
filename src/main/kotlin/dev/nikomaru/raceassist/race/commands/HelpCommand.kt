@@ -17,7 +17,9 @@
 
 package dev.nikomaru.raceassist.race.commands
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.CommandDescription
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.utils.Lang.mm
 import org.bukkit.command.CommandSender
 

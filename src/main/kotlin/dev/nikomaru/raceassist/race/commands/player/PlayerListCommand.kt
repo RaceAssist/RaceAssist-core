@@ -17,8 +17,11 @@
 
 package dev.nikomaru.raceassist.race.commands.player
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.SuggestionId
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist player")
@@ -28,7 +31,7 @@ class PlayerListCommand {
     @CommandMethod("list <operateRaceId>")
     suspend fun displayPlayerList(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
 
         val raceManager = RaceAssist.api.getRaceManager(raceId)

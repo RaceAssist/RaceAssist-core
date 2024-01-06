@@ -155,10 +155,7 @@ private fun Application.module() {
             jwtPlaceRouter()
             jwtLoginRouter(jwkProvider)
         }
-        static(".well-known") {
-            staticRootFolder = RaceAssist.plugin.dataFolder
-            file("jwks.json")
-        }
+        staticFiles(".well-known",RaceAssist.plugin.dataFolder,"jwks.json")
     }
 }
 

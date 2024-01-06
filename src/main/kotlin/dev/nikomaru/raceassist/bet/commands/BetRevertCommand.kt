@@ -22,6 +22,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toUUID
@@ -30,7 +31,11 @@ import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
@@ -43,7 +48,7 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnRow(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
         @Argument(value = "uuid", suggestions = "betUniqueId") uuid: String
     ) {
         val row = uuid.toUUID()
@@ -59,8 +64,8 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnPlayer(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+        @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         val jockey =
@@ -83,7 +88,7 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnAll(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         if (!BetUtils.playerCanPay(raceId, BetUtils.getBetSum(raceId), sender)) return
@@ -132,7 +137,7 @@ class BetRevertCommand {
                     )
                     sendRevertMessage(receiver, owner, it)
                 }
-            BetList.deleteWhere { (BetList.raceId eq raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
+            BetList.deleteWhere { (BetList.raceId eq raceId) and (playerUniqueId eq jockey.uniqueId.toString()) }
         }
     }
 
@@ -155,7 +160,7 @@ class BetRevertCommand {
                 )
                 sendRevertMessage(receiver, owner, it)
             }
-            BetList.deleteWhere { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+            BetList.deleteWhere { (rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
         }
     }
 

@@ -22,8 +22,13 @@ import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
 import cloud.commandframework.kotlin.coroutines.annotations.installCoroutineSupport
 import cloud.commandframework.meta.SimpleCommandMeta
 import cloud.commandframework.paper.PaperCommandManager
-import com.github.shynixn.mccoroutine.bukkit.*
+import com.comphenix.protocol.ProtocolLibrary
+import com.comphenix.protocol.ProtocolManager
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.api.core.RaceAssistAPI
 import dev.nikomaru.raceassist.api.core.manager.*
 import dev.nikomaru.raceassist.bet.commands.*
@@ -36,25 +41,40 @@ import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.horse.events.HorseKillEvent
+import dev.nikomaru.raceassist.horse.events.HorseTamedEvent
+import dev.nikomaru.raceassist.packet.event.HorsePacketSendEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.ReloadCommand
-import dev.nikomaru.raceassist.race.commands.audience.*
+import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
+import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
 import dev.nikomaru.raceassist.race.commands.place.*
 import dev.nikomaru.raceassist.race.commands.player.*
-import dev.nikomaru.raceassist.race.commands.race.*
+import dev.nikomaru.raceassist.race.commands.race.RaceDebugCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceHorseCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStartCommand
+import dev.nikomaru.raceassist.race.commands.race.RaceStopCommand
 import dev.nikomaru.raceassist.race.commands.setting.*
-import dev.nikomaru.raceassist.race.event.*
-import dev.nikomaru.raceassist.utils.*
+import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
+import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
+import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.utils.CommandSuggestions
+import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.TestCommand
+import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.commons.lang.StringUtils
 import org.bukkit.command.CommandSender
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.io.InputStreamReader
@@ -69,12 +89,14 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
         // Plugin startup logic
         plugin = this
         api = this
+        protocolManager = ProtocolLibrary.getProtocolManager()
         Lang.load()
         Config.load()
         settingDatabase()
         setCommand()
         loadResources()
         registerEvents()
+        HorsePacketSendEvent()
         withContext(Dispatchers.minecraft) {
             VaultAPI.setupEconomy()
         }
@@ -210,6 +232,8 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
             parse(OwnerDeleteCommand())
             parse(HorseDetectCommand())
 
+            parse(TestCommand())
+
         }
         if (Config.config.webAPI != null) {
             with(annotationParser) {
@@ -217,28 +241,41 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
             }
         }
 
-        val debug = false
-        if (debug) {
-            val commandFile = File("D:\\Desktop\\commands.txt")
-            val commandList = mutableListOf<String>()
-            val permissionList = hashSetOf<String>()
-            commandManager.commands().stream().forEach { command ->
-                var string = ""
-                command.arguments.forEach {
-                    val argument = when (it::class.java.simpleName) {
-                        "CommandArgument" -> "<${it.name}>"
-                        else -> it.name
-                    }
-                    string += "$argument "
+
+
+        commandManager.command(commandManager.commandBuilder("ra-help").handler { context ->
+            var string = ""
+            commandManager.createCommandHelpHandler().allCommands
+                .forEach { command ->
+                    string += """
+                    コマンド : ` ${command.syntaxString} `
+                    説明 : ${command.description}
+                    権限 : ${command.command.commandPermission}
+                    
+                """.trimIndent()
                 }
-                string = StringUtils.removeEnd(string, " ")
-                commandList.add("コマンド : ` $string ` <br>")
-                permissionList.add("\"${command.commandPermission}\"")
-                commandList.add("権限 : ` ${command.commandPermission} ` <br>")
-                commandList.add("")
+            context.sender.sendRichMessage(string)
+        })
+
+        val debug = true
+        if (debug) {
+            val commandFile = File("C:\\Desktop\\command.txt")
+            if (!commandFile.exists()) {
+                commandFile.createNewFile()
             }
-            println(permissionList)
-            Files.write(commandFile.toPath(), commandList, StandardCharsets.UTF_8)
+            var commandString = ""
+
+            commandManager.createCommandHelpHandler().allCommands
+                .forEach { command ->
+                    commandString += """
+                    コマンド : `${command.syntaxString}`
+                    説明 : ${command.description}
+                    権限 : ${command.command.commandPermission}
+                    
+                """.trimIndent()
+                    print(commandString)
+                }
+            commandFile.writeText(commandString, StandardCharsets.UTF_8)
         }
     }
 
@@ -249,6 +286,7 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
         server.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), this)
         server.pluginManager.registerSuspendingEvents(HorseBreedEvent(), this)
         server.pluginManager.registerSuspendingEvents(HorseKillEvent(), this)
+        server.pluginManager.registerSuspendingEvents(HorseTamedEvent(), this)
     }
 
     companion object {
@@ -256,6 +294,9 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
             private set
 
         lateinit var api: RaceAssistAPI
+            private set
+
+        lateinit var protocolManager: ProtocolManager
             private set
 
     }
@@ -269,10 +310,16 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
         return HorseManager()
     }
 
+
     override fun getPlaceManager(placeId: String): PlaceManager? {
         if (!RaceUtils.existsPlace(placeId)) return null
-        return PlaceManager(placeId)
+        if (RaceUtils.getPlaceType(placeId) == PlaceType.PLAIN) return PlaceManager.PlainPlaceManager(placeId)
+        if (RaceUtils.getPlaceType(placeId) == PlaceType.PLANE_VECTOR) return PlaceManager.PlaneVectorPlaceManager(
+            placeId
+        )
+        return null
     }
+
 
     override fun getRaceManager(raceId: String): RaceManager? {
         if (!RaceUtils.existsRace(raceId)) return null
@@ -287,6 +334,10 @@ class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI {
 
     override fun getDataManager(): DataManager {
         return DataManager()
+    }
+
+    override fun getPlaceType(placeId: String): PlaceType? {
+        return RaceUtils.getPlaceType(placeId)
     }
 
 }

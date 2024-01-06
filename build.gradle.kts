@@ -1,18 +1,16 @@
-
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 
 plugins {
-    id("java")
-    id("eclipse")
-    id("org.jetbrains.gradle.plugin.idea-ext") version "1.0.1"
-    kotlin("jvm") version "1.6.0"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
-    id("xyz.jpenilla.run-paper") version "1.0.6"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
-    kotlin("plugin.serialization") version "1.6.10"
-    id("org.jetbrains.dokka") version "1.7.20"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
+    kotlin("jvm") version "2.0.0-Beta2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.jpenilla.run-paper") version "2.2.2"
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    kotlin("plugin.serialization") version "2.0.0-Beta2"
+    id("org.jetbrains.dokka") version "1.9.10"
 }
 
 group = "dev.nikomaru.raceassist"
@@ -26,72 +24,97 @@ repositories {
     maven("https://jitpack.io")
     maven("https://plugins.gradle.org/m2/")
     maven("https://repo.incendo.org/content/repositories/snapshots")
+    maven("https://repo.dmulloy2.net/repository/public/")
 }
 
-val cloudVersion = "1.7.1"
-val exposedVersion = "0.38.2"
-val ktorVersion = "2.1.1"
+
+
 dependencies {
+    val cloudVersion = "1.8.3"
+    val exposedVersion = "0.42.0"
+    val ktorVersion = "2.3.7"
 
+    val koinVersion = "3.5.3"
+    val junitVersion = "5.10.1"
+    val mockkVersion = "1.13.8"
+    val mockBukkitVersion = "3.58.0"
 
-    compileOnly("io.papermc.paper", "paper-api", "1.19-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
 
-    library("org.jetbrains.kotlin:kotlin-stdlib:1.8.20-RC")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 
-    compileOnly("com.github.MilkBowl", "VaultAPI", "1.7")
+    implementation("cloud.commandframework:cloud-core:$cloudVersion")
+    implementation("cloud.commandframework:cloud-kotlin-extensions:$cloudVersion")
+    implementation("cloud.commandframework:cloud-paper:$cloudVersion")
+    implementation("cloud.commandframework:cloud-annotations:$cloudVersion")
+    implementation("cloud.commandframework:cloud-kotlin-coroutines-annotations:$cloudVersion")
+    implementation("cloud.commandframework:cloud-kotlin-coroutines:$cloudVersion")
 
-    implementation("cloud.commandframework", "cloud-core", cloudVersion)
-    implementation("cloud.commandframework", "cloud-kotlin-extensions", cloudVersion)
-    implementation("cloud.commandframework", "cloud-paper", cloudVersion)
-    implementation("cloud.commandframework", "cloud-annotations", cloudVersion)
-    implementation("cloud.commandframework", "cloud-kotlin-coroutines-annotations", cloudVersion)
-    implementation("cloud.commandframework", "cloud-kotlin-coroutines", cloudVersion)
+    implementation("com.github.stefvanschie.inventoryframework:IF:0.10.11")
 
-    implementation("com.github.stefvanschie.inventoryframework", "IF", "0.10.6")
+    library("mysql:mysql-connector-java:8.0.33")
 
-    implementation("mysql", "mysql-connector-java", "8.0.30")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("io.ktor:ktor-network-tls-certificates:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-java:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 
-    implementation("io.ktor", "ktor-server-core", ktorVersion)
-    implementation("io.ktor", "ktor-server-netty", ktorVersion)
-    implementation("io.ktor", "ktor-server-content-negotiation", ktorVersion)
-    implementation("io.ktor", "ktor-serialization-kotlinx-json", ktorVersion)
-    implementation("io.ktor", "ktor-server-auth", ktorVersion)
-    implementation("io.ktor", "ktor-server-auth-jwt", ktorVersion)
-    implementation("io.ktor", "ktor-network-tls-certificates", ktorVersion)
-    implementation("io.ktor", "ktor-client-core", ktorVersion)
-    implementation("io.ktor", "ktor-client-java", ktorVersion)
-    implementation("io.ktor", "ktor-client-logging", ktorVersion)
-    implementation("io.ktor", "ktor-client-content-negotiation", ktorVersion)
+    implementation("ch.qos.logback:logback-classic:1.3.14")
 
-    implementation("ch.qos.logback", "logback-classic", "1.2.11")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion") // implementation
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
 
-    implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
-    implementation("org.jetbrains.exposed", "exposed-java-time", exposedVersion)
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-datetime", "0.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-hocon:1.6.0-RC")
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.3.3")
-    implementation("org.jetbrains.kotlinx", "kotlinx-serialization-hocon", "1.3.3")
+    library("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.13.0")
+    library("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.13.0")
 
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api", "2.7.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core", "2.7.0")
+    library("com.google.api-client:google-api-client:1.35.1")
+    library("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
+    library("com.google.apis:google-api-services-sheets:v4-rev20220606-1.32.1")
 
-    implementation("com.google.api-client", "google-api-client", "1.35.1")
-    implementation("com.google.oauth-client", "google-oauth-client-jetty", "1.34.1")
-    implementation("com.google.apis", "google-api-services-sheets", "v4-rev20220606-1.32.1")
+    implementation(kotlin("stdlib"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20-RC")
+    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.18")
+
+    library("com.google.code.gson:gson:2.10.1")
+
+    implementation("io.insert-koin:koin-core:$koinVersion")
+
+    testImplementation("com.github.seeseemelk:MockBukkit-v1.20:$mockBukkitVersion")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 }
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
-val pluginGroup = "dev.nikomaru.raceassist.core"
+val pluginGroup = "dev.nikomaru.raceassist"
+
+tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile::class.java) {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 
 tasks {
     compileKotlin {
@@ -110,7 +133,7 @@ tasks {
         dependsOn(shadowJar)
     }
     runServer {
-        minecraftVersion("1.19.3")
+        minecraftVersion("1.20.2")
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
@@ -120,19 +143,14 @@ tasks {
 
 bukkit {
     name = "RaceAssist"
-    //minecraft_plugin_version
+//minecraft_plugin_version
     version = "minecraft_plugin_version"
-    website = "https://docs-raceassist.ikomaru.dev/"
+    website = "https://docs-raceassist.nikomaru.dev/"
 
     main = "dev.nikomaru.raceassist.RaceAssist"
 
     apiVersion = "1.19"
-    depend = listOf("Vault")
-    libraries = listOf(
-        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.7.0",
-        "com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.7.0"
-    )
-
+    depend = listOf("Vault:ProtocolLib")
 
     permissions {
         register("RaceAssist.admin") {
@@ -190,34 +208,32 @@ bukkit {
         }
     }
 }
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
 
-tasks.withType<DokkaTask>().configureEach {
-    dokkaSourceSets {
-        configureEach {
-            perPackageOption {
-                matchingRegex.set(".*")
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set("dev.nikomaru.raceassist.api.core.*")
-                suppress.set(false)
-            }
-            perPackageOption {
-                matchingRegex.set(".*\\.data.*")
-                suppress.set(false)
-            }
-        }
+//tasks.withType<DokkaTask>().configureEach {
+//    dokkaSourceSets {
+//        configureEach {
+//            perPackageOption {
+//                matchingRegex.set(".*")
+//                suppress.set(true)
+//            }
+//            perPackageOption {
+//                matchingRegex.set("dev.nikomaru.raceassist.api.core.*")
+//                suppress.set(false)
+//            }
+//            perPackageOption {
+//                matchingRegex.set(".*\\.data.*")
+//                suppress.set(false)
+//            }
+//        }
+//    }
+//}
+
+// enable k2 compiler
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).configureEach {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 }
-
 
 tasks.register("depsize") {
     description = "Prints dependencies for \"default\" configuration"
@@ -229,16 +245,14 @@ tasks.register("depsize") {
 tasks.register("depsize-all-configurations") {
     description = "Prints dependencies for all available configurations"
     doLast {
-        configurations
-            .filter { it.isCanBeResolved }
-            .forEach { listConfigurationDependencies(it) }
+        configurations.filter { it.isCanBeResolved }.forEach { listConfigurationDependencies(it) }
     }
 }
 
 fun listConfigurationDependencies(configuration: Configuration) {
     val formatStr = "%,10.2f"
 
-    val size = configuration.map { it.length() / (1024.0 * 1024.0) }.sum()
+    val size = configuration.sumOf { it.length() / (1024.0 * 1024.0) }
 
     val out = StringBuffer()
     out.append("\nConfiguration name: \"${configuration.name}\"\n")
@@ -246,8 +260,7 @@ fun listConfigurationDependencies(configuration: Configuration) {
         out.append("Total dependencies size:".padEnd(65))
         out.append("${String.format(formatStr, size)} Mb\n\n")
 
-        configuration.sortedBy { -it.length() }
-            .forEach {
+        configuration.sortedBy { -it.length() }.forEach {
                 out.append(it.name.padEnd(65))
                 out.append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
             }

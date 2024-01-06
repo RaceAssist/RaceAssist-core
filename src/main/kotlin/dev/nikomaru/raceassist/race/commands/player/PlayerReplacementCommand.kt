@@ -17,9 +17,12 @@
 
 package dev.nikomaru.raceassist.race.commands.player
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -31,8 +34,8 @@ class PlayerReplacementCommand {
     @CommandMethod("replacement set <operateRaceId> <playerName> <replacement>")
     suspend fun setReplacement(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+        @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String,
         @Argument(value = "replacement") replacement: String
     ) {
         val locale = sender.locale()
@@ -48,8 +51,8 @@ class PlayerReplacementCommand {
     @CommandMethod("replacement remove <operateRaceId> <playerName>")
     suspend fun removeReplacement(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
-        @Argument(value = "playerName", suggestions = "playerName") playerName: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+        @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         val locale = sender.locale()
         val player = Bukkit.getOfflinePlayerIfCached(playerName)

@@ -17,8 +17,11 @@
 
 package dev.nikomaru.raceassist.race.commands.race
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.stop
 import kotlinx.coroutines.delay
 import org.bukkit.command.CommandSender
@@ -29,7 +32,7 @@ class RaceStopCommand {
     @CommandMethod("stop <operateRaceId>")
     suspend fun stop(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         stop[raceId] = true

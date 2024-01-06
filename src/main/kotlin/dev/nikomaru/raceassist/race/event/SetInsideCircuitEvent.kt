@@ -32,11 +32,6 @@ class SetInsideCircuitEvent : Listener {
             return
         }
         val player = event.player
-        if (event.action == Action.RIGHT_CLICK_AIR || (event.action == Action.RIGHT_CLICK_BLOCK)) {
-            player.sendMessage(Lang.getComponent("to-suspend-process", player.locale()))
-            canSetInsideCircuit.remove(player.uniqueId)
-            return
-        }
         if (event.action == Action.LEFT_CLICK_AIR) {
             event.player.sendMessage(Lang.getComponent("to-click-block", player.locale()))
             return

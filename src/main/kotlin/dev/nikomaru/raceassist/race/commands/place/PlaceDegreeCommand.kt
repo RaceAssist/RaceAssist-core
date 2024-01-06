@@ -17,9 +17,13 @@
 
 package dev.nikomaru.raceassist.race.commands.place
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -30,7 +34,7 @@ class PlaceDegreeCommand {
     @CommandMethod("degree <operatePlaceId>")
     suspend fun degree(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = "operatePlaceId") placeId: String
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLAIN_PLACE_ID) placeId: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
@@ -38,12 +42,13 @@ class PlaceDegreeCommand {
         }
 
         if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
-        val placeManager = RaceAssist.api.getPlaceManager(placeId) ?: return sender.sendMessage(
-            Lang.getComponent(
-                "no-exist-place",
-                sender.locale()
+        val placeManager =
+            RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager? ?: return sender.sendMessage(
+                Lang.getComponent(
+                    "no-exist-place",
+                    sender.locale()
+                )
             )
-        )
         val centralXPoint = placeManager.getCentralPointX() ?: return sender.sendMessage(
             Lang.getComponent(
                 "no-exist-central-point",
@@ -62,7 +67,7 @@ class PlaceDegreeCommand {
         val relativeNowX = if (!reverse) nowX - centralXPoint else -1 * (nowX - centralXPoint)
         val relativeNowY = nowY - centralYPoint
 
-        val degree = when (getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble())) {
+        val degree = when (getRaceDegree(relativeNowY.toDouble(), relativeNowX.toDouble()).toInt()) {
             in 0..45 -> {
                 0
             }

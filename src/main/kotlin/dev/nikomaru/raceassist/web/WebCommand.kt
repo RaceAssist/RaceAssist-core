@@ -17,15 +17,19 @@
 
 package dev.nikomaru.raceassist.web
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.CommandDescription
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.utils.Utils.passwordHash
 import kotlinx.coroutines.Dispatchers
 import org.apache.commons.lang.RandomStringUtils
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 @CommandMethod("ra|RaceAssist web")

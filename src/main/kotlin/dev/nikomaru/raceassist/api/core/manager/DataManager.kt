@@ -18,8 +18,9 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.plugin.BetConfig
-import dev.nikomaru.raceassist.data.plugin.PlaceConfig
+import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
 import kotlinx.coroutines.Dispatchers
@@ -46,8 +47,9 @@ class DataManager {
             return@withContext false
         }
 
-        val placeConfig =
-            PlaceConfig(
+        val plainPlaceConfig =
+            PlainPlaceConfig(
+                PlaceType.PLAIN,
                 placeId,
                 placeId,
                 null,
@@ -61,7 +63,7 @@ class DataManager {
                 owner,
                 arrayListOf(owner)
             )
-        val json = json.encodeToJsonElement(placeConfig)
+        val json = json.encodeToJsonElement(plainPlaceConfig)
         val string = json.toString()
 
         file.createNewFile()
@@ -103,8 +105,8 @@ class DataManager {
                 replacement = hashMapOf(),
                 horse = hashMapOf()
             )
-            val json = json.encodeToJsonElement(raceConfig)
-            val string = json.toString()
+            val jsonString = json.encodeToJsonElement(raceConfig)
+            val string = jsonString.toString()
 
             file.createNewFile()
             val fw = PrintWriter(BufferedWriter(OutputStreamWriter(FileOutputStream(file), "UTF-8")))

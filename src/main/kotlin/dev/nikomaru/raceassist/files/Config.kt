@@ -19,7 +19,6 @@ package dev.nikomaru.raceassist.files
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -58,8 +57,11 @@ object Config {
 
         val string = json.encodeToString(configData)
 
+        plugin.logger.warning("aaaaaaa")
+
         if (!file.exists()) {
             file.createNewFile()
+            println(file.toString() + "を作成しました。")
             file.writeText(string)
         } else {
             val verNode = json.decodeFromString<ConfigData>(file.readText()).version

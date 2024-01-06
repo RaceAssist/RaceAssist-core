@@ -17,7 +17,7 @@
 
 package dev.nikomaru.raceassist.horse.events
 
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.updateKilledHorse
+import dev.nikomaru.raceassist.horse.utlis.HorseUtils.saveData
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Horse
 import org.bukkit.event.EventHandler
@@ -34,7 +34,7 @@ class HorseKillEvent : Listener {
         }
         val horse = entity as Horse
 
-        updateKilledHorse(horse)
+        horse.saveData()
         return
     }
 }

@@ -99,6 +99,8 @@ object Utils {
     }
 
 
+    //This code creates an image of the Minecraft world.
+
     suspend fun createImage(x1: Int, x2: Int, y1: Int, y2: Int): String = withContext(Dispatchers.async) {
         val image = BufferedImage(abs(x1 - x2) + 9, abs(y1 - y2) + 9, BufferedImage.TYPE_3BYTE_BGR)
 
@@ -140,6 +142,7 @@ object Utils {
         }
         return@withContext Base64.getEncoder().encodeToString(baos.toByteArray())
     }
+
 
     fun judgeLap(goalDegree: Int, beforeDegree: Int?, currentDegree: Int?, threshold: Int): Int {
         if (currentDegree == null) return 0
@@ -183,8 +186,20 @@ object Utils {
         return 0
     }
 
-    fun getRaceDegree(y: Double, x: Double): Int {
-        val degree = Math.toDegrees(atan2(y, x)).toInt()
+    infix fun ClosedRange<Double>.until(step: Double): Iterable<Double> {
+        require(start.isFinite())
+        require(endInclusive.isFinite())
+        require(step > 0.0) { "Step must be positive, was: $step." }
+        val sequence = generateSequence(start) { previous ->
+            if (previous == Double.POSITIVE_INFINITY) return@generateSequence null
+            val next = previous + step
+            if (next > endInclusive) null else next
+        }
+        return sequence.asIterable()
+    }
+
+    fun getRaceDegree(y: Double, x: Double): Double {
+        val degree = Math.toDegrees(atan2(y, x))
         return if (degree < 0) {
             360 + degree
         } else {

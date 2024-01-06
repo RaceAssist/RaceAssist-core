@@ -17,7 +17,10 @@
 
 package dev.nikomaru.raceassist.race.commands.place
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.Regex
 import dev.nikomaru.raceassist.RaceAssist
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player

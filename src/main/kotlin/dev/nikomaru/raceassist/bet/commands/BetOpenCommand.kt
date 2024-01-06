@@ -17,11 +17,15 @@
 
 package dev.nikomaru.raceassist.bet.commands
 
-import cloud.commandframework.annotations.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandDescription
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.gui.BetChestGui
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,7 +37,10 @@ class BetOpenCommand {
     @CommandPermission("raceassist.commands.bet.open")
     @CommandMethod("open <raceId>")
     @CommandDescription("賭けるためのGUIを表示します")
-    suspend fun openVending(sender: CommandSender, @Argument(value = "raceId", suggestions = "raceId") raceId: String) {
+    suspend fun openVending(
+        sender: CommandSender,
+        @Argument(value = "raceId", suggestions = SuggestionId.RACE_ID) raceId: String
+    ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

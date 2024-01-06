@@ -17,11 +17,18 @@
 
 package dev.nikomaru.raceassist.bet.commands
 
-import cloud.commandframework.annotations.*
-import com.google.api.services.sheets.v4.model.*
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandDescription
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
+import com.google.api.services.sheets.v4.model.AddSheetRequest
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
+import com.google.api.services.sheets.v4.model.Request
+import com.google.api.services.sheets.v4.model.SheetProperties
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,7 +41,7 @@ class BetSheetCommand {
     @CommandDescription("現在の賭け状況を閲覧できるシートを設定します")
     suspend fun sheet(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = "operateRaceId") raceId: String,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
         @Argument(value = "sheet") sheetId: String
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return

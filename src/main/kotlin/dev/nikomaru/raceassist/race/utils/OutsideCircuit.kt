@@ -18,6 +18,7 @@ package dev.nikomaru.raceassist.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.RaceAssist.Companion.plugin
+import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
@@ -30,7 +31,8 @@ object OutsideCircuit {
     private var insidePolygonMap = HashMap<String, Polygon>()
     suspend fun outsideCircuit(player: Player, placeId: String, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(placeId, Polygon())
-        insidePolygonMap.putIfAbsent(placeId, RaceAssist.api.getPlaceManager(placeId)!!.getInside())
+        val placeManager = RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager
+        insidePolygonMap.putIfAbsent(placeId, placeManager.getInside())
 
         if (insidePolygonMap[placeId]!!.contains(x, z)) {
             player.sendActionBar(Lang.getComponent("to-click-inside-point", player.locale()))
@@ -45,8 +47,9 @@ object OutsideCircuit {
     }
 
     suspend fun finish(player: Player) {
-        RaceAssist.api.getPlaceManager(circuitPlaceId[player.uniqueId]!!)!!
-            .setOutside(outsidePolygonMap[circuitPlaceId[player.uniqueId]]!!)
+        val placeManager =
+            RaceAssist.api.getPlaceManager(circuitPlaceId[player.uniqueId]!!) as PlaceManager.PlainPlaceManager
+        placeManager.setOutside(outsidePolygonMap[circuitPlaceId[player.uniqueId]]!!)
         outsidePolygonMap.remove(circuitPlaceId[player.uniqueId])
     }
 }
