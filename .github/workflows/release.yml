@@ -50,6 +50,9 @@ jobs:
         with:
           # Upload entire repository
           path: 'build/dokka/html'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - uses: release-drafter/release-drafter@v5
         id: release-drafter
