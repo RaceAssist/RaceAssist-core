@@ -46,7 +46,7 @@ dependencies {
     val vaultVersion = "1.7"
     val protocolLibVersion = "5.2.0-SNAPSHOT"
     val kotlinxDataTimeVersion = "0.4.0"
-    val kotlinxSerializationVersion = "1.6.0-RC"
+    val kotlinxSerializationVersion = "1.6.2"
     val mccoroutineVersion = "2.14.0"
     val kotlinCoroutinesVersion = "1.7.3"
 
