@@ -60,6 +60,7 @@ abstract class RaceJudgement(open val raceId: String, open val executor: Command
 
     abstract suspend fun raceSetting(): Result<Unit, RaceSettingError>
 
+
     abstract suspend fun placeSetting(): Result<Unit, PlaceSettingError>
 
     fun audienceSetting() {
