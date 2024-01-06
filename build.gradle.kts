@@ -33,7 +33,7 @@ repositories {
 dependencies {
     val paperVersion = "1.20.4-R0.1-SNAPSHOT"
     val cloudVersion = "1.8.3"
-    val exposedVersion = "0.42.0"
+    val exposedVersion = "0.46.0"
     val ktorVersion = "2.3.7"
 
     val koinVersion = "3.5.3"
