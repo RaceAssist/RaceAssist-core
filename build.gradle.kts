@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
-    kotlin("jvm") version "2.0.0-Beta2"
+    kotlin("jvm") version "2.0.255-SNAPSHOT"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.2"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
