@@ -17,20 +17,29 @@
 
 package dev.nikomaru.raceassist.race.commands
 
-import cloud.commandframework.annotations.CommandDescription
-import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
-import org.bukkit.command.CommandSender
+import be.seeseemelk.mockbukkit.ServerMock
+import dev.nikomaru.raceassist.RaceAssistTest
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.koin.test.KoinTest
+import org.koin.test.inject
 
-@CommandMethod("ra")
-class HelpCommand {
-    @CommandMethod("help")
-    @CommandPermission("raceassist.commands.help")
-    @CommandDescription("help command")
-    fun help(sender: CommandSender) {
-        val message =
-            "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
-        sender.sendRichMessage(message)
-        return
+@ExtendWith(RaceAssistTest::class)
+class HelpCommandTest : KoinTest {
+    private val server: ServerMock by inject()
+
+    @Test
+    @DisplayName("Testing the help command")
+    fun helpCommandTest() {
+        val player = server.addPlayer()
+        player.isOp = true
+        player.performCommand("ra help")
+        Thread.sleep(100)
+        val res = player.nextMessage()
+        println(res)
+        assertNotNull(res)
     }
+
 }

@@ -18,15 +18,18 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.data.database.UserAuthData
-import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.files.ConfigData
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.*
 
-class WebManager {
+class WebManager : KoinComponent {
+    val configData: ConfigData by inject()
     fun getAvailable(): Boolean {
-        return Config.config.webAPI != null
+        return configData.webAPI != null
     }
 
     suspend fun getRegisteredPlayers(): List<UUID> {

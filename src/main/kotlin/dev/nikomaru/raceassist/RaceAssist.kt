@@ -37,12 +37,12 @@ import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.files.ConfigData
 import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
 import dev.nikomaru.raceassist.horse.events.HorseKillEvent
 import dev.nikomaru.raceassist.horse.events.HorseTamedEvent
-import dev.nikomaru.raceassist.packet.event.HorsePacketSendEvent
 import dev.nikomaru.raceassist.race.commands.HelpCommand
 import dev.nikomaru.raceassist.race.commands.ReloadCommand
 import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
@@ -64,13 +64,11 @@ import dev.nikomaru.raceassist.utils.TestCommand
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.client
 import dev.nikomaru.raceassist.utils.coroutines.async
-import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.Server
 import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.Database
@@ -88,23 +86,32 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
 
     val plugin: RaceAssist by inject()
     val injectServer: Server by inject()
+    val configData: ConfigData by inject()
 
-    @OptIn(ExperimentalSerializationApi::class)
+    var webServerIsStarted = false
+
     override suspend fun onEnableAsync() {
         // Plugin startup logic
+        Lang.load()
+        loadResources()
+        settingWebAPI()
+    }
+
+    override fun onEnable() {
         api = this
         setupKoin()
-        Lang.load()
         Config.load()
         settingDatabase()
         setCommand()
-        loadResources()
-//        registerEvents()
-        HorsePacketSendEvent()
-        withContext(Dispatchers.minecraft) {
-            VaultAPI.setupEconomy()
+        VaultAPI.setupEconomy()
+    }
+
+    override suspend fun onDisableAsync() {
+        // Plugin shutdown logic
+        if (webServerIsStarted) {
+            WebAPI.stopServer()
         }
-        settingWebAPI()
+        client.close()
     }
 
     private fun setupKoin() {
@@ -120,18 +127,24 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     fun settingWebAPI() {
-        if (Config.config.webAPI != null) {
-            if (Config.config.mySQL == null) {
-                plugin.logger.warning("MySQLが設定されていないため、WebAPIを起動できません。")
-                return
-            }
-            launch {
-                async(Dispatchers.async) {
-                    WebAPI.settingServer()
-                    WebAPI.startServer()
-                }
+        if (configData.webAPI == null) {
+            plugin.logger.warning("WebAPIが設定されていないため、WebAPIを起動できません。")
+            return
+        }
+
+        if (configData.mySQL == null) {
+            plugin.logger.warning("MySQLが設定されていないため、WebAPIを起動できません。")
+            return
+        }
+
+        webServerIsStarted = true
+        launch {
+            async(Dispatchers.async) {
+                WebAPI.settingServer()
+                WebAPI.startServer()
             }
         }
+
     }
 
     private suspend fun loadResources() {
@@ -148,13 +161,13 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     private fun settingDatabase() {
-        if (Config.config.mySQL != null) {
+        if (configData.mySQL != null) {
             Class.forName("com.mysql.cj.jdbc.Driver")
             Database.connect(
-                url = "jdbc:mysql://${Config.config.mySQL!!.url}",
+                url = "jdbc:mysql://${configData.mySQL!!.url}",
                 driver = "com.mysql.cj.jdbc.Driver",
-                user = Config.config.mySQL!!.username,
-                password = Config.config.mySQL!!.password,
+                user = configData.mySQL!!.username,
+                password = configData.mySQL!!.password,
             )
 
             transaction {
@@ -167,16 +180,11 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             )
 
             transaction {
+
                 SchemaUtils.create(BetList)
             }
         }
 
-    }
-
-    override fun onDisable() {
-        // Plugin shutdown logic
-        WebAPI.stopServer()
-        client.close()
     }
 
     private fun setCommand() {
@@ -251,11 +259,12 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             parse(TestCommand())
 
         }
-        if (Config.config.webAPI != null) {
+        if (configData.webAPI != null) {
             with(annotationParser) {
                 parse(WebCommand())
             }
         }
+        logger.info("command is registered")
     }
 
     private fun registerEvents() {
@@ -300,7 +309,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     override fun getWebManager(): WebManager? {
-        if (Config.config.webAPI == null) return null
+        if (configData.webAPI == null) return null
 
         return WebManager()
     }

@@ -23,6 +23,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
+import org.koin.dsl.module
 import java.io.File
 
 object Config : KoinComponent {
@@ -36,7 +38,10 @@ object Config : KoinComponent {
 
         createConfig(file)
 
-        config = json.decodeFromString(file.readText())
+        val config: ConfigData = json.decodeFromString(file.readText())
+        loadKoinModules(module {
+            single { config }
+        })
     }
 
     @OptIn(ExperimentalSerializationApi::class)
