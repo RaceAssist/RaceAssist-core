@@ -40,7 +40,7 @@ dependencies {
     val ifVersion = "0.10.11"
     val junitVersion = "5.10.1"
     val mockkVersion = "1.13.8"
-    val mockBukkitVersion = "3.58.0"
+    val mockBukkitVersion = "3.65.0"
     val sqliteVersion = "3.44.1.0"
     val mysqlVersion = "8.0.33"
     val vaultVersion = "1.7"
