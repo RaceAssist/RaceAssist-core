@@ -41,7 +41,7 @@ dependencies {
     val junitVersion = "5.10.1"
     val mockkVersion = "1.13.8"
     val mockBukkitVersion = "3.74.0"
-    val sqliteVersion = "3.44.1.0"
+    val sqliteVersion = "3.45.1.0"
     val mysqlVersion = "8.0.33"
     val vaultVersion = "1.7"
     val protocolLibVersion = "5.2.0-SNAPSHOT"
