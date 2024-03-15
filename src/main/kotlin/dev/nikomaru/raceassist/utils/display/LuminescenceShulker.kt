@@ -23,7 +23,6 @@ import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.wrappers.WrappedDataValue
 import com.comphenix.protocol.wrappers.WrappedDataWatcher
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject
-import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,7 +36,7 @@ import kotlin.random.Random
 
 
 class LuminescenceShulker : KoinComponent {
-    val protocolManager: ProtocolManager by inject()
+    private val protocolManager: ProtocolManager by inject()
 
     private val ids = arrayListOf<Int>()
 

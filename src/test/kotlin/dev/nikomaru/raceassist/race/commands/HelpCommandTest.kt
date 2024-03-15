@@ -19,6 +19,7 @@ package dev.nikomaru.raceassist.race.commands
 
 import be.seeseemelk.mockbukkit.ServerMock
 import dev.nikomaru.raceassist.RaceAssistTest
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -26,14 +27,19 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 
 @ExtendWith(RaceAssistTest::class)
-class HelpCommandTest : KoinTest{
-    private val server : ServerMock by inject()
+class HelpCommandTest : KoinTest {
+    private val server: ServerMock by inject()
 
     @Test
-    @DisplayName("コマンドテスト: ra help")
-    fun sendHelp(){
+    @DisplayName("Testing the help command")
+    fun helpCommandTest() {
         val player = server.addPlayer()
-        val result = player.performCommand("ra help")
-        assert(result)
+        player.isOp = true
+        player.performCommand("ra help")
+        Thread.sleep(100)
+        val res = player.nextMessage()
+        println(res)
+        assertNotNull(res)
     }
+
 }

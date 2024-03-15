@@ -1,14 +1,18 @@
 name: Release Drafter
 
 on:
+  # Runs on pushes targeting the default branch
   push:
-    branches:
-      - master
+    branches: ["master"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
+  pull-requests: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -17,10 +21,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    permissions:
-      contents: write
-      pull-requests: write
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -50,10 +51,42 @@ jobs:
         with:
           # Upload entire repository
           path: 'build/dokka/html'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Test with Gradle
+        run: ./gradlew test
+
+      - name: Publish test results
+        id: publish-test-results
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
 
       - uses: release-drafter/release-drafter@v5
         id: release-drafter
         with:
           publish: false
+          footer: |
+            ## Check summary
+            
+            <table>
+              <tr>
+              <th>
+                <th>Tests 💯</th>
+                <th>Passed ✅</th>
+                <th>Skipped ⏭️</th>
+                <th>Failed ❌</th>
+              </tr>
+              <tr>
+                <td>JUnit Test Report</td>
+                <td>${{ steps.publish-test-results.outputs.total }} ran</td>
+                <td>${{ steps.publish-test-results.outputs.passed }} passed</td>
+                <td>${{ steps.publish-test-results.outputs.skipped }} skipped</td>
+                <td>${{ steps.publish-test-results.outputs.failed }} failed</td>
+              </tr>
+            </table>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

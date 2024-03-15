@@ -37,7 +37,7 @@ import org.koin.core.component.inject
 import java.util.*
 
 object RaceUtils : KoinComponent {
-    val plugin: RaceAssist by inject()
+    private val plugin: RaceAssist by inject()
 
 
     fun existsRace(raceId: String): Boolean {

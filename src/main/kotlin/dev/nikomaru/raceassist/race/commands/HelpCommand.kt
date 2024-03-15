@@ -20,10 +20,9 @@ package dev.nikomaru.raceassist.race.commands
 import cloud.commandframework.annotations.CommandDescription
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
-import dev.nikomaru.raceassist.utils.Lang.mm
 import org.bukkit.command.CommandSender
 
-@CommandMethod("ra|raceassist")
+@CommandMethod("ra")
 class HelpCommand {
     @CommandMethod("help")
     @CommandPermission("raceassist.commands.help")
@@ -31,20 +30,7 @@ class HelpCommand {
     fun help(sender: CommandSender) {
         val message =
             "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
-        sender.sendMessage(mm.deserialize(message))
+        sender.sendRichMessage(message)
+        return
     }
-//
-//    @CommandMethod("image <x1> <x2> <y1> <y2>")
-//    suspend fun createImage(sender: CommandSender,
-//        @Argument(value = "x1") x1: Int,
-//        @Argument(value = "x2") x2: Int,
-//        @Argument(value = "y1") y1: Int,
-//        @Argument(value = "y2") y2: Int) {
-//        val base64 = Utils.createImage(x1, x2, y1, y2)
-//
-//        File("D:\\download\\racajkghfds.txt").writeText(base64)
-//        val serializedObject: ByteArray = Base64.getDecoder().decode(base64)
-//        File("D:\\download\\racajkghfds.png").writeBytes(serializedObject)
-//    }
-
 }

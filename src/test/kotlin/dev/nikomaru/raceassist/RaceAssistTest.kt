@@ -18,22 +18,19 @@
 package dev.nikomaru.raceassist
 
 import be.seeseemelk.mockbukkit.MockBukkit
-import com.comphenix.protocol.ProtocolLib
-import com.comphenix.protocol.ProtocolLibrary
-import org.bukkit.Server
+import be.seeseemelk.mockbukkit.ServerMock
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 
-open class RaceAssistTest : BeforeEachCallback, AfterEachCallback {
-
-    private lateinit var server: Server
+class RaceAssistTest : BeforeEachCallback, AfterEachCallback {
+    private lateinit var server: ServerMock
     private lateinit var plugin: RaceAssist
 
     override fun beforeEach(context: ExtensionContext) {
-        println("beforeEach() executed before " + context.displayName + ".");
+        println("beforeEach() executed before " + context.displayName + ".")
         server = MockBukkit.mock()
         setupKoin()
     }
@@ -47,7 +44,7 @@ open class RaceAssistTest : BeforeEachCallback, AfterEachCallback {
         plugin = MockBukkit.load(RaceAssist::class.java)
         val appModule = module {
             single<RaceAssist> { plugin }
-            single<Server> { server }
+            single<ServerMock> { server }
         }
         loadKoinModules(appModule)
     }
