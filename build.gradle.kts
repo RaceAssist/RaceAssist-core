@@ -104,7 +104,7 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
-    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.18")
+    implementation("com.michael-bull.kotlin-result:kotlin-result:2.0.0")
 
     library("com.google.code.gson:gson:2.10.1")
 
