@@ -83,7 +83,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 
-    implementation("ch.qos.logback:logback-classic:1.3.14")
+    implementation("ch.qos.logback:logback-classic:1.5.5")
 
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
