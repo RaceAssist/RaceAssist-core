@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
     kotlin("jvm") version "2.0.0-Beta2"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.2"
+    id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
     kotlin("plugin.serialization") version "2.0.0-Beta2"
     id("org.jetbrains.dokka") version "1.9.10"
