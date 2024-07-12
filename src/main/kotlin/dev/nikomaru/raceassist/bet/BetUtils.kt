@@ -35,7 +35,7 @@ import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.math.RoundingMode
 import java.util.*
@@ -47,7 +47,7 @@ object BetUtils {
     suspend fun deleteBetData(raceId: String): ArrayList<BetListData> {
         val list = arrayListOf<BetListData>()
         newSuspendedTransaction {
-            BetList.select { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
                 list.add(
                     BetListData(
                         it[BetList.rowUniqueId].toUUID(),
@@ -81,7 +81,7 @@ object BetUtils {
     suspend fun listBetData(raceId: String): ArrayList<BetListData> {
         val list = arrayListOf<BetListData>()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
                 list.add(
                     BetListData(
                         it[BetList.rowUniqueId].toUUID(),
@@ -97,18 +97,19 @@ object BetUtils {
     }
 
     suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.select { BetList.raceId eq raceId }.sumOf {
+        BetList.selectAll().where { BetList.raceId eq raceId }.sumOf {
             it[BetList.betting]
         }
     }
 
     suspend fun getJockeyBetSum(raceId: String, jockey: OfflinePlayer) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.select { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
+        BetList.selectAll()
+            .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
             .sumOf { it[BetList.betting] }
     }
 
     suspend fun getRowBet(raceId: String, row: UUID) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.select { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+        BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
             .sumOf { it[BetList.betting] }
     }
 
@@ -133,7 +134,8 @@ object BetUtils {
         val betManager = RaceAssist.api.getBetManager(raceId) ?: return sender.sendMessage("レースが存在しません")
 
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
+            BetList.selectAll()
+                .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
                 .forEach {
                     val returnAmount = it[BetList.betting] * odds
                     val returnPlayer = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())

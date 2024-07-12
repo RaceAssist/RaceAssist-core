@@ -237,7 +237,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             parse(BetOpenCommand())
             parse(BetRateCommand())
             parse(BetRevertCommand())
-            parse(BetSheetCommand())
             parse(BetPayCommand())
             parse(BetUnitCommand())
 

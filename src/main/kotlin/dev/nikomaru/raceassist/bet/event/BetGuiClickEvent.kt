@@ -17,20 +17,13 @@
 
 package dev.nikomaru.raceassist.bet.event
 
-import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest
-import com.google.api.services.sheets.v4.model.ValueRange
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.api.sheet.SheetsServiceUtil.getSheetsService
 import dev.nikomaru.raceassist.bet.BetUtils
 import dev.nikomaru.raceassist.bet.GuiComponent
 import dev.nikomaru.raceassist.bet.gui.BetChestGui.Companion.AllPlayers
-import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
-import dev.nikomaru.raceassist.utils.Utils.toUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Material
@@ -40,7 +33,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
@@ -283,7 +275,6 @@ class BetGuiClickEvent : Listener {
                     }
                     BetUtils.tempBetDataList.removeIf { it.raceId == raceId && it.player == player }
                 }
-                putSheetsData(raceId)
             }
         }
 
@@ -332,50 +323,6 @@ class BetGuiClickEvent : Listener {
         return sum
     }
 
-    private suspend fun putSheetsData(raceId: String) = withContext(Dispatchers.Default) {
-        val betManager = RaceAssist.api.getBetManager(raceId)!!
-        val spreadSheetIdList = betManager.getReturnSpreadSheetId()
-        spreadSheetIdList?.let { sheetId ->
-
-            val sheetsService = getSheetsService(sheetId) ?: return@withContext
-
-            var i = 1
-            val data: ArrayList<ValueRange> = ArrayList()
-            data.add(
-                ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}")
-                    .setValues(
-                        listOf(
-                            listOf(
-                                Lang.getText("sheet-timestamp", Locale.getDefault()),
-                                Lang.getText("sheet-minecraft-name", Locale.getDefault()),
-                                Lang.getText("sheet-jockey", Locale.getDefault()),
-                                Lang.getText("sheet-bet-price", Locale.getDefault()),
-                                Lang.getText("sheet-bet-multiplier", Locale.getDefault()),
-                                getBetPercent(raceId)
-                            )
-                        )
-                    )
-            )
-
-            newSuspendedTransaction(Dispatchers.Default) {
-                BetList.select { BetList.raceId eq raceId }.forEach {
-                    i++
-                    val player = it[BetList.playerUniqueId].toUUID().toOfflinePlayer().name
-                    val jockey = it[BetList.jockeyUniqueId].toUUID().toOfflinePlayer().name
-                    val betting = it[BetList.betting]
-                    val timeStamp = it[BetList.timeStamp]
-                    data.add(
-                        ValueRange().setRange("${raceId}_RaceAssist_Bet!A${i}")
-                            .setValues(listOf(listOf(timeStamp.toString(), player, jockey, betting)))
-                    )
-                }
-                val batchBody = BatchUpdateValuesRequest().setValueInputOption("USER_ENTERED").setData(data)
-
-                sheetsService.spreadsheets()?.values()?.batchUpdate(sheetId, batchBody)?.execute()
-            }
-        }
-
-    }
 
     private suspend fun getBetPercent(raceId: String): Int = newSuspendedTransaction(Dispatchers.IO) {
         RaceAssist.api.getBetManager(raceId)!!.getReturnPercent()

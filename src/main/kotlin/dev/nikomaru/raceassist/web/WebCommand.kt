@@ -23,13 +23,13 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.utils.Utils.passwordHash
 import kotlinx.coroutines.Dispatchers
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 @CommandMethod("ra|RaceAssist web")
@@ -43,7 +43,7 @@ class WebCommand {
         val uuid = sender.uniqueId
 
         val exist = newSuspendedTransaction(Dispatchers.IO) {
-            UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
+            UserAuthData.selectAll().where(UserAuthData.uuid eq uuid.toString()).count() > 0
         }
         if (exist) {
             sender.sendMessage("すでに登録されています /ra web resetを実行して削除した後もう一度実行してください")
@@ -68,7 +68,7 @@ class WebCommand {
         val uuid = sender.uniqueId
 
         val exist = newSuspendedTransaction(Dispatchers.IO) {
-            UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
+            UserAuthData.selectAll().where(UserAuthData.uuid eq uuid.toString()).count() > 0
         }
         if (!exist) {
             sender.sendRichMessage("登録されていません まずは /ra web registerを実行してください")
