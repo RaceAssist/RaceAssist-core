@@ -17,9 +17,13 @@
 
 package dev.nikomaru.raceassist.data.utils
 
+import dev.nikomaru.raceassist.api.core.PlaceType
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.data.plugin.PolygonData
 import dev.nikomaru.raceassist.utils.Utils.toUUID
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -85,7 +89,19 @@ object PolygonSerializer : KSerializer<Polygon> {
     }
 }
 
+object PlaceConfigSerializer : JsonContentPolymorphicSerializer<PlaceConfig>(PlaceConfig::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<PlaceConfig> {
+        return when (element.jsonObject["placeType"]?.jsonPrimitive?.content) {
+            PlaceType.PLAIN.name -> PlaceConfig.PlainPlaceConfig.serializer()
+            PlaceType.PLANE_VECTOR.name -> PlaceConfig.PlaneVectorPlaceConfig.serializer()
+            else -> throw SerializationException("Unknown PlaceType")
+        }
+    }
+}
+
+
 val json = Json {
+    ignoreUnknownKeys = true
     encodeDefaults = true
     isLenient = true
     prettyPrint = true
