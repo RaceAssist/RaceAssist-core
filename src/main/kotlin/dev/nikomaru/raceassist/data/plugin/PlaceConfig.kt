@@ -19,15 +19,50 @@ package dev.nikomaru.raceassist.data.plugin
 
 import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.utils.OfflinePlayerSerializer
+import dev.nikomaru.raceassist.data.utils.PlaceConfigSerializer
+import dev.nikomaru.raceassist.data.utils.PolygonSerializer
 import kotlinx.serialization.Serializable
 import org.bukkit.OfflinePlayer
+import java.awt.Polygon
 
-@Serializable
-abstract class PlaceConfig {
+@Serializable(with = PlaceConfigSerializer::class)
+sealed class PlaceConfig {
     abstract val placeType: PlaceType
     abstract val placeId: String
     abstract val placeName: String?
     abstract val placeImageUrl: String?
     abstract val owner: OfflinePlayer
     abstract val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>
+
+    @Serializable
+    data class PlainPlaceConfig(
+        override val placeType: PlaceType = PlaceType.PLAIN,
+        override val placeId: String,
+        override val placeName: String?,
+        override val placeImageUrl: String?,
+        val centralX: Int?,
+        val centralY: Int?,
+        val goalDegree: Int,
+        val reverse: Boolean,
+        val inside: @Serializable(with = PolygonSerializer::class) Polygon,
+        val outside: @Serializable(with = PolygonSerializer::class) Polygon,
+        val image: String?,
+        override val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
+        override val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+    ) : PlaceConfig()
+
+    @Serializable
+    data class PlaneVectorPlaceConfig(
+        override val placeType: PlaceType = PlaceType.PLANE_VECTOR,
+        override val placeId: String,
+        override val placeName: String?,
+        override val placeImageUrl: String?,
+        val inside: @Serializable(with = PolygonSerializer::class) Polygon,
+        val outside: @Serializable(with = PolygonSerializer::class) Polygon,
+        val calculatePolygonList: ArrayList<CalculatePolygon>,
+        val image: String?,
+        override val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
+        override val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,
+    ) : PlaceConfig()
 }
+
