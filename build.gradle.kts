@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import xyz.jpenilla.resourcefactory.bukkit.Permission
 
 
@@ -89,11 +90,12 @@ tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile:
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "21"
-        kotlinOptions.javaParameters = true
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+        compilerOptions.javaParameters = true
+        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_0)
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "21"
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
     }
     build {
         dependsOn("shadowJar")

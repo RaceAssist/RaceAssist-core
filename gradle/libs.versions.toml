@@ -71,7 +71,7 @@ koinTestJunit5 = { module = "io.insert-koin:koin-test-junit5", version.ref = "ko
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.0" }
 resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.1.1" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+shadow = { id = "io.github.goooler.shadow", version = "8.1.8" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.0.0" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
