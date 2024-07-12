@@ -20,8 +20,6 @@ package dev.nikomaru.raceassist.data.files
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.plugin.PlaceConfig
-import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
-import dev.nikomaru.raceassist.data.plugin.PlaneVectorPlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
 import dev.nikomaru.raceassist.files.Config
@@ -78,7 +76,7 @@ object RaceUtils : KoinComponent {
         }
     }
 
-    suspend fun PlainPlaceConfig.save() {
+    suspend fun PlaceConfig.PlainPlaceConfig.save() {
         val data = this
         val placeId = data.placeId
         val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
@@ -106,7 +104,7 @@ object RaceUtils : KoinComponent {
         }
     }
 
-    suspend fun PlaneVectorPlaceConfig.save() {
+    suspend fun PlaceConfig.PlaneVectorPlaceConfig.save() {
         val data = this
         val placeId = data.placeId
         val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
@@ -141,12 +139,12 @@ object RaceUtils : KoinComponent {
 
     suspend fun getPlainPlaceConfig(placeId: String) = withContext(Dispatchers.IO) {
         val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
-        return@withContext json.decodeFromString<PlainPlaceConfig>(file.readText())
+        return@withContext json.decodeFromString<PlaceConfig.PlainPlaceConfig>(file.readText())
     }
 
     suspend fun getPlaneVectorPlaceConfig(placeId: String) = withContext(Dispatchers.IO) {
         val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
-        return@withContext json.decodeFromString<PlaneVectorPlaceConfig>(file.readText())
+        return@withContext json.decodeFromString<PlaceConfig.PlaneVectorPlaceConfig>(file.readText())
     }
 
     fun getPlaceType(placeId: String) = runBlocking(Dispatchers.IO) {

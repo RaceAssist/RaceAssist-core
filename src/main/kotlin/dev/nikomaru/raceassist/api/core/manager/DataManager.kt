@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.api.core.manager
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.plugin.BetConfig
-import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +51,7 @@ class DataManager : KoinComponent {
         }
 
         val plainPlaceConfig =
-            PlainPlaceConfig(
+            PlaceConfig.PlainPlaceConfig(
                 PlaceType.PLAIN,
                 placeId,
                 placeId,

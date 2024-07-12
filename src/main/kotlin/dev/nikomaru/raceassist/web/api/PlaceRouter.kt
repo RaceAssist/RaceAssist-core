@@ -20,7 +20,7 @@ package dev.nikomaru.raceassist.web.api
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import io.ktor.http.*
@@ -68,7 +68,7 @@ object PlaceRouter : KoinComponent {
                     "Missing or invalid jwt token",
                     status = HttpStatusCode.Unauthorized
                 )
-                val config = call.receive<PlainPlaceConfig>()
+                val config = call.receive<PlaceConfig.PlainPlaceConfig>()
 
                 val placeId = call.parameters["placeId"] ?: return@post call.respondText(
                     "Missing id",

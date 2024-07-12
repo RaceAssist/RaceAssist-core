@@ -22,8 +22,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import dev.nikomaru.raceassist.data.plugin.CalculatePolygon
-import dev.nikomaru.raceassist.data.plugin.PlainPlaceConfig
-import dev.nikomaru.raceassist.data.plugin.PlaneVectorPlaceConfig
+import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -338,7 +337,7 @@ sealed class PlaceManager(val placeId: String) : KoinComponent {
         }
 
         companion object {
-            val plainPlaceConfig: HashMap<String, PlainPlaceConfig> = HashMap()
+            val plainPlaceConfig: HashMap<String, PlaceConfig.PlainPlaceConfig> = HashMap()
         }
     }
 
@@ -568,7 +567,7 @@ sealed class PlaceManager(val placeId: String) : KoinComponent {
         }
 
         companion object {
-            private val planeVectorPlaceConfig: HashMap<String, PlaneVectorPlaceConfig> = HashMap()
+            private val planeVectorPlaceConfig: HashMap<String, PlaceConfig.PlaneVectorPlaceConfig> = HashMap()
         }
     }
 
