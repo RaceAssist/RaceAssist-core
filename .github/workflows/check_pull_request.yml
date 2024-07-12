@@ -1,6 +1,8 @@
 name: Check pull request
 
-on: [ pull_request ]
+on:
+  workflow_dispatch:
+  pull_request:
 
 
 permissions:

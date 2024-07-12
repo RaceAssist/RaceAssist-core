@@ -1,5 +1,7 @@
 ### Example user template template
 ### Example user template
+build
+.gradle
 
 # IntelliJ project files
 .idea
