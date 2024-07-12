@@ -1,0 +1,90 @@
+[versions]
+paper = "1.21-R0.1-SNAPSHOT"
+mccoroutine = "2.17.0"
+koinVersion = "3.5.6"
+coroutine = "1.8.1"
+serialization = "1.7.1"
+ktor = "2.3.12"
+exposed = "0.52.0"
+cloud = "1.8.4"
+if = "0.10.11"
+mysql-connector-java = "8.0.33"
+sqlite-jdbc = "3.45.1.0"
+logback = "1.5.6"
+mockBukkit = "3.74.0"
+mockk = "1.13.8"
+junitJupiter = "5.10.1"
+koinTest = "3.5.3"
+koinTestJunit5 = "3.5.3"
+kotlinx-datetime = "0.4.0"
+kotlinx-serialization = "1.6.2"
+kotlin-result = "1.1.18"
+gson = "2.8.8"
+koin-core = "3.5.3"
+protocolLibVersion = "5.3.0-SNAPSHOT"
+vault = "1.7.1"
+
+[libraries]
+paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
+vault-api = { group = "com.github.MilkBowl", name = "vaultAPI", version.ref = "vault" }
+protocol-lib = { group = "com.comphenix.protocol", name = "ProtocolLib", version.ref = "protocolLibVersion" }
+cloud-core = { group = "cloud.commandframework", name = "cloud-core", version.ref = "cloud" }
+cloud-kotlin-extension = { group = "cloud.commandframework", name = "cloud-kotlin-extensions", version.ref = "cloud" }
+cloud-paper = { group = "cloud.commandframework", name = "cloud-paper", version.ref = "cloud" }
+cloud-annotations = { group = "cloud.commandframework", name = "cloud-annotations", version.ref = "cloud" }
+cloud-kotlin-coroutines-annotations = { group = "cloud.commandframework", name = "cloud-kotlin-coroutines-annotations", version.ref = "cloud" }
+cloud-kotlin-coroutines = { group = "cloud.commandframework", name = "cloud-kotlin-coroutines", version.ref = "cloud" }
+inventoryframework = { group = "com.github.stefvanschie.inventoryframework", name = "IF", version.ref = "if" }
+mysql-connector-java = { group = "mysql", name = "mysql-connector-java", version.ref = "mysql-connector-java" }
+sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite-jdbc" }
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
+ktor-server-contentNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinxJson = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-auth = { group = "io.ktor", name = "ktor-server-auth", version.ref = "ktor" }
+ktor-server-authJwt = { group = "io.ktor", name = "ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-network-tlsCertificates = { group = "io.ktor", name = "ktor-network-tls-certificates", version.ref = "ktor" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-java = { group = "io.ktor", name = "ktor-client-java", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-client-contentNegotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
+exposed-dao = { group = "org.jetbrains.exposed", name = "exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { group = "org.jetbrains.exposed", name = "exposed-java-time", version.ref = "exposed" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine" }
+mccoroutine-bukkit-api = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-api", version.ref = "mccoroutine" }
+mccoroutine-bukkit-core = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-core", version.ref = "mccoroutine" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-hocon = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-hocon", version.ref = "kotlinx-serialization" }
+kotlin-result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "kotlin-result" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin-core" }
+mockBukkit = { module = "com.github.seeseemelk:MockBukkit-v1.20", version.ref = "mockBukkit" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+koinTest = { module = "io.insert-koin:koin-test", version.ref = "koinTest" }
+koinTestJunit5 = { module = "io.insert-koin:koin-test-junit5", version.ref = "koinTestJunit5" }
+
+[plugins]
+run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.0" }
+resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.1.1" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.0.0" }
+dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
+
+[bundles]
+command = [
+    "cloud-core",
+    "cloud-kotlin-extension",
+    "cloud-paper",
+    "cloud-annotations",
+    "cloud-kotlin-coroutines-annotations",
+    "cloud-kotlin-coroutines"]
+ktor-client = ["ktor-client-core", "ktor-client-java", "ktor-client-logging", "ktor-client-contentNegotiation"]
+ktor-server = ["ktor-server-core", "ktor-server-netty", "ktor-server-contentNegotiation", "ktor-serialization-kotlinxJson", "ktor-server-auth", "ktor-server-authJwt", "ktor-network-tlsCertificates", "logback-classic"]
+exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-java-time"]
+coroutines = ["mccoroutine-bukkit-api", "mccoroutine-bukkit-core", "kotlinx-coroutines-core"]

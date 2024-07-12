@@ -38,7 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.bukkit.Bukkit
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.security.KeyFactory
 import java.security.interfaces.RSAPrivateKey
@@ -65,7 +65,7 @@ object LoginRouter {
                 //パスワードの検証
 
                 val exist = newSuspendedTransaction(Dispatchers.IO) {
-                    UserAuthData.select(UserAuthData.uuid eq uuid.toString()).count() > 0
+                    UserAuthData.selectAll().where(UserAuthData.uuid eq uuid.toString()).count() > 0
                 }
                 if (!exist) {
                     //401
@@ -76,7 +76,7 @@ object LoginRouter {
                     call.respond(HttpStatusCode.Forbidden, "This player is banned")
                 }
                 val registeredPassword = newSuspendedTransaction {
-                    val rr = UserAuthData.select { UserAuthData.uuid eq uuid.toString() }.first()
+                    val rr = UserAuthData.selectAll().where { UserAuthData.uuid eq uuid.toString() }.first()
                     rr[UserAuthData.hashedPassword]
                 }
                 if (Utils.passwordHash(password) != registeredPassword) {

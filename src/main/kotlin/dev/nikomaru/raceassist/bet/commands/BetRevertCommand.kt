@@ -35,7 +35,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
@@ -101,7 +101,7 @@ class BetRevertCommand {
         val betManager = RaceAssist.api.getBetManager(raceId)!!
         val owner = raceManager.getOwner()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
                 val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                 betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
                 executor.sendMessage(
@@ -123,7 +123,8 @@ class BetRevertCommand {
         val betManager = RaceAssist.api.getBetManager(raceId)!!
         val owner = raceManager.getOwner()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { (BetList.raceId eq raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
+            BetList.selectAll()
+                .where { (BetList.raceId eq raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
                 .forEach {
                     val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                     betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
@@ -147,7 +148,8 @@ class BetRevertCommand {
         val owner = raceManager.getOwner()
         val locale = executor.locale()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.select { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }.forEach {
+            BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+                .forEach {
                 val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                 betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
                 executor.sendMessage(
