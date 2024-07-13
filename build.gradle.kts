@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import xyz.jpenilla.resourcefactory.bukkit.Permission
@@ -60,16 +59,6 @@ dependencies {
     implementation(libs.gson)
 
     implementation(libs.koin.core)
-
-    testImplementation(libs.bundles.coroutines)
-    testImplementation(libs.protocol.lib)
-    testImplementation(libs.sqlite.jdbc)
-
-    testImplementation(libs.mockBukkit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.junitJupiter)
-    testImplementation(libs.koinTest)
-    testImplementation(libs.koinTestJunit5)
 }
 
 kotlin {
@@ -124,14 +113,6 @@ tasks {
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
-    }
-    test {
-        useJUnitPlatform()
-        testLogging {
-            showStandardStreams = true
-            events("passed", "skipped", "failed")
-            exceptionFormat = TestExceptionFormat.FULL
-        }
     }
 }
 sourceSets.main {
