@@ -22,6 +22,7 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.Regex
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.Lang.sendI18nRichMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -35,14 +36,14 @@ class PlaceCreateCommand {
         @Argument(value = "placeId") @Regex(value = "[^_]+_\\d+$") placeId: String
     ) {
         if (sender !is Player) {
-            sender.sendMessage("Only the player can do this.")
+            sender.sendI18nRichMessage("only-player-can-do-this")
             return
         }
 
         RaceAssist.api.getDataManager().createPlace(placeId, sender)
 
 
-        sender.sendMessage("<color:green> $placeId を作成しました。")
+        sender.sendI18nRichMessage("place-created", placeId)
 
     }
 }

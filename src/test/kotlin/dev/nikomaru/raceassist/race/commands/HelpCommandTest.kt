@@ -35,7 +35,7 @@ class HelpCommandTest : KoinTest {
     fun helpCommandTest() {
         val player = server.addPlayer()
         player.isOp = true
-        player.performCommand("ra help")
+        player.performCommand("ra help list")
         Thread.sleep(100)
         val res = player.nextMessage()
         println(res)

@@ -31,7 +31,7 @@ object OutsideCircuit : KoinComponent {
     val plugin: RaceAssist by inject()
     private var outsidePolygonMap = HashMap<String, Polygon>()
     private var insidePolygonMap = HashMap<String, Polygon>()
-    suspend fun outsideCircuit(player: Player, placeId: String, x: Int, z: Int) {
+    fun outsideCircuit(player: Player, placeId: String, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(placeId, Polygon())
         val placeManager = RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager
         insidePolygonMap.putIfAbsent(placeId, placeManager.getInside())

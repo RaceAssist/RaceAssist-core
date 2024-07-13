@@ -37,7 +37,6 @@ import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.files.ConfigData
 import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
 import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
 import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
@@ -69,6 +68,7 @@ import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.Server
 import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.Database
@@ -85,26 +85,24 @@ import java.util.*
 open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
 
     val plugin: RaceAssist by inject()
-    val injectServer: Server by inject()
-    val configData: ConfigData by inject()
+    private val injectServer: Server by inject()
+    private var webServerIsStarted = false
 
-    var webServerIsStarted = false
-
+    @OptIn(ExperimentalSerializationApi::class)
     override suspend fun onEnableAsync() {
         // Plugin startup logic
-        Lang.load()
-        loadResources()
-        settingWebAPI()
-    }
-
-    override fun onEnable() {
         api = this
         setupKoin()
         Config.load()
         settingDatabase()
         setCommand()
         VaultAPI.setupEconomy()
+        Lang.load()
+        loadResources()
+        settingWebAPI()
+        registerEvents()
     }
+
 
     override suspend fun onDisableAsync() {
         // Plugin shutdown logic
@@ -127,12 +125,12 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     fun settingWebAPI() {
-        if (configData.webAPI == null) {
+        if (Config.config.webAPI == null) {
             plugin.logger.warning("WebAPIが設定されていないため、WebAPIを起動できません。")
             return
         }
 
-        if (configData.mySQL == null) {
+        if (Config.config.mySQL == null) {
             plugin.logger.warning("MySQLが設定されていないため、WebAPIを起動できません。")
             return
         }
@@ -161,13 +159,13 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     private fun settingDatabase() {
-        if (configData.mySQL != null) {
+        if (Config.config.mySQL != null) {
             Class.forName("com.mysql.cj.jdbc.Driver")
             Database.connect(
-                url = "jdbc:mysql://${configData.mySQL!!.url}",
+                url = "jdbc:mysql://${Config.config.mySQL!!.url}",
                 driver = "com.mysql.cj.jdbc.Driver",
-                user = configData.mySQL!!.username,
-                password = configData.mySQL!!.password,
+                user = Config.config.mySQL!!.username,
+                password = Config.config.mySQL!!.password,
             )
 
             transaction {
@@ -180,7 +178,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             )
 
             transaction {
-
                 SchemaUtils.create(BetList)
             }
         }
@@ -191,7 +188,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
 
         val commandManager: PaperCommandManager<CommandSender> = PaperCommandManager(
             this,
-            AsynchronousCommandExecutionCoordinator.newBuilder<CommandSender>().build(),
+            AsynchronousCommandExecutionCoordinator.builder<CommandSender>().build(),
             java.util.function.Function.identity(),
             java.util.function.Function.identity()
         )
@@ -249,7 +246,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             parse(SettingStaffCommand())
             parse(SettingViewCommand())
 
-            parse(HelpCommand())
             parse(ReloadCommand())
 
             parse(OwnerDeleteCommand())
@@ -258,12 +254,15 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             parse(TestCommand())
 
         }
-        if (configData.webAPI != null) {
+        if (Config.config.webAPI != null) {
             with(annotationParser) {
                 parse(WebCommand())
             }
         }
+        val helpCommand = HelpCommand()
+        helpCommand.registerFeature(plugin, annotationParser)
         logger.info("command is registered")
+
     }
 
     private fun registerEvents() {
@@ -308,7 +307,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
     override fun getWebManager(): WebManager? {
-        if (configData.webAPI == null) return null
+        if (Config.config.webAPI == null) return null
 
         return WebManager()
     }

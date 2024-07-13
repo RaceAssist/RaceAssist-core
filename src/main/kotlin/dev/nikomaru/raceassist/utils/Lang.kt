@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
@@ -33,7 +35,7 @@ object Lang : KoinComponent {
     val plugin: RaceAssist by inject()
     private val langList: HashMap<String, Properties> = HashMap()
 
-    val mm = MiniMessage.miniMessage()
+    private val mm = MiniMessage.miniMessage()
 
     suspend fun load() {
         withContext(Dispatchers.IO) {
@@ -41,6 +43,7 @@ object Lang : KoinComponent {
 
             lang.forEach { locale ->
                 val conf = Properties()
+                plugin.logger.info("Loading lang file for $locale")
                 conf.load(
                     InputStreamReader(
                         this.javaClass.classLoader.getResourceAsStream("lang/$locale.properties")!!,
@@ -77,6 +80,18 @@ object Lang : KoinComponent {
     fun getText(key: String, locale: Locale, vararg args: Any?): String {
         val lang = langList[locale.toString()] ?: langList["ja_JP"]
         return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
+    }
+
+    private fun getTranslatedText(key: String, locale: Locale, vararg args: Any?): String {
+        val lang = langList[locale.toString()] ?: langList["ja_JP"]
+        return lang?.getProperty(key)?.let { MessageFormat.format(it, *args) } ?: key
+    }
+
+    fun CommandSender.sendI18nRichMessage(key: String, vararg args: Any?) {
+        val locale = if (this is Player) this.locale() else Locale.getDefault()
+        println("locale: $locale")
+        println("key: $key")
+        this.sendRichMessage(getTranslatedText(key, locale, *args))
     }
 
 }

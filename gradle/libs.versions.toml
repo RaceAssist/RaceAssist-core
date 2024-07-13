@@ -34,6 +34,7 @@ cloud-paper = { group = "cloud.commandframework", name = "cloud-paper", version.
 cloud-annotations = { group = "cloud.commandframework", name = "cloud-annotations", version.ref = "cloud" }
 cloud-kotlin-coroutines-annotations = { group = "cloud.commandframework", name = "cloud-kotlin-coroutines-annotations", version.ref = "cloud" }
 cloud-kotlin-coroutines = { group = "cloud.commandframework", name = "cloud-kotlin-coroutines", version.ref = "cloud" }
+cloud-minecraft-extras = { group = "cloud.commandframework", name = "cloud-minecraft-extras", version.ref = "cloud" }
 inventoryframework = { group = "com.github.stefvanschie.inventoryframework", name = "IF", version.ref = "if" }
 mysql-connector-java = { group = "mysql", name = "mysql-connector-java", version.ref = "mysql-connector-java" }
 sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite-jdbc" }
@@ -83,7 +84,8 @@ command = [
     "cloud-paper",
     "cloud-annotations",
     "cloud-kotlin-coroutines-annotations",
-    "cloud-kotlin-coroutines"]
+    "cloud-kotlin-coroutines",
+    "cloud-minecraft-extras"]
 ktor-client = ["ktor-client-core", "ktor-client-java", "ktor-client-logging", "ktor-client-contentNegotiation"]
 ktor-server = ["ktor-server-core", "ktor-server-netty", "ktor-server-contentNegotiation", "ktor-serialization-kotlinxJson", "ktor-server-auth", "ktor-server-authJwt", "ktor-network-tlsCertificates", "logback-classic"]
 exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-java-time"]

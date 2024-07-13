@@ -111,7 +111,16 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.2")
+        minecraftVersion("1.20.6")
+        val plugins = runPaper.downloadPluginsSpec {
+            //Vault
+            url("https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar")
+            //ProtocolLib
+            url("https://ci.dmulloy2.net/job/ProtocolLib/lastBuild/artifact/build/libs/ProtocolLib.jar")
+        }
+        downloadPlugins {
+            downloadPlugins.from(plugins)
+        }
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
