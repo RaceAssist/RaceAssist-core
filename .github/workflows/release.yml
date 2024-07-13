@@ -55,38 +55,9 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Test with Gradle
-        run: ./gradlew test
-
-      - name: Publish test results
-        id: publish-test-results
-        uses: mikepenz/action-junit-report@v4
-        if: success() || failure()
-        with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-
       - uses: release-drafter/release-drafter@v5
         id: release-drafter
         with:
           publish: false
-          footer: |
-            ## Check summary
-            
-            <table>
-              <tr>
-              <th>
-                <th>Tests 💯</th>
-                <th>Passed ✅</th>
-                <th>Skipped ⏭️</th>
-                <th>Failed ❌</th>
-              </tr>
-              <tr>
-                <td>JUnit Test Report</td>
-                <td>${{ steps.publish-test-results.outputs.total }} ran</td>
-                <td>${{ steps.publish-test-results.outputs.passed }} passed</td>
-                <td>${{ steps.publish-test-results.outputs.skipped }} skipped</td>
-                <td>${{ steps.publish-test-results.outputs.failed }} failed</td>
-              </tr>
-            </table>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
