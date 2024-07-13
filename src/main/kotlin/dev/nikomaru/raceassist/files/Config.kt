@@ -23,14 +23,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.context.loadKoinModules
-import org.koin.dsl.module
 import java.io.File
 
 object Config : KoinComponent {
     val plugin: RaceAssist by inject()
     lateinit var config: ConfigData
-    const val version: String = "2.0.0"
+    private const val VERSION: String = "2.0.0"
 
     @ExperimentalSerializationApi
     fun load() {
@@ -38,10 +36,7 @@ object Config : KoinComponent {
 
         createConfig(file)
 
-        val config: ConfigData = json.decodeFromString(file.readText())
-        loadKoinModules(module {
-            single { config }
-        })
+        config = json.decodeFromString(file.readText())
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -61,7 +56,7 @@ object Config : KoinComponent {
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf())
         val recordHorse = RecordHorse(13.5, 3.8)
         val configData =
-            ConfigData(version, 40, 200, discordWebHook, spreadSheet, recordHorse, null, 600000, null)
+            ConfigData(VERSION, 40, 200, discordWebHook, spreadSheet, recordHorse, null, 600000, null)
 
         val string = json.encodeToString(configData)
 
@@ -71,7 +66,7 @@ object Config : KoinComponent {
             file.writeText(string)
         } else {
             val verNode = json.decodeFromString<ConfigData>(file.readText()).version
-            if (verNode != version) {
+            if (verNode != VERSION) {
                 file.writeText(string)
             }
         }

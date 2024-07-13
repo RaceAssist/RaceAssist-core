@@ -22,7 +22,7 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.Lang.sendI18nRichMessage
 import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import org.bukkit.command.CommandSender
@@ -42,25 +42,13 @@ class PlaceDegreeCommand {
         }
 
         if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
-        val placeManager =
-            RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager? ?: return sender.sendMessage(
-                Lang.getComponent(
-                    "no-exist-place",
-                    sender.locale()
-                )
-            )
-        val centralXPoint = placeManager.getCentralPointX() ?: return sender.sendMessage(
-            Lang.getComponent(
-                "no-exist-central-point",
-                sender.locale()
-            )
+        val placeManager = RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager?
+            ?: return sender.sendI18nRichMessage("no-exist-place")
+        val centralXPoint = placeManager.getCentralPointX() ?: return sender.sendI18nRichMessage(
+            "no-exist-central-point"
         )
-        val centralYPoint = placeManager.getCentralPointY() ?: return sender.sendMessage(
-            Lang.getComponent(
-                "no-exist-central-point",
-                sender.locale()
-            )
-        )
+        val centralYPoint =
+            placeManager.getCentralPointY() ?: return sender.sendI18nRichMessage("no-exist-central-point")
         val reverse = placeManager.getReverse()
         val nowX = sender.location.blockX
         val nowY = sender.location.blockZ
@@ -92,7 +80,7 @@ class PlaceDegreeCommand {
                 0
             }
         }
-        sender.sendMessage(Lang.getComponent("to-set-degree", sender.locale(), degree))
+        sender.sendI18nRichMessage("to-set-degree", degree)
         placeManager.setGoalDegree(degree)
 
     }

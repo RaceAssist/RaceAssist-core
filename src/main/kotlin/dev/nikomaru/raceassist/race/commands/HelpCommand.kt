@@ -17,20 +17,69 @@
 
 package dev.nikomaru.raceassist.race.commands
 
+import cloud.commandframework.CommandManager
+import cloud.commandframework.annotations.AnnotationParser
+import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandDescription
 import cloud.commandframework.annotations.CommandMethod
-import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.specifier.Greedy
+import cloud.commandframework.annotations.suggestions.Suggestions
+import cloud.commandframework.context.CommandContext
+import cloud.commandframework.minecraft.extras.MinecraftHelp
+import dev.nikomaru.raceassist.RaceAssist
+import net.kyori.adventure.audience.Audience
+import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 
-@CommandMethod("ra")
+
 class HelpCommand {
-    @CommandMethod("help")
-    @CommandPermission("raceassist.commands.help")
-    @CommandDescription("help command")
-    fun help(sender: CommandSender) {
-        val message =
-            "<click:open_url:'https://github.com/Nlkomaru/RaceAssist-core/wiki/Command'><green>コマンドリスト クリックで開く</green></click>"
-        sender.sendRichMessage(message)
-        return
+    private lateinit var manager: CommandManager<CommandSender>
+    private lateinit var minecraftHelp: MinecraftHelp<CommandSender>
+    private lateinit var audience: Audience
+
+
+    fun registerFeature(
+        plugin: RaceAssist,
+        annotationParser: AnnotationParser<CommandSender>
+    ) {
+        this.manager = annotationParser.manager()
+        this.audience = Bukkit.getServer()
+        // Set up the help instance.
+        this.setupHelp()
+
+        // This will scan for `@Command` and `@Suggestions`.
+        annotationParser.parse(this)
+    }
+
+    private fun setupHelp() {
+        this.minecraftHelp =
+            MinecraftHelp.createNative(
+                // The help command. This gets prefixed onto all the clickable queries.
+                "/ra help",  // The command manager instance that is used to look up the commands.
+                this.manager,  // Tells the help manager how to map command senders to adventure audiences.
+            )
+    }
+
+    @Suggestions("help_queries")
+    fun suggestHelpQueries(
+        ctx: CommandContext<CommandSender?>,
+        input: String
+    ): List<String> {
+        return manager.createCommandHelpHandler()
+            .queryRootIndex(ctx.sender)
+            .entries
+            .stream()
+            .map { it.syntaxString }
+            .toList()
+    }
+
+    @CommandMethod("ra help [query]")
+    @CommandDescription("Help menu")
+    fun commandHelp(
+        sender: CommandSender,
+        @Argument(value = "query", suggestions = "help_queries") @Greedy query: String?
+    ) {
+        // MinecraftHelp looks up the relevant help pages and displays them to the sender.
+        minecraftHelp.queryCommands(query ?: "", sender)
     }
 }

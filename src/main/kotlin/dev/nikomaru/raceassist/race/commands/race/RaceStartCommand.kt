@@ -40,6 +40,20 @@ class RaceStartCommand {
         val stopPayment = hashSetOf<String>()
     }
 
+    @CommandMethod("stopPayment <operateRaceId>")
+    @CommandDescription("払い戻しを停止するコマンド")
+    suspend fun stopPayment(
+        sender: CommandSender,
+        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+    ) {
+        val raceManager = RaceAssist.api.getRaceManager(raceId)
+        if (raceManager?.senderHasControlPermission(sender) != true) return
+
+        stopPayment.add(raceId)
+        sender.sendRichMessage("<color:green> 払い戻しを停止しました </color>")
+
+    }
+
     @CommandPermission("raceassist.commands.race.start")
     @CommandMethod("start <operateRaceId>")
     @CommandDescription("レースを開始するコマンド")
