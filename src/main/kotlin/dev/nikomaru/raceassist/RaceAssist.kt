@@ -32,7 +32,6 @@ import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.api.core.RaceAssistAPI
 import dev.nikomaru.raceassist.api.core.manager.*
 import dev.nikomaru.raceassist.bet.commands.*
-import dev.nikomaru.raceassist.bet.event.BetGuiClickEvent
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.RaceUtils
@@ -269,7 +268,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
         injectServer.pluginManager.registerSuspendingEvents(SetInsideCircuitEvent(), plugin)
         injectServer.pluginManager.registerSuspendingEvents(SetOutsideCircuitEvent(), plugin)
         injectServer.pluginManager.registerSuspendingEvents(SetCentralPointEvent(), plugin)
-        injectServer.pluginManager.registerSuspendingEvents(BetGuiClickEvent(), plugin)
         injectServer.pluginManager.registerSuspendingEvents(HorseBreedEvent(), plugin)
         injectServer.pluginManager.registerSuspendingEvents(HorseKillEvent(), plugin)
         injectServer.pluginManager.registerSuspendingEvents(HorseTamedEvent(), plugin)

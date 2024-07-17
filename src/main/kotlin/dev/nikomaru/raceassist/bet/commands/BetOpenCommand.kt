@@ -23,7 +23,7 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.bet.gui.BetChestGui
+import dev.nikomaru.raceassist.bet.gui.BetGui
 import dev.nikomaru.raceassist.utils.Lang
 import dev.nikomaru.raceassist.utils.SuggestionId
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -53,9 +53,8 @@ class BetOpenCommand {
         }
         BetUtils.removePlayerTempBetData(sender)
         withContext(Dispatchers.minecraft) {
-            sender.openInventory(BetChestGui().getGUI(sender, raceId))
+            BetGui().openGui(sender, raceId)
         }
-        BetUtils.initializePlayerTempBetData(raceId, sender)
     }
 
 }

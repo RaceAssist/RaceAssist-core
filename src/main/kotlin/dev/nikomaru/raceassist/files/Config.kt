@@ -42,8 +42,10 @@ object Config : KoinComponent {
     @OptIn(ExperimentalSerializationApi::class)
     fun reload() {
         load()
-        WebAPI.stopServer()
-        plugin.settingWebAPI()
+        if (config.webAPI != null) {
+            WebAPI.stopServer()
+            plugin.settingWebAPI()
+        }
     }
 
     @ExperimentalSerializationApi

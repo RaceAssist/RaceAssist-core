@@ -17,43 +17,55 @@
 
 package dev.nikomaru.raceassist.bet.gui
 
+import com.github.stefvanschie.inventoryframework.gui.GuiItem
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
+import com.github.stefvanschie.inventoryframework.pane.StaticPane
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.bet.BetUtils.getOdds
-import dev.nikomaru.raceassist.bet.GuiComponent
+import dev.nikomaru.raceassist.bet.BetUtils
+import dev.nikomaru.raceassist.bet.gui.components.GuiItems.AllPlayers
+import dev.nikomaru.raceassist.bet.gui.components.GuiItems.onceDown
+import dev.nikomaru.raceassist.bet.gui.components.GuiItems.onceUp
+import dev.nikomaru.raceassist.bet.gui.components.GuiItems.tenTimesDown
+import dev.nikomaru.raceassist.bet.gui.components.GuiItems.tenTimesUp
 import dev.nikomaru.raceassist.utils.Lang
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.TextColor
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
-import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 
-class BetChestGui {
 
-    suspend fun getGUI(player: Player, raceId: String): Inventory {
-        val gui = Bukkit.createInventory(player, 45, GuiComponent.guiComponent())
-        val players: ArrayList<OfflinePlayer> = ArrayList()
-        val odds: HashMap<OfflinePlayer, Double> = HashMap()
+class BetGui {
+    private var players: ArrayList<OfflinePlayer> = ArrayList()
+    private var odds: HashMap<OfflinePlayer, Double> = HashMap()
+
+    suspend fun openGui(player: Player, raceId: String) {
+        val gui = ChestGui(6, "Shop")
+        val pane = StaticPane(0, 0, 9, 5)
 
         AllPlayers[raceId] = arrayListOf()
+
         RaceAssist.api.getRaceManager(raceId)!!.getJockeys().forEach {
             players.add(it)
             AllPlayers[raceId]?.add(it)
         }
 
+        BetUtils.initializePlayerTempBetData(raceId, player)
+
         players.forEach {
-            odds[it] = getOdds(raceId, it)
+            odds[it] = BetUtils.getOdds(raceId, it)
         }
 
 
-        for (i in 0 until 45) {
-            gui.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+        for (x in 0..8) {
+            for (y in 0..4) {
+                val none =
+                    GuiItem(ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE)) { event -> event.isCancelled = true }
+                pane.addItem(none, x, y)
+            }
         }
-        //TODO IFに置き換えるよてい https://github.com/stefvanschie/IF
+
         for (i in 0 until players.size) {
             val item = ItemStack(Material.PLAYER_HEAD, 1)
             val meta: SkullMeta = item.itemMeta as SkullMeta
@@ -71,28 +83,21 @@ class BetChestGui {
             meta.lore(lore)
             item.itemMeta = meta
 
-            gui.setItem(i, GuiComponent.tenTimesUp(player.locale(), raceId))
-            gui.setItem(i + 9, GuiComponent.onceUp(player.locale(), raceId))
-            gui.setItem(i + 18, item)
-            gui.setItem(i + 27, GuiComponent.onceDown(player.locale(), raceId))
-            gui.setItem(i + 36, GuiComponent.tenTimesDown(player.locale(), raceId))
+            val guiItem = GuiItem(item) { event -> event.isCancelled = true }
+
+            pane.addItem(tenTimesUp(player.locale(), raceId), i, 0)
+            pane.addItem(onceUp(player.locale(), raceId), i, 1)
+            pane.addItem(guiItem, i, 2)
+            pane.addItem(onceDown(player.locale(), raceId), i, 3)
+            pane.addItem(tenTimesDown(player.locale(), raceId), i, 4)
+
+            //TODO Add reset button
+            //TODO Add accept button
+            //TODO Add stop button
         }
 
-        val raceIdItem = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        val raceIdMeta = raceIdItem.itemMeta
-        raceIdMeta.displayName(text(raceId, TextColor.fromHexString("#00ff7f")))
-        raceIdItem.itemMeta = raceIdMeta
+        gui.addPane(pane)
 
-        gui.setItem(8, raceIdItem)
-        gui.setItem(17, GuiComponent.reset(player.locale()))
-        gui.setItem(35, GuiComponent.deny(player.locale()))
-        gui.setItem(44, GuiComponent.accept(player.locale()))
-
-        return gui
-
-    }
-
-    companion object {
-        val AllPlayers: HashMap<String, ArrayList<OfflinePlayer>> = HashMap()
+        gui.show(player)
     }
 }

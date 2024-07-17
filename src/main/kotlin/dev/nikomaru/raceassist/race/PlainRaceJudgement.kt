@@ -40,6 +40,7 @@ import dev.nikomaru.raceassist.utils.coroutines.async
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.papermc.paper.scoreboard.numbers.NumberFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -365,6 +366,7 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
                     Lang.getComponent("scoreboard-now-ranking", player.locale())
                 )
                 objective.displaySlot = DisplaySlot.SIDEBAR
+                objective.numberFormat(NumberFormat.blank())
 
                 val goalDistance = getGoalDistance(lap, goalDegree, startDegree, innerCircumference.toDouble())
 

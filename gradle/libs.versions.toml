@@ -63,11 +63,7 @@ kotlinx-serialization-hocon = { group = "org.jetbrains.kotlinx", name = "kotlinx
 kotlin-result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "kotlin-result" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin-core" }
-mockBukkit = { module = "com.github.seeseemelk:MockBukkit-v1.20", version.ref = "mockBukkit" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
-koinTest = { module = "io.insert-koin:koin-test", version.ref = "koinTest" }
-koinTestJunit5 = { module = "io.insert-koin:koin-test-junit5", version.ref = "koinTestJunit5" }
+
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.0" }
