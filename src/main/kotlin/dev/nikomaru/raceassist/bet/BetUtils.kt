@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.bet
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.bet.data.TempBetData
-import dev.nikomaru.raceassist.bet.gui.components.GuiItems.AllPlayers
+import dev.nikomaru.raceassist.bet.gui.BetGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.BetListData
 import dev.nikomaru.raceassist.utils.Lang
@@ -73,12 +73,9 @@ object BetUtils {
     }
 
     fun initializePlayerTempBetData(raceId: String, sender: Player) {
-        println(AllPlayers[raceId])
         AllPlayers[raceId]?.forEach { jockey ->
             tempBetDataList.add(TempBetData(raceId, sender, jockey, 0))
         }
-        println(tempBetDataList)
-
     }
 
     suspend fun listBetData(raceId: String): ArrayList<BetListData> {

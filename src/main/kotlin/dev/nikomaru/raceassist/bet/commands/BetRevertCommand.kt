@@ -150,18 +150,18 @@ class BetRevertCommand {
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
                 .forEach {
-                val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
-                betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
-                executor.sendMessage(
-                    Lang.getComponent(
-                        "bet-revert-return-message-owner",
-                        locale,
-                        receiver.name,
-                        it[BetList.betting]
+                    val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
+                    betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
+                    executor.sendMessage(
+                        Lang.getComponent(
+                            "bet-revert-return-message-owner",
+                            locale,
+                            receiver.name,
+                            it[BetList.betting]
+                        )
                     )
-                )
-                sendRevertMessage(receiver, owner, it)
-            }
+                    sendRevertMessage(receiver, owner, it)
+                }
             BetList.deleteWhere { (rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
         }
     }

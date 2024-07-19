@@ -21,7 +21,6 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.data.database.BetList.rowUniqueId
 import dev.nikomaru.raceassist.data.files.RaceUtils.getRaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import dev.nikomaru.raceassist.data.plugin.BetConfig
@@ -32,6 +31,7 @@ import dev.nikomaru.raceassist.web.api.BetError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -111,17 +111,6 @@ class BetManager(val raceId: String) : KoinComponent {
     }
 
     /**
-     * 賭けのスプレッドシートIDを設定します。
-     * @param spreadSheetId ベットのスプレッドシートID
-     */
-
-    fun setSpreadSheetId(spreadSheetId: String) {
-
-        betConfig[raceId] = betConfig[raceId]!!.copy(spreadSheetId = spreadSheetId)
-        save()
-    }
-
-    /**
      * 賭けのベット単位を設定します。
      * @param betUnit ベットのベット単位
      */
@@ -146,12 +135,18 @@ class BetManager(val raceId: String) : KoinComponent {
      * @param amount 引き出す金額
      *
      */
-    fun withdrawFromPlayer(player: OfflinePlayer, amount: Double) {
+    fun withdrawFromPlayer(player: OfflinePlayer, amount: Double, uniqueId: UUID) {
+        val eco = VaultAPI.getEconomy()
+        val beforePlayer = eco.getBalance(player)
+        val beforeRecord = betConfig[raceId]!!.money
         runBlocking {
             VaultAPI.getEconomy().withdrawPlayer(player, amount)
             betConfig[raceId] = betConfig[raceId]!!.copy(money = betConfig[raceId]!!.money + amount)
             save()
         }
+        val afterPlayer = eco.getBalance(player)
+        val afterRecord = betConfig[raceId]!!.money
+        plugin.logger.info("transactionId : $uniqueId, player : ${player.name}, beforePlayer : $beforePlayer, afterPlayer : $afterPlayer, beforeRecord : $beforeRecord, afterRecord : $afterRecord")
     }
 
     /**
@@ -189,7 +184,7 @@ class BetManager(val raceId: String) : KoinComponent {
 
         transaction {
             BetList.insert { bet ->
-                bet[raceId] = raceId
+                bet[raceId] = this@BetManager.raceId
                 bet[playerUniqueId] = player.uniqueId.toString()
                 bet[jockeyUniqueId] = jockey.uniqueId.toString()
                 bet[betting] = price
@@ -203,14 +198,16 @@ class BetManager(val raceId: String) : KoinComponent {
             Lang.getComponent(
                 "bet-complete-message-player",
                 onlinePlayer.locale(),
-                rowUniqueId.toString(),
+                uniqueId.toString(),
                 jockey.name.toString(),
                 price
             )
         )
 
-        withdrawFromPlayer(player, price.toDouble())
-        BetEvent(LogDataType.BET, raceId, player, jockey, price).callEvent()
+        withdrawFromPlayer(player, price.toDouble(), uniqueId)
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            BetEvent(LogDataType.BET, raceId, player, jockey, price).callEvent()
+        })
         return Triple(null, uniqueId, price)
     }
 

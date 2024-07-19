@@ -32,13 +32,6 @@ object GuiComponent {
     }
 
 
-    fun accept(locale: Locale): ItemStack {
-        val accept = ItemStack(Material.GREEN_WOOL)
-        val acceptMeta: ItemMeta = accept.itemMeta
-        acceptMeta.displayName(Lang.getComponent("gui-decide", locale))
-        accept.itemMeta = acceptMeta
-        return accept
-    }
 
     fun deny(locale: Locale): ItemStack {
         val deny = ItemStack(Material.RED_WOOL)
@@ -56,29 +49,6 @@ object GuiComponent {
         return reset
     }
 
-    fun noBet(locale: Locale): ItemStack {
-        val noBet = ItemStack(Material.BARRIER)
-        val noBetMeta: ItemMeta = noBet.itemMeta
-        noBetMeta.displayName(Lang.getComponent("no-one-betting", locale))
-        noBet.itemMeta = noBetMeta
-        return noBet
-    }
-
-    fun noUnderNotice(locale: Locale): ItemStack {
-        val noUnderNotice = ItemStack(Material.BARRIER)
-        val noUnderNoticeMeta: ItemMeta = noUnderNotice.itemMeta
-        noUnderNoticeMeta.displayName(Lang.getComponent("cannot-decrease-more-money", locale))
-        noUnderNotice.itemMeta = noUnderNoticeMeta
-        return noUnderNotice
-    }
-
-    fun noHaveMoney(locale: Locale): ItemStack {
-        val noHaveMoney = ItemStack(Material.BARRIER)
-        val noHaveMoneyMeta: ItemMeta = noHaveMoney.itemMeta
-        noHaveMoneyMeta.displayName(Lang.getComponent("no-have-money", locale))
-        noHaveMoney.itemMeta = noHaveMoneyMeta
-        return noHaveMoney
-    }
 
     val noDataGrass = GuiItem(ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 
