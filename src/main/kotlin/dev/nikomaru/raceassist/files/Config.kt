@@ -56,8 +56,9 @@ object Config : KoinComponent {
 
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf())
         val recordHorse = RecordHorse(13.5, 3.8)
+        val webAPI = WebAPI(8080, null, null, arrayListOf(), null)
         val configData =
-            ConfigData(VERSION, 40, 200, discordWebHook, recordHorse, null, 600000, null)
+            ConfigData(VERSION, 40, 200, discordWebHook, recordHorse, webAPI, 600000, null)
 
         val string = json.encodeToString(configData)
 

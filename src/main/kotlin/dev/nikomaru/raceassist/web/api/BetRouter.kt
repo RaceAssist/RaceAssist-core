@@ -144,6 +144,26 @@ object BetRouter {
                 }
                 return@post call.respond(hashMapOf("data" to BetPushResponse(error, responseUniqueIdArray, paymentSum)))
             }
+            get("/list/{raceId}") {
+                val raceId = call.parameters["raceId"] ?: return@get call.respondText(
+                    "Missing id",
+                    status = HttpStatusCode.BadRequest
+                )
+
+                val principal = call.principal<JWTPrincipal>() ?: return@get call.respondText(
+                    "Missing or invalid jwt token",
+                    status = HttpStatusCode.Unauthorized
+                )
+                val player = principal.payload.getClaim("uuid").asString().toUUID().toOfflinePlayer()
+
+                if (RaceAssist.api.getRaceManager(raceId)?.existStaff(player) != true) return@get call.respondText(
+                    "You do not have permission to view this data",
+                    status = HttpStatusCode.Forbidden
+                )
+
+                val list = BetUtils.listBetData(raceId)
+                call.respond(hashMapOf("data" to list))
+            }
         }
     }
 }

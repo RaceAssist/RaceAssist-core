@@ -75,19 +75,23 @@ object WebAPI : KoinComponent {
 
     fun settingServer() {
         val keyStoreFile = plugin.dataFolder.resolve("keystore.jks")
-        val keystore =
-            KeyStore.getInstance(keyStoreFile, Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray())
+
 
         val environment = applicationEngineEnvironment {
             connector {
                 port = Config.config.webAPI!!.port
             }
-            sslConnector(keyStore = keystore,
-                keyAlias = Config.config.webAPI!!.sslSetting.keyAlias,
-                keyStorePassword = { Config.config.webAPI!!.sslSetting.keyStorePassword.toCharArray() },
-                privateKeyPassword = { Config.config.webAPI!!.sslSetting.privateKeyPassword.toCharArray() }) {
-                port = Config.config.webAPI!!.sslPort
-                keyStorePath = keyStoreFile
+            val sslSetting = Config.config.webAPI!!.sslSetting
+            if (sslSetting != null) {
+                val keystore =
+                    KeyStore.getInstance(keyStoreFile, sslSetting.keyStorePassword.toCharArray())
+                sslConnector(keyStore = keystore,
+                    keyAlias = sslSetting.keyAlias,
+                    keyStorePassword = { sslSetting.keyStorePassword.toCharArray() },
+                    privateKeyPassword = { sslSetting.privateKeyPassword.toCharArray() }) {
+                    port = sslSetting.sslPort
+                    keyStorePath = keyStoreFile
+                }
             }
             module(Application::module)
         }

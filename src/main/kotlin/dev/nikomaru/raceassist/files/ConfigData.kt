@@ -45,13 +45,9 @@ data class RecordHorse(val minSpeed: Double, val minJump: Double)
 
 
 @Serializable
-data class SpreadSheet(val port: Int, val sheetName: ArrayList<String>)
-
-@Serializable
 data class WebAPI(
     val port: Int,
-    val sslPort: Int,
-    val sslSetting: SslSetting,
+    val sslSetting: SslSetting?,
     val jwtConfig: JWTConfig?,
     val recordUrl: ArrayList<RecordLog>,
     val webPage: String? = null
@@ -61,7 +57,12 @@ data class WebAPI(
 data class RecordLog(val url: String, val name: String, val password: String)
 
 @Serializable
-data class SslSetting(val keyAlias: String, val keyStorePassword: String, val privateKeyPassword: String)
+data class SslSetting(
+    val sslPort: Int,
+    val keyAlias: String,
+    val keyStorePassword: String,
+    val privateKeyPassword: String
+)
 
 @Serializable
 data class MySQL(val url: String, val username: String, val password: String)
