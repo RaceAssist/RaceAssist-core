@@ -132,7 +132,8 @@ object BetUtils {
     suspend fun payDividend(jockey: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
         val odds = getOdds(raceId, jockey)
         val betManager = RaceAssist.api.getBetManager(raceId) ?: return sender.sendMessage("レースが存在しません")
-
+        val beforeAmount = betManager.getBalance()
+        sender.sendRichMessage("<green>払い戻し開始 <yellow>銀行残高: $beforeAmount")
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.selectAll()
                 .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
@@ -140,7 +141,7 @@ object BetUtils {
                     val returnAmount = it[BetList.betting] * odds
                     val returnPlayer = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                     withContext(Dispatchers.minecraft) {
-                        betManager.depositToPlayer(returnPlayer, returnAmount)
+                        betManager.depositToPlayer(returnPlayer, returnAmount, UUID.randomUUID())
                     }
                     sender.sendMessage(Lang.getComponent("paid-bet-creator", locale, returnPlayer.name, returnAmount))
                     returnPlayer.player?.sendMessage(
@@ -155,6 +156,11 @@ object BetUtils {
                     )
                 }
             BetList.deleteWhere { BetList.raceId eq raceId }
+            val afterAmount = betManager.getBalance()
+            val owner = RaceAssist.api.getRaceManager(raceId)!!.getOwner()
+            sender.sendRichMessage("<green>払い戻し完了 <yellow>利益: $afterAmount が owner: ${owner.name} に振り込まれました")
+            betManager.withdrawAll()
+
         }
     }
 

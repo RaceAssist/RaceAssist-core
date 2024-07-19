@@ -23,7 +23,6 @@ import kotlinx.serialization.Serializable
 data class BetConfig(
     val available: Boolean = false,
     val returnPercent: Int = 75,
-    val spreadSheetId: String? = null,
     val betUnit: Int = 100,
     val autoReturn: Boolean = false,
     val money: Double = 0.0,

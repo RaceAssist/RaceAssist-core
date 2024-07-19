@@ -103,7 +103,8 @@ class BetRevertCommand {
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
                 val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
-                betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
+                val uniqueId = UUID.randomUUID()
+                betManager.depositToPlayer(receiver, it[BetList.betting].toDouble(), uniqueId)
                 executor.sendMessage(
                     Lang.getComponent(
                         "bet-revert-return-message-owner",
@@ -127,7 +128,8 @@ class BetRevertCommand {
                 .where { (BetList.raceId eq raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
                 .forEach {
                     val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
-                    betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
+                    val uniqueId = UUID.randomUUID()
+                    betManager.depositToPlayer(receiver, it[BetList.betting].toDouble(), uniqueId)
                     executor.sendMessage(
                         Lang.getComponent(
                             "bet-revert-return-message-owner",
@@ -151,7 +153,8 @@ class BetRevertCommand {
             BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
                 .forEach {
                     val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
-                    betManager.depositToPlayer(receiver, it[BetList.betting].toDouble())
+                    val uniqueId = UUID.randomUUID()
+                    betManager.depositToPlayer(receiver, it[BetList.betting].toDouble(), uniqueId)
                     executor.sendMessage(
                         Lang.getComponent(
                             "bet-revert-return-message-owner",

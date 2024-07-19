@@ -54,11 +54,10 @@ object Config : KoinComponent {
             file.parentFile.mkdirs()
         }
 
-        val spreadSheet = SpreadSheet(8888, arrayListOf())
         val discordWebHook = DiscordWebHook(arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf())
         val recordHorse = RecordHorse(13.5, 3.8)
         val configData =
-            ConfigData(VERSION, 40, 200, discordWebHook, spreadSheet, recordHorse, null, 600000, null)
+            ConfigData(VERSION, 40, 200, discordWebHook, recordHorse, null, 600000, null)
 
         val string = json.encodeToString(configData)
 
@@ -80,6 +79,7 @@ object Config : KoinComponent {
 private val json = Json {
     isLenient = true
     prettyPrint = true
+    ignoreUnknownKeys = true
 }
 
 

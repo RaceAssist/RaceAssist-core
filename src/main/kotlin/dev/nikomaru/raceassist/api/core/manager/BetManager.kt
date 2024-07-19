@@ -20,6 +20,7 @@ package dev.nikomaru.raceassist.api.core.manager
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.api.core.manager.RaceManager.Companion.raceConfig
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.files.RaceUtils.getRaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
@@ -70,15 +71,6 @@ class BetManager(val raceId: String) : KoinComponent {
         return betConfig[raceId]!!.returnPercent
     }
 
-    /**
-     * 賭けのスプレッドシートIDを取得します。
-     * @return ベットのスプレッドシートID
-     */
-
-    fun getReturnSpreadSheetId(): String? {
-
-        return betConfig[raceId]!!.spreadSheetId
-    }
 
     /**
      * 賭けのベット単位を取得します。
@@ -130,6 +122,24 @@ class BetManager(val raceId: String) : KoinComponent {
     }
 
     /**
+     * レースの預金残高をすべて引き出します。
+     */
+
+    fun withdrawAll() {
+        val eco = VaultAPI.getEconomy()
+        val amount = betConfig[raceId]!!.money
+        val owner = raceConfig[raceId]!!.owner
+        val beforePlayer = eco.getBalance(owner)
+        runBlocking {
+            eco.depositPlayer(owner, amount)
+        }
+        betConfig[raceId] = betConfig[raceId]!!.copy(money = 0.0)
+        save()
+        val afterPlayer = eco.getBalance(owner)
+        plugin.logger.info("transactionId : ${UUID.randomUUID()}, owner : ${owner.name}, raceId: ${raceId}, beforePlayer : $beforePlayer, afterPlayer : $afterPlayer, beforeRecord : $amount, afterRecord : 0.0")
+    }
+
+    /**
      * プレイヤーからお金を引き、レースの預金残高に加算します。
      * @param player プレイヤー
      * @param amount 引き出す金額
@@ -146,7 +156,7 @@ class BetManager(val raceId: String) : KoinComponent {
         }
         val afterPlayer = eco.getBalance(player)
         val afterRecord = betConfig[raceId]!!.money
-        plugin.logger.info("transactionId : $uniqueId, player : ${player.name}, beforePlayer : $beforePlayer, afterPlayer : $afterPlayer, beforeRecord : $beforeRecord, afterRecord : $afterRecord")
+        plugin.logger.info("transactionId : $uniqueId, player : ${player.name}, raceId: ${raceId}, beforePlayer : $beforePlayer, afterPlayer : $afterPlayer, beforeRecord : $beforeRecord, afterRecord : $afterRecord")
     }
 
     /**
@@ -154,12 +164,18 @@ class BetManager(val raceId: String) : KoinComponent {
      * @param player プレイヤー
      * @param amount 引き出す金額
      */
-    fun depositToPlayer(player: OfflinePlayer, amount: Double) {
+    fun depositToPlayer(player: OfflinePlayer, amount: Double, uniqueId: UUID) {
+        val eco = VaultAPI.getEconomy()
+        val beforePlayer = eco.getBalance(player)
+        val beforeRecord = betConfig[raceId]!!.money
         runBlocking {
             VaultAPI.getEconomy().depositPlayer(player, amount)
             betConfig[raceId] = betConfig[raceId]!!.copy(money = betConfig[raceId]!!.money - amount)
             save()
         }
+        val afterPlayer = eco.getBalance(player)
+        val afterRecord = betConfig[raceId]!!.money
+        plugin.logger.info("transactionId : $uniqueId, player : ${player.name}, raceId: ${raceId}, beforePlayer : $beforePlayer, afterPlayer : $afterPlayer, beforeRecord : $beforeRecord, afterRecord : $afterRecord")
     }
 
     /**

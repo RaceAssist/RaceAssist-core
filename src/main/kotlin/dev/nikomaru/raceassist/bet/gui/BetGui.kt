@@ -50,15 +50,15 @@ class BetGui : KoinComponent {
     private lateinit var player: Player
     private lateinit var raceId: String
 
+    private val betManager by lazy { RaceAssist.api.getBetManager(raceId)!! }
+
     suspend fun openGui(player: Player, raceId: String) {
-        this.gui = ChestGui(6, "Shop")
+        this.gui = ChestGui(5, "Shop")
         this.pane = StaticPane(0, 0, 9, 5)
         this.player = player
         this.raceId = raceId
 
         AllPlayers[raceId] = arrayListOf()
-        val locale = player.locale()
-        val betManager = RaceAssist.api.getBetManager(raceId)!!
 
         RaceAssist.api.getRaceManager(raceId)!!.getJockeys().forEach {
             players.add(it)
@@ -81,177 +81,182 @@ class BetGui : KoinComponent {
         }
 
         for (i in 0 until players.size) {
-            val item = ItemStack(Material.PLAYER_HEAD, 1)
-            val meta: SkullMeta = item.itemMeta as SkullMeta
-            meta.owningPlayer = players[i]
-            meta.displayName(
-                Lang.getComponent(
-                    "betting-zero-money", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
-                )
-            )
-            val lore: ArrayList<Component> = arrayListOf()
-            lore.add(Lang.getComponent("gui-jockey-name", player.locale(), players[i].name))
-            lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[players[i]]))
-            meta.lore(lore)
-            item.itemMeta = meta
             pane.setOnClick { event ->
                 event.isCancelled = true
             }
 
-            val guiItem = GuiItem(item) { event -> event.isCancelled = true }
+            val head = initHead(AllPlayers[raceId]?.get(i)!!)
 
             //0-8 ten times up
-            val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
-            val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
-            tenTimesUpMeta.displayName(
-                Lang.getComponent(
-                    "to-bet-ten-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
-                )
-            )
-            tenTimesUp.itemMeta = tenTimesUpMeta
-            pane.addItem(GuiItem(tenTimesUp) { event ->
-                val betUnit = betManager.getBetUnit()
-                val slot = event.slot
-                val selectedNowBet: Int = getNowBet(slot)
-                player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
-                val iterator = BetUtils.tempBetDataList.iterator()
-                while (iterator.hasNext()) {
-                    val it = iterator.next()
-                    if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot)) {
-                        it.betPerUnit = selectedNowBet + 10
-                    }
-                }
-                val selectedAfterBet: Int = getNowBet(slot)
-                val head = event.inventory.getItem(slot + 18)!!
-                val itemMeta = head.itemMeta
-                itemMeta.displayName(
-                    Lang.getComponent(
-                        "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
-                    )
-                )
-                head.itemMeta = itemMeta
-                pane.addItem(GuiItem(head), slot, 2)
-                gui.update()
-                event.isCancelled = true
-            }, i, 0)
+            pane.addItem(tenTimesUp(), i, 0)
 
             //9-17 once up
-            val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
-            val onceUpMeta: ItemMeta = onceUp.itemMeta
-            onceUpMeta.displayName(
-                Lang.getComponent(
-                    "to-bet-one-unit", locale, RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
-                )
-            )
-            onceUp.itemMeta = onceUpMeta
+            pane.addItem(oneTimesUp(), i, 1)
 
-            pane.addItem(GuiItem(onceUp) { event ->
-                val betUnit = betManager.getBetUnit()
-                val slot = event.slot
-                val selectedNowBet: Int = getNowBet(slot - 9)
-                player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
-                val iterator = BetUtils.tempBetDataList.iterator()
-                while (iterator.hasNext()) {
-                    val it = iterator.next()
-                    if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 9)) {
-                        it.betPerUnit = selectedNowBet + 1
-                    }
-                }
-                val selectedAfterBet: Int = getNowBet(slot - 9)
-                val head = event.inventory.getItem(slot + 9)!!
-                val headMeta = head.itemMeta
-                headMeta.displayName(
-                    Lang.getComponent(
-                        "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
-                    )
-                )
-                head.itemMeta = headMeta
-
-                event.isCancelled = true
-            }, i, 1)
-            pane.addItem(guiItem, i, 2)
+            //18-26 head
+            pane.addItem(head, i, 2)
 
             //18-26 once down
-            val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
-            val onceDownMeta: ItemMeta = onceDown.itemMeta
-            onceDownMeta.displayName(
-                Lang.getComponent(
-                    "to-cancel-bet-one-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
-                )
-            )
-            onceDown.itemMeta = onceDownMeta
-            pane.addItem(GuiItem(onceDown) { event ->
-                val betUnit = betManager.getBetUnit()
-                val slot = event.slot
-                val selectedNowBet: Int = getNowBet(slot - 27)
-                player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
-                val iterator = BetUtils.tempBetDataList.iterator()
-                while (iterator.hasNext()) {
-                    val it = iterator.next()
-                    if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 27)) {
-                        it.betPerUnit = if (selectedNowBet - 1 < 0) 0 else (selectedNowBet - 1)
-                    }
-                }
-
-                val selectedAfterBet: Int = getNowBet(slot - 27)
-                val head = event.inventory.getItem(slot - 9)!!
-                val headMeta = head.itemMeta
-                headMeta.displayName(
-                    Lang.getComponent(
-                        "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
-                    )
-                )
-                head.itemMeta = headMeta
-
-                event.isCancelled = true
-            }, i, 3)
+            pane.addItem(oneTimesDown(), i, 3)
 
             //27-35 ten times down
-            val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
-            val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
-            tenTimesDownMeta.displayName(
-                Lang.getComponent(
-                    "to-cancel-bet-ten-unit", locale, RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
-                )
-            )
-            tenTimesDown.itemMeta = tenTimesDownMeta
+            pane.addItem(tenTimesDown(), i, 4)
 
-            pane.addItem(GuiItem(tenTimesDown) { event ->
-                val betUnit = betManager.getBetUnit()
-                val slot = event.slot
-                val selectedNowBet: Int = getNowBet(slot - 36)
-
-                player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
-                val iterator = BetUtils.tempBetDataList.iterator()
-                while (iterator.hasNext()) {
-                    val it = iterator.next()
-                    if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 36)) {
-                        it.betPerUnit = if (selectedNowBet - 10 < 0) 0 else (selectedNowBet - 10)
-                    }
-                }
-
-                val selectedAfterBet: Int = getNowBet(slot - 36)
-                val head = event.inventory.getItem(slot - 18)!!
-                val headMeta = head.itemMeta
-                headMeta.displayName(
-                    Lang.getComponent(
-                        "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
-                    )
-                )
-                head.itemMeta = headMeta
-
-                event.isCancelled = true
-            }, i, 4)
-
-            //TODO Add reset button
-            //TODO Add accept button
-            pane.addItem(accept(), 8, 4)
-            //TODO Add stop button
+            pane.addItem(reset(), 8, 1)
+            pane.addItem(accept(), 8, 3)
+            pane.addItem(close(), 8, 4)
         }
 
         gui.addPane(pane)
 
         gui.show(player)
+    }
+
+    private fun tenTimesUp(): GuiItem {
+        val tenTimesUp = ItemStack(Material.RED_STAINED_GLASS_PANE)
+        val tenTimesUpMeta: ItemMeta = tenTimesUp.itemMeta
+        tenTimesUpMeta.displayName(
+            Lang.getComponent(
+                "to-bet-ten-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
+            )
+        )
+        tenTimesUp.itemMeta = tenTimesUpMeta
+        return GuiItem(tenTimesUp) { event ->
+            val betUnit = betManager.getBetUnit()
+            val slot = event.slot
+            val selectedNowBet: Int = getNowBet(slot)
+            player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot)) {
+                    it.betPerUnit = selectedNowBet + 10
+                }
+            }
+            val selectedAfterBet: Int = getNowBet(slot)
+            val head = event.inventory.getItem(slot + 18)!!
+            val itemMeta = head.itemMeta
+            itemMeta.displayName(
+                Lang.getComponent(
+                    "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
+                )
+            )
+            head.itemMeta = itemMeta
+            pane.addItem(GuiItem(head), slot, 2)
+            gui.update()
+            event.isCancelled = true
+        }
+    }
+
+    private fun oneTimesUp(): GuiItem {
+        val onceUp = ItemStack(Material.PINK_STAINED_GLASS_PANE)
+        val onceUpMeta: ItemMeta = onceUp.itemMeta
+        onceUpMeta.displayName(
+            Lang.getComponent(
+                "to-bet-one-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
+            )
+        )
+        onceUp.itemMeta = onceUpMeta
+
+        return GuiItem(onceUp) { event ->
+            val betUnit = betManager.getBetUnit()
+            val slot = event.slot
+            val selectedNowBet: Int = getNowBet(slot - 9)
+            player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 9)) {
+                    it.betPerUnit = selectedNowBet + 1
+                }
+            }
+            val selectedAfterBet: Int = getNowBet(slot - 9)
+            val head = event.inventory.getItem(slot + 9)!!
+            val headMeta = head.itemMeta
+            headMeta.displayName(
+                Lang.getComponent(
+                    "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
+                )
+            )
+            head.itemMeta = headMeta
+
+            event.isCancelled = true
+        }
+    }
+
+    private fun oneTimesDown(): GuiItem {
+        val onceDown = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
+        val onceDownMeta: ItemMeta = onceDown.itemMeta
+        onceDownMeta.displayName(
+            Lang.getComponent(
+                "to-cancel-bet-one-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit()
+            )
+        )
+        onceDown.itemMeta = onceDownMeta
+
+        return GuiItem(onceDown) { event ->
+            val betUnit = betManager.getBetUnit()
+            val slot = event.slot
+            val selectedNowBet: Int = getNowBet(slot - 27)
+            player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 27)) {
+                    it.betPerUnit = if (selectedNowBet - 1 < 0) 0 else (selectedNowBet - 1)
+                }
+            }
+
+            val selectedAfterBet: Int = getNowBet(slot - 27)
+            val head = event.inventory.getItem(slot - 9)!!
+            val headMeta = head.itemMeta
+            headMeta.displayName(
+                Lang.getComponent(
+                    "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
+                )
+            )
+            head.itemMeta = headMeta
+
+            event.isCancelled = true
+        }
+    }
+
+    private fun tenTimesDown(): GuiItem {
+        val tenTimesDown = ItemStack(Material.BLUE_STAINED_GLASS_PANE)
+        val tenTimesDownMeta: ItemMeta = tenTimesDown.itemMeta
+        tenTimesDownMeta.displayName(
+            Lang.getComponent(
+                "to-cancel-bet-ten-unit", player.locale(), RaceAssist.api.getBetManager(raceId)!!.getBetUnit() * 10
+            )
+        )
+        tenTimesDown.itemMeta = tenTimesDownMeta
+
+        return GuiItem(tenTimesDown) { event ->
+            val betUnit = betManager.getBetUnit()
+            val slot = event.slot
+            val selectedNowBet: Int = getNowBet(slot - 36)
+
+            player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.0f)
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player && it.jockey == AllPlayers[raceId]?.get(slot - 36)) {
+                    it.betPerUnit = if (selectedNowBet - 10 < 0) 0 else (selectedNowBet - 10)
+                }
+            }
+
+            val selectedAfterBet: Int = getNowBet(slot - 36)
+            val head = event.inventory.getItem(slot - 18)!!
+            val headMeta = head.itemMeta
+            headMeta.displayName(
+                Lang.getComponent(
+                    "now-betting-price", player.locale(), betUnit, selectedAfterBet * betUnit
+                )
+            )
+            head.itemMeta = headMeta
+
+            event.isCancelled = true
+        }
     }
 
     private fun getNowBet(slot: Int): Int {
@@ -264,6 +269,29 @@ class BetGui : KoinComponent {
             }
         }
         return bet
+    }
+
+    private fun initHead(jockey: OfflinePlayer): GuiItem {
+        val head = ItemStack(Material.PLAYER_HEAD, 1)
+        val headMeta: SkullMeta = head.itemMeta as SkullMeta
+        headMeta.owningPlayer = jockey
+        headMeta.displayName(
+            Lang.getComponent(
+                "betting-zero-money", player.locale(), betManager.getBetUnit()
+            )
+        )
+
+        val lore: ArrayList<Component> = arrayListOf()
+        lore.add(Lang.getComponent("gui-jockey-name", player.locale(), jockey.name))
+        lore.add(Lang.getComponent("gui-jockey-odds", player.locale(), odds[jockey]))
+        headMeta.lore(lore)
+        head.itemMeta = headMeta
+
+
+
+        return GuiItem(head) { event ->
+            event.isCancelled = true
+        }
     }
 
     private fun getAllBet(): Int {
@@ -304,6 +332,50 @@ class BetGui : KoinComponent {
             }
         }
         return item
+    }
+
+    private fun reset(): GuiItem {
+        val reset = ItemStack(Material.WHITE_WOOL)
+        val resetMeta: ItemMeta = reset.itemMeta
+        resetMeta.displayName(Lang.getComponent("gui-reset", player.locale()))
+        reset.itemMeta = resetMeta
+
+        return GuiItem(reset) { _ ->
+            player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player) {
+                    it.betPerUnit = 0
+                }
+            }
+
+            for (i in 0 until players.size) {
+                val head = initHead(AllPlayers[raceId]?.get(i)!!)
+                pane.addItem(head, i, 2)
+                gui.update()
+            }
+        }
+    }
+
+    private fun close(): GuiItem {
+        val close = ItemStack(Material.RED_WOOL)
+        val closeMeta: ItemMeta = close.itemMeta
+        closeMeta.displayName(Lang.getComponent("gui-cancel", player.locale()))
+        close.itemMeta = closeMeta
+
+        return GuiItem(close) { event ->
+            player.closeInventory()
+            player.playSound(player.location, Sound.UI_BUTTON_CLICK, 0.5f, 1f)
+
+            val iterator = BetUtils.tempBetDataList.iterator()
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                if (it.raceId == raceId && it.player == player) {
+                    iterator.remove()
+                }
+            }
+        }
     }
 
     private fun noticeNoBet() {

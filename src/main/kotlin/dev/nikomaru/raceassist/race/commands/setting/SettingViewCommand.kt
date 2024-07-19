@@ -56,7 +56,6 @@ class SettingViewCommand {
         sender.sendMessage("-----bet-----")
         sender.sendMessage("bet-available = ${raceData.betConfig.available}")
         sender.sendMessage("bet-returnPercent = ${raceData.betConfig.returnPercent}")
-        sender.sendMessage("bet-spreadSheetId = ${raceData.betConfig.spreadSheetId}")
         sender.sendMessage("bet-betUnit = ${raceData.betConfig.betUnit}")
 
     }

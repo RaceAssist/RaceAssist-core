@@ -25,7 +25,6 @@ data class ConfigData(
     val threshold: Int,
     val delay: Long,
     val discordWebHook: DiscordWebHook,
-    val spreadSheet: SpreadSheet,
     val recordHorse: RecordHorse,
     val webAPI: WebAPI?,
     val raceLimitMilliSecond: Long,
