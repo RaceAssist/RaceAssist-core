@@ -67,7 +67,7 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin-
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.0" }
-resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.1.1" }
+resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.1.2" }
 shadow = { id = "io.github.goooler.shadow", version = "8.1.8" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.0.0" }
