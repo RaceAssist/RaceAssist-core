@@ -23,6 +23,8 @@ import dev.nikomaru.raceassist.data.plugin.BetConfig
 import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.encodeToJsonElement
@@ -41,7 +43,7 @@ class DataManager : KoinComponent {
      * @param placeId 競技場のID
      * @param owner 競技場のオーナー
      */
-    suspend fun createPlace(placeId: String, owner: OfflinePlayer): Boolean = withContext(Dispatchers.IO) {
+    suspend fun createPlace(placeId: IdentifiablePlaceId, owner: OfflinePlayer): Boolean = withContext(Dispatchers.IO) {
         val file = File(File(plugin.dataFolder, "PlaceData"), "$placeId.json")
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
@@ -54,7 +56,7 @@ class DataManager : KoinComponent {
             PlaceConfig.PlainPlaceConfig(
                 PlaceType.PLAIN,
                 placeId,
-                placeId,
+                placeId.placeId,
                 null,
                 null,
                 null,
@@ -84,7 +86,7 @@ class DataManager : KoinComponent {
      * @param owner レースのオーナー
      */
 
-    suspend fun createRace(raceId: String, placeId: String, owner: OfflinePlayer): Boolean =
+    suspend fun createRace(raceId: IdentifiableRaceId, placeId: IdentifiablePlaceId, owner: OfflinePlayer): Boolean =
         withContext(Dispatchers.IO) {
             val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
             if (!file.parentFile.exists()) {
@@ -97,7 +99,7 @@ class DataManager : KoinComponent {
             val betConfig = BetConfig()
             val raceConfig = RaceConfig(
                 raceId = raceId,
-                raceName = raceId,
+                raceName = raceId.raceId,
                 raceImageUrl = null,
                 placeId = placeId,
                 betConfig = betConfig,
@@ -119,7 +121,7 @@ class DataManager : KoinComponent {
             return@withContext true
         }
 
-    fun deleteRace(raceId: String) {
+    fun deleteRace(raceId: IdentifiableRaceId) {
         val file = File(File(plugin.dataFolder, "RaceData"), "$raceId.json")
         if (file.exists()) {
             file.delete()

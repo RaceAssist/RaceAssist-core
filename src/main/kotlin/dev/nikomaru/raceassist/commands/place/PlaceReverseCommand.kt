@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -33,7 +34,7 @@ class PlaceReverseCommand {
     @CommandMethod("reverse <operatePlaceId>")
     fun reverse(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: IdentifiablePlaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

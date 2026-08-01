@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
 
@@ -33,7 +34,7 @@ class PlayerDeleteCommand {
     @CommandMethod("delete <operateRaceId>")
     suspend fun deletePlayer(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
 
         val raceManager = RaceAssist.api.getRaceManager(raceId)

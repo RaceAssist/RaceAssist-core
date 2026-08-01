@@ -22,6 +22,8 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import org.bukkit.command.CommandSender
 
 @CommandMethod("ra|RaceAssist setting")
@@ -31,8 +33,8 @@ class SettingPlaceIdCommand {
     @CommandMethod("placeId <operateRaceId> <placeId>")
     suspend fun setPlaceId(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
-        @Argument(value = "placeId", suggestions = SuggestionId.PLACE_ID) placeId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
+        @Argument(value = "placeId", suggestions = SuggestionId.PLACE_ID) placeId: IdentifiablePlaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return

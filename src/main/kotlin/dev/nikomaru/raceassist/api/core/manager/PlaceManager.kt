@@ -23,7 +23,8 @@ import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import dev.nikomaru.raceassist.data.plugin.CalculatePolygon
 import dev.nikomaru.raceassist.data.plugin.PlaceConfig
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -38,10 +39,10 @@ import java.awt.Polygon
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
-sealed class PlaceManager(val placeId: String) : KoinComponent {
+sealed class PlaceManager(val placeId: IdentifiablePlaceId) : KoinComponent {
     val plugin: RaceAssist by inject()
 
-    class PlainPlaceManager(placeId: String) : PlaceManager(placeId) {
+    class PlainPlaceManager(placeId: IdentifiablePlaceId) : PlaceManager(placeId) {
 
         init {
             runBlocking {
@@ -337,11 +338,11 @@ sealed class PlaceManager(val placeId: String) : KoinComponent {
         }
 
         companion object {
-            val plainPlaceConfig: HashMap<String, PlaceConfig.PlainPlaceConfig> = HashMap()
+            val plainPlaceConfig: HashMap<IdentifiablePlaceId, PlaceConfig.PlainPlaceConfig> = HashMap()
         }
     }
 
-    class PlaneVectorPlaceManager(placeId: String) : PlaceManager(placeId) {
+    class PlaneVectorPlaceManager(placeId: IdentifiablePlaceId) : PlaceManager(placeId) {
         init {
             runBlocking {
                 planeVectorPlaceConfig[placeId] = RaceUtils.getPlaneVectorPlaceConfig(placeId)
@@ -567,7 +568,7 @@ sealed class PlaceManager(val placeId: String) : KoinComponent {
         }
 
         companion object {
-            private val planeVectorPlaceConfig: HashMap<String, PlaceConfig.PlaneVectorPlaceConfig> = HashMap()
+            private val planeVectorPlaceConfig: HashMap<IdentifiablePlaceId, PlaceConfig.PlaneVectorPlaceConfig> = HashMap()
         }
     }
 

@@ -17,7 +17,10 @@
 
 package dev.nikomaru.raceassist.utils
 
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.utils.coroutines.async
+import dev.nikomaru.raceassist.utils.lang.Lang
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
@@ -49,13 +52,13 @@ import kotlin.math.min
 
 object Utils {
 
-    val audience: HashMap<String, ArrayList<UUID>> = HashMap()
+    val audience: HashMap<IdentifiableRaceId, ArrayList<UUID>> = HashMap()
     val canSetInsideCircuit = HashMap<UUID, Boolean>()
     val canSetOutsideCircuit = HashMap<UUID, Boolean>()
-    val circuitPlaceId = HashMap<UUID, String>()
+    val circuitPlaceId = HashMap<UUID, IdentifiablePlaceId>()
     val canSetCentral = HashMap<UUID, Boolean>()
-    val centralPlaceId = HashMap<UUID, String>()
-    var stop = HashMap<String, Boolean>()
+    val centralPlaceId = HashMap<UUID, IdentifiablePlaceId>()
+    var stop = HashMap<IdentifiableRaceId, Boolean>()
     lateinit var mapColor: Properties
 
     suspend fun displayLap(currentLap: Int?, beforeLap: Int?, player: Player, lap: Int) {

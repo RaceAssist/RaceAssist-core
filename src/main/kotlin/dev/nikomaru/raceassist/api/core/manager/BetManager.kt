@@ -25,9 +25,10 @@ import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.files.RaceUtils.getRaceConfig
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import dev.nikomaru.raceassist.data.plugin.BetConfig
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.event.LogDataType
 import dev.nikomaru.raceassist.event.bet.BetEvent
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.web.api.BetError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -41,7 +42,7 @@ import org.koin.core.component.inject
 import java.time.LocalDateTime
 import java.util.*
 
-class BetManager(val raceId: String) : KoinComponent {
+class BetManager(val raceId: IdentifiableRaceId) : KoinComponent {
     val plugin: RaceAssist by inject()
 
 
@@ -200,7 +201,7 @@ class BetManager(val raceId: String) : KoinComponent {
 
         transaction {
             BetList.insert { bet ->
-                bet[raceId] = this@BetManager.raceId
+                bet[raceId] = this@BetManager.raceId.raceId
                 bet[playerUniqueId] = player.uniqueId.toString()
                 bet[jockeyUniqueId] = jockey.uniqueId.toString()
                 bet[betting] = price
@@ -240,7 +241,7 @@ class BetManager(val raceId: String) : KoinComponent {
     }
 
     companion object {
-        val betConfig = hashMapOf<String, BetConfig>()
+        val betConfig = hashMapOf<IdentifiableRaceId, BetConfig>()
     }
 
 }

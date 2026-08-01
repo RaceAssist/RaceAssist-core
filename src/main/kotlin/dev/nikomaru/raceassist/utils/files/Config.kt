@@ -23,6 +23,7 @@ import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
+import dev.nikomaru.raceassist.web.api.WebAPI
 
 object Config : KoinComponent {
     val plugin: RaceAssist by inject()

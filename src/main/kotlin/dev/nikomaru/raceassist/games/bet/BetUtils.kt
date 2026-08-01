@@ -22,7 +22,8 @@ import dev.nikomaru.raceassist.games.bet.data.TempBetData
 import dev.nikomaru.raceassist.games.bet.gui.BetGui.Companion.AllPlayers
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.BetListData
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
@@ -44,10 +45,10 @@ object BetUtils {
 
     val tempBetDataList = ArrayList<TempBetData>()
 
-    suspend fun deleteBetData(raceId: String): ArrayList<BetListData> {
+    suspend fun deleteBetData(raceId: IdentifiableRaceId): ArrayList<BetListData> {
         val list = arrayListOf<BetListData>()
         newSuspendedTransaction {
-            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId.raceId }.forEach {
                 list.add(
                     BetListData(
                         it[BetList.rowUniqueId].toUUID(),
@@ -60,7 +61,7 @@ object BetUtils {
             }
         }
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.deleteWhere { BetList.raceId eq raceId }
+            BetList.deleteWhere { BetList.raceId eq raceId.raceId }
 
         }
         return list
@@ -72,16 +73,16 @@ object BetUtils {
         removeList.forEach { tempBetDataList.remove(it) }
     }
 
-    fun initializePlayerTempBetData(raceId: String, sender: Player) {
+    fun initializePlayerTempBetData(raceId: IdentifiableRaceId, sender: Player) {
         AllPlayers[raceId]?.forEach { jockey ->
             tempBetDataList.add(TempBetData(raceId, sender, jockey, 0))
         }
     }
 
-    suspend fun listBetData(raceId: String): ArrayList<BetListData> {
+    suspend fun listBetData(raceId: IdentifiableRaceId): ArrayList<BetListData> {
         val list = arrayListOf<BetListData>()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId.raceId }.forEach {
                 list.add(
                     BetListData(
                         it[BetList.rowUniqueId].toUUID(),
@@ -96,24 +97,24 @@ object BetUtils {
         return list
     }
 
-    suspend fun getBetSum(raceId: String) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.selectAll().where { BetList.raceId eq raceId }.sumOf {
+    suspend fun getBetSum(raceId: IdentifiableRaceId) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.selectAll().where { BetList.raceId eq raceId.raceId }.sumOf {
             it[BetList.betting]
         }
     }
 
-    suspend fun getJockeyBetSum(raceId: String, jockey: OfflinePlayer) = newSuspendedTransaction(Dispatchers.IO) {
+    suspend fun getJockeyBetSum(raceId: IdentifiableRaceId, jockey: OfflinePlayer) = newSuspendedTransaction(Dispatchers.IO) {
         BetList.selectAll()
-            .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
+            .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId.raceId) }
             .sumOf { it[BetList.betting] }
     }
 
-    suspend fun getRowBet(raceId: String, row: UUID) = newSuspendedTransaction(Dispatchers.IO) {
-        BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+    suspend fun getRowBet(raceId: IdentifiableRaceId, row: UUID) = newSuspendedTransaction(Dispatchers.IO) {
+        BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId.raceId) }
             .sumOf { it[BetList.betting] }
     }
 
-    fun playerCanPay(raceId: String, amount: Int, executor: CommandSender): Boolean {
+    fun playerCanPay(raceId: IdentifiableRaceId, amount: Int, executor: CommandSender): Boolean {
         val raceManager = RaceAssist.api.getRaceManager(raceId) ?: return false
         val betManager = RaceAssist.api.getBetManager(raceId) ?: return false
         val owner = raceManager.getOwner()
@@ -129,14 +130,14 @@ object BetUtils {
     }
 
     //払い戻し
-    suspend fun payDividend(jockey: OfflinePlayer, raceId: String, sender: CommandSender, locale: Locale) {
+    suspend fun payDividend(jockey: OfflinePlayer, raceId: IdentifiableRaceId, sender: CommandSender, locale: Locale) {
         val odds = getOdds(raceId, jockey)
         val betManager = RaceAssist.api.getBetManager(raceId) ?: return sender.sendMessage("レースが存在しません")
         val beforeAmount = betManager.getBalance()
         sender.sendRichMessage("<green>払い戻し開始 <yellow>銀行残高: $beforeAmount")
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.selectAll()
-                .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId) }
+                .where { (BetList.jockeyUniqueId eq jockey.uniqueId.toString()) and (BetList.raceId eq raceId.raceId) }
                 .forEach {
                     val returnAmount = it[BetList.betting] * odds
                     val returnPlayer = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
@@ -155,7 +156,7 @@ object BetUtils {
                         )
                     )
                 }
-            BetList.deleteWhere { BetList.raceId eq raceId }
+            BetList.deleteWhere { BetList.raceId eq raceId.raceId }
             val afterAmount = betManager.getBalance()
             val owner = RaceAssist.api.getRaceManager(raceId)!!.getOwner()
             sender.sendRichMessage("<green>払い戻し完了 <yellow>利益: $afterAmount が owner: ${owner.name} に振り込まれました")
@@ -164,7 +165,7 @@ object BetUtils {
         }
     }
 
-    suspend fun getOdds(raceId: String, jockey: OfflinePlayer): Double {
+    suspend fun getOdds(raceId: IdentifiableRaceId, jockey: OfflinePlayer): Double {
         val sum = getBetSum(raceId)
         val jockeySum = if (getJockeyBetSum(raceId, jockey) == 0) 0.0001 else getJockeyBetSum(raceId, jockey).toDouble()
         val rate = RaceAssist.api.getBetManager(raceId)!!.getReturnPercent().toDouble() / 100

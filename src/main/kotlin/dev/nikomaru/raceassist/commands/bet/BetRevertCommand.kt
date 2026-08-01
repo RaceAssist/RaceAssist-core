@@ -15,14 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.games.bet.commands
 
 import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.bet.BetUtils
+import dev.nikomaru.raceassist.games.bet.BetUtils
 import dev.nikomaru.raceassist.data.database.BetList
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.SuggestionId
+import dev.nikomaru.raceassist.utils.lang.Lang
+import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
 import dev.nikomaru.raceassist.utils.Utils.toUUID
@@ -48,7 +50,7 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnRow(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "uuid", suggestions = "betUniqueId") uuid: String
     ) {
         val row = uuid.toUUID()
@@ -64,7 +66,7 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnPlayer(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
@@ -88,7 +90,7 @@ class BetRevertCommand {
     @Confirmation
     suspend fun returnAll(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return
         if (!BetUtils.playerCanPay(raceId, BetUtils.getBetSum(raceId), sender)) return
@@ -96,12 +98,12 @@ class BetRevertCommand {
         sender.sendMessage(Lang.getComponent("bet-revert-complete-message", sender.locale()))
     }
 
-    private suspend fun revertAllBet(raceId: String, executor: CommandSender) {
+    private suspend fun revertAllBet(raceId: IdentifiableRaceId, executor: CommandSender) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)!!
         val betManager = RaceAssist.api.getBetManager(raceId)!!
         val owner = raceManager.getOwner()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.selectAll().where { BetList.raceId eq raceId }.forEach {
+            BetList.selectAll().where { BetList.raceId eq raceId.raceId }.forEach {
                 val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                 val uniqueId = UUID.randomUUID()
                 betManager.depositToPlayer(receiver, it[BetList.betting].toDouble(), uniqueId)
@@ -115,17 +117,17 @@ class BetRevertCommand {
                 )
                 sendRevertMessage(receiver, owner, it)
             }
-            BetList.deleteWhere { BetList.raceId eq raceId }
+            BetList.deleteWhere { BetList.raceId eq raceId.raceId }
         }
     }
 
-    private suspend fun returnPlayerBet(raceId: String, jockey: OfflinePlayer, executor: CommandSender) {
+    private suspend fun returnPlayerBet(raceId: IdentifiableRaceId, jockey: OfflinePlayer, executor: CommandSender) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)!!
         val betManager = RaceAssist.api.getBetManager(raceId)!!
         val owner = raceManager.getOwner()
         newSuspendedTransaction(Dispatchers.IO) {
             BetList.selectAll()
-                .where { (BetList.raceId eq raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
+                .where { (BetList.raceId eq raceId.raceId) and (BetList.playerUniqueId eq jockey.uniqueId.toString()) }
                 .forEach {
                     val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                     val uniqueId = UUID.randomUUID()
@@ -140,17 +142,17 @@ class BetRevertCommand {
                     )
                     sendRevertMessage(receiver, owner, it)
                 }
-            BetList.deleteWhere { (BetList.raceId eq raceId) and (playerUniqueId eq jockey.uniqueId.toString()) }
+            BetList.deleteWhere { (BetList.raceId eq raceId.raceId) and (playerUniqueId eq jockey.uniqueId.toString()) }
         }
     }
 
-    private suspend fun returnRowBet(row: UUID, raceId: String, executor: CommandSender) {
+    private suspend fun returnRowBet(row: UUID, raceId: IdentifiableRaceId, executor: CommandSender) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)!!
         val betManager = RaceAssist.api.getBetManager(raceId)!!
         val owner = raceManager.getOwner()
         val locale = executor.locale()
         newSuspendedTransaction(Dispatchers.IO) {
-            BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+            BetList.selectAll().where { (BetList.rowUniqueId eq row.toString()) and (BetList.raceId eq raceId.raceId) }
                 .forEach {
                     val receiver = Bukkit.getOfflinePlayer(it[BetList.playerUniqueId].toUUID())
                     val uniqueId = UUID.randomUUID()
@@ -165,7 +167,7 @@ class BetRevertCommand {
                     )
                     sendRevertMessage(receiver, owner, it)
                 }
-            BetList.deleteWhere { (rowUniqueId eq row.toString()) and (BetList.raceId eq raceId) }
+            BetList.deleteWhere { (rowUniqueId eq row.toString()) and (BetList.raceId eq raceId.raceId) }
         }
     }
 

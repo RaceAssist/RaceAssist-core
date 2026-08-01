@@ -18,11 +18,12 @@
 package dev.nikomaru.raceassist.games.race
 
 import com.github.michaelbull.result.Result
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.games.race.error.PlaceSettingError
 import dev.nikomaru.raceassist.games.race.error.RaceSettingError
 import org.bukkit.command.CommandSender
 
-class PlaneVectorRaceJudgement(override val raceId: String, override val executor: CommandSender) :
+class PlaneVectorRaceJudgement(override val raceId: IdentifiableRaceId, override val executor: CommandSender) :
     RaceJudgement(raceId, executor) {
     override suspend fun raceSetting(): Result<Unit, RaceSettingError> {
         TODO("Not yet implemented")

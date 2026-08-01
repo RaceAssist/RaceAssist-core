@@ -18,6 +18,8 @@
 package dev.nikomaru.raceassist.api.core
 
 import dev.nikomaru.raceassist.api.core.manager.*
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 
 /**
  * 各種マネージャーを取得します。
@@ -29,7 +31,7 @@ interface RaceAssistAPI {
      * @param raceId レースID
      */
 
-    fun getBetManager(raceId: String): BetManager?
+    fun getBetManager(placeId: IdentifiableRaceId): BetManager?
 
     /**
      * Horseマネージャーを取得します。
@@ -43,7 +45,7 @@ interface RaceAssistAPI {
      * @param placeId PlaceId
      */
 
-    fun getPlaceManager(placeId: String): PlaceManager?
+    fun getPlaceManager(placeId: IdentifiablePlaceId): PlaceManager?
 
 
     /**
@@ -51,7 +53,7 @@ interface RaceAssistAPI {
      * @param raceId raceId
      */
 
-    fun getRaceManager(raceId: String): RaceManager?
+    fun getRaceManager(raceId: IdentifiableRaceId): RaceManager?
 
     /**
      * Webマネージャーを取得します。
@@ -66,5 +68,5 @@ interface RaceAssistAPI {
     fun getDataManager(): DataManager
 
 
-    fun getPlaceType(placeId: String): PlaceType?
+    fun getPlaceType(placeId: IdentifiablePlaceId): PlaceType?
 }

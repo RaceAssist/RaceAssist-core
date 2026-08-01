@@ -19,7 +19,7 @@ package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.utils.json
-import dev.nikomaru.raceassist.horse.data.HorseData
+import dev.nikomaru.raceassist.games.horse.data.HorseData
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

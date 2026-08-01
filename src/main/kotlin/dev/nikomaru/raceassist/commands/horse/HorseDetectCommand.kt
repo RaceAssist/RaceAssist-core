@@ -18,8 +18,8 @@
 package dev.nikomaru.raceassist.commands.horse
 
 import cloud.commandframework.annotations.CommandMethod
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.isMatchStatus
-import dev.nikomaru.raceassist.horse.utlis.HorseUtils.saveData
+import dev.nikomaru.raceassist.games.horse.utlis.HorseUtils.isMatchStatus
+import dev.nikomaru.raceassist.games.horse.utlis.HorseUtils.saveData
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

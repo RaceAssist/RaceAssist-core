@@ -18,7 +18,7 @@
 package dev.nikomaru.raceassist.api.core.manager
 
 import dev.nikomaru.raceassist.data.database.UserAuthData
-import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.utils.files.Config
 import dev.nikomaru.raceassist.utils.Utils.toUUID
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

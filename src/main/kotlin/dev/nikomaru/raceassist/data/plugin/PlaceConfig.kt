@@ -21,6 +21,7 @@ import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.utils.OfflinePlayerSerializer
 import dev.nikomaru.raceassist.data.utils.PlaceConfigSerializer
 import dev.nikomaru.raceassist.data.utils.PolygonSerializer
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import kotlinx.serialization.Serializable
 import org.bukkit.OfflinePlayer
 import java.awt.Polygon
@@ -28,7 +29,7 @@ import java.awt.Polygon
 @Serializable(with = PlaceConfigSerializer::class)
 sealed class PlaceConfig {
     abstract val placeType: PlaceType
-    abstract val placeId: String
+    abstract val placeId: IdentifiablePlaceId
     abstract val placeName: String?
     abstract val placeImageUrl: String?
     abstract val owner: OfflinePlayer
@@ -37,7 +38,7 @@ sealed class PlaceConfig {
     @Serializable
     data class PlainPlaceConfig(
         override val placeType: PlaceType = PlaceType.PLAIN,
-        override val placeId: String,
+        override val placeId: IdentifiablePlaceId,
         override val placeName: String?,
         override val placeImageUrl: String?,
         val centralX: Int?,
@@ -54,7 +55,7 @@ sealed class PlaceConfig {
     @Serializable
     data class PlaneVectorPlaceConfig(
         override val placeType: PlaceType = PlaceType.PLANE_VECTOR,
-        override val placeId: String,
+        override val placeId: IdentifiablePlaceId,
         override val placeName: String?,
         override val placeImageUrl: String?,
         val inside: @Serializable(with = PolygonSerializer::class) Polygon,

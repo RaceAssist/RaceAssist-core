@@ -31,43 +31,55 @@ import dev.nikomaru.raceassist.api.VaultAPI
 import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.api.core.RaceAssistAPI
 import dev.nikomaru.raceassist.api.core.manager.*
-import dev.nikomaru.raceassist.bet.commands.*
+import dev.nikomaru.raceassist.commands.HelpCommand
+import dev.nikomaru.raceassist.commands.ReloadCommand
+import dev.nikomaru.raceassist.commands.audience.AudienceJoinCommand
+import dev.nikomaru.raceassist.commands.audience.AudienceLeaveCommand
+import dev.nikomaru.raceassist.commands.audience.AudienceListCommand
+import dev.nikomaru.raceassist.games.bet.commands.*
 import dev.nikomaru.raceassist.data.database.BetList
 import dev.nikomaru.raceassist.data.database.UserAuthData
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.files.Config
-import dev.nikomaru.raceassist.horse.commands.HorseDetectCommand
-import dev.nikomaru.raceassist.horse.commands.OwnerDeleteCommand
-import dev.nikomaru.raceassist.horse.events.HorseBreedEvent
-import dev.nikomaru.raceassist.horse.events.HorseKillEvent
-import dev.nikomaru.raceassist.horse.events.HorseTamedEvent
-import dev.nikomaru.raceassist.race.commands.HelpCommand
-import dev.nikomaru.raceassist.race.commands.ReloadCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceJoinCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceLeaveCommand
-import dev.nikomaru.raceassist.race.commands.audience.AudienceListCommand
-import dev.nikomaru.raceassist.race.commands.place.*
-import dev.nikomaru.raceassist.race.commands.player.*
-import dev.nikomaru.raceassist.race.commands.race.RaceDebugCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceHorseCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceStartCommand
-import dev.nikomaru.raceassist.race.commands.race.RaceStopCommand
-import dev.nikomaru.raceassist.race.commands.setting.*
-import dev.nikomaru.raceassist.race.event.SetCentralPointEvent
-import dev.nikomaru.raceassist.race.event.SetInsideCircuitEvent
-import dev.nikomaru.raceassist.race.event.SetOutsideCircuitEvent
-import dev.nikomaru.raceassist.utils.CommandSuggestions
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.TestCommand
+import dev.nikomaru.raceassist.utils.files.Config
+import dev.nikomaru.raceassist.commands.horse.HorseDetectCommand
+import dev.nikomaru.raceassist.commands.horse.OwnerDeleteCommand
+import dev.nikomaru.raceassist.commands.place.PlaceCentralCommand
+import dev.nikomaru.raceassist.commands.place.PlaceCreateCommand
+import dev.nikomaru.raceassist.commands.place.PlaceDegreeCommand
+import dev.nikomaru.raceassist.commands.place.PlaceFinishCommand
+import dev.nikomaru.raceassist.commands.place.PlaceReverseCommand
+import dev.nikomaru.raceassist.commands.place.PlaceSetCommand
+import dev.nikomaru.raceassist.commands.place.PlaceStaffCommand
+import dev.nikomaru.raceassist.commands.player.PlayerAddCommand
+import dev.nikomaru.raceassist.commands.player.PlayerDeleteCommand
+import dev.nikomaru.raceassist.commands.player.PlayerListCommand
+import dev.nikomaru.raceassist.commands.player.PlayerRemoveCommand
+import dev.nikomaru.raceassist.commands.player.PlayerReplacementCommand
+import dev.nikomaru.raceassist.commands.race.RaceDebugCommand
+import dev.nikomaru.raceassist.commands.race.RaceHorseCommand
+import dev.nikomaru.raceassist.commands.race.RaceStartCommand
+import dev.nikomaru.raceassist.commands.race.RaceStopCommand
+import dev.nikomaru.raceassist.games.horse.events.HorseBreedEvent
+import dev.nikomaru.raceassist.games.horse.events.HorseKillEvent
+import dev.nikomaru.raceassist.games.horse.events.HorseTamedEvent
+
+import dev.nikomaru.raceassist.commands.race.*
+import dev.nikomaru.raceassist.commands.setting.*
+import dev.nikomaru.raceassist.event.place.SetCentralPointEvent
+import dev.nikomaru.raceassist.event.place.SetInsideCircuitEvent
+import dev.nikomaru.raceassist.event.place.SetOutsideCircuitEvent
+import dev.nikomaru.raceassist.utils.lang.Lang
+import dev.nikomaru.raceassist.commands.utils.TestCommand
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.client
+import dev.nikomaru.raceassist.utils.coroutines.DispatcherContainer.async
 import dev.nikomaru.raceassist.utils.coroutines.async
-import dev.nikomaru.raceassist.web.WebCommand
 import dev.nikomaru.raceassist.web.api.WebAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.bukkit.Server
 import org.bukkit.command.CommandSender
 import org.jetbrains.exposed.sql.Database
@@ -87,7 +99,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     private val injectServer: Server by inject()
     private var webServerIsStarted = false
 
-    @OptIn(ExperimentalSerializationApi::class)
     override suspend fun onEnableAsync() {
         // Plugin startup logic
         api = this
@@ -202,7 +213,6 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
         }.installCoroutineSupport()
 
         with(annotationParser) {
-            parse(CommandSuggestions())
 
             parse(AudienceJoinCommand())
             parse(AudienceLeaveCommand())
@@ -253,11 +263,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             parse(TestCommand())
 
         }
-        if (Config.config.webAPI != null) {
-            with(annotationParser) {
-                parse(WebCommand())
-            }
-        }
+
         val helpCommand = HelpCommand()
         helpCommand.registerFeature(plugin, annotationParser)
         logger.info("command is registered")
@@ -279,7 +285,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
             private set
     }
 
-    override fun getBetManager(raceId: String): BetManager? {
+    override fun getBetManager(raceId: IdentifiableRaceId): BetManager? {
         if (!RaceUtils.existsRace(raceId)) return null
         return BetManager(raceId)
     }
@@ -288,8 +294,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
         return HorseManager()
     }
 
-
-    override fun getPlaceManager(placeId: String): PlaceManager? {
+    override fun getPlaceManager(placeId: IdentifiablePlaceId): PlaceManager? {
         if (!RaceUtils.existsPlace(placeId)) return null
         if (RaceUtils.getPlaceType(placeId) == PlaceType.PLAIN) return PlaceManager.PlainPlaceManager(placeId)
         if (RaceUtils.getPlaceType(placeId) == PlaceType.PLANE_VECTOR) return PlaceManager.PlaneVectorPlaceManager(
@@ -299,7 +304,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
     }
 
 
-    override fun getRaceManager(raceId: String): RaceManager? {
+    override fun getRaceManager(raceId: IdentifiableRaceId): RaceManager? {
         if (!RaceUtils.existsRace(raceId)) return null
         return RaceManager(raceId)
     }
@@ -314,7 +319,7 @@ open class RaceAssist : SuspendingJavaPlugin(), RaceAssistAPI, KoinComponent {
         return DataManager()
     }
 
-    override fun getPlaceType(placeId: String): PlaceType? {
+    override fun getPlaceType(placeId: IdentifiablePlaceId): PlaceType? {
         return RaceUtils.getPlaceType(placeId)
     }
 

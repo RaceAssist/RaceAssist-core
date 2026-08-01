@@ -25,6 +25,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import dev.nikomaru.raceassist.utils.Utils.canSetCentral
 import dev.nikomaru.raceassist.utils.Utils.centralPlaceId
 import org.bukkit.command.CommandSender
@@ -37,7 +38,7 @@ class PlaceCentralCommand {
     @CommandDescription("そのコースの中心点を設定します")
     suspend fun central(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: IdentifiablePlaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.Confirmation
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -33,7 +34,7 @@ class SettingDeleteCommand {
     @Confirmation
     suspend fun delete(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

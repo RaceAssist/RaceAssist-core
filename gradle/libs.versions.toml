@@ -21,7 +21,7 @@ kotlinx-serialization = "1.7.1"
 kotlin-result = "2.0.0"
 gson = "2.11.0"
 koin-core = "3.5.6"
-protocolLibVersion = "5.3.0-SNAPSHOT"
+protocolLibVersion = "5.3.0"
 vault = "1.7.1"
 
 [libraries]

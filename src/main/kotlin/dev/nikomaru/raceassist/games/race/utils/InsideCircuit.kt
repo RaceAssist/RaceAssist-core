@@ -18,7 +18,9 @@ package dev.nikomaru.raceassist.games.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetInsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
 import org.bukkit.Bukkit
@@ -29,11 +31,11 @@ import java.awt.Polygon
 
 object InsideCircuit : KoinComponent {
     val plugin: RaceAssist by inject()
-    private val insidePolygonMap = HashMap<String, Polygon>()
+    private val insidePolygonMap = HashMap<IdentifiablePlaceId, Polygon>()
 
-    fun insideCircuit(player: Player, raceId: String, x: Int, z: Int) {
-        insidePolygonMap.putIfAbsent(raceId, Polygon())
-        insidePolygonMap[raceId]!!.addPoint(x, z)
+    fun insideCircuit(player: Player, placeId: IdentifiablePlaceId, x: Int, z: Int) {
+        insidePolygonMap.putIfAbsent(placeId, Polygon())
+        insidePolygonMap[placeId]!!.addPoint(x, z)
         player.sendActionBar(Lang.getComponent("to-click-next-point", player.locale(), x, z))
         canSetInsideCircuit.remove(player.uniqueId)
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {

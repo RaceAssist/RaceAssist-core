@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.games.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandDescription
@@ -23,8 +23,9 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.specifier.Range
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.SuggestionId
+import dev.nikomaru.raceassist.utils.lang.Lang
+import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.command.CommandSender
 
@@ -36,7 +37,7 @@ class BetUnitCommand {
     @CommandDescription("最小の賭け単位を設定します")
     fun setUnit(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "unit") @Range(min = "1", max = "100000") unit: Int
     ) {
         val locale = sender.locale()

@@ -15,17 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.games.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandDescription
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.bet.gui.BetGui
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.SuggestionId
+import dev.nikomaru.raceassist.games.bet.BetUtils
+import dev.nikomaru.raceassist.games.bet.gui.BetGui
+import dev.nikomaru.raceassist.utils.lang.Lang
+import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.RaceId
 import dev.nikomaru.raceassist.utils.coroutines.minecraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,7 +40,7 @@ class BetOpenCommand {
     @CommandDescription("賭けるためのGUIを表示します")
     suspend fun openVending(
         sender: CommandSender,
-        @Argument(value = "raceId", suggestions = SuggestionId.RACE_ID) raceId: String
+        @Argument(value = "raceId", suggestions = SuggestionId.RACE_ID) raceId: RaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

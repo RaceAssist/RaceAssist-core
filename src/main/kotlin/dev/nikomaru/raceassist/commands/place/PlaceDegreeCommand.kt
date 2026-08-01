@@ -24,6 +24,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.lang.Lang.sendI18nRichMessage
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -34,7 +35,7 @@ class PlaceDegreeCommand {
     @CommandMethod("degree <operatePlaceId>")
     suspend fun degree(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLAIN_PLACE_ID) placeId: String
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLAIN_PLACE_ID) placeId: IdentifiablePlaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

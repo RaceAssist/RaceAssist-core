@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -34,7 +35,7 @@ class PlayerReplacementCommand {
     @CommandMethod("replacement set <operateRaceId> <playerName> <replacement>")
     suspend fun setReplacement(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String,
         @Argument(value = "replacement") replacement: String
     ) {
@@ -51,7 +52,7 @@ class PlayerReplacementCommand {
     @CommandMethod("replacement remove <operateRaceId> <playerName>")
     suspend fun removeReplacement(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         val locale = sender.locale()

@@ -18,7 +18,8 @@ package dev.nikomaru.raceassist.games.race.utils
 
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.utils.Utils.canSetOutsideCircuit
 import dev.nikomaru.raceassist.utils.Utils.circuitPlaceId
 import org.bukkit.Bukkit
@@ -29,9 +30,9 @@ import java.awt.Polygon
 
 object OutsideCircuit : KoinComponent {
     val plugin: RaceAssist by inject()
-    private var outsidePolygonMap = HashMap<String, Polygon>()
-    private var insidePolygonMap = HashMap<String, Polygon>()
-    fun outsideCircuit(player: Player, placeId: String, x: Int, z: Int) {
+    private var outsidePolygonMap = HashMap<IdentifiablePlaceId, Polygon>()
+    private var insidePolygonMap = HashMap<IdentifiablePlaceId, Polygon>()
+    fun outsideCircuit(player: Player, placeId: IdentifiablePlaceId, x: Int, z: Int) {
         outsidePolygonMap.putIfAbsent(placeId, Polygon())
         val placeManager = RaceAssist.api.getPlaceManager(placeId) as PlaceManager.PlainPlaceManager
         insidePolygonMap.putIfAbsent(placeId, placeManager.getInside())

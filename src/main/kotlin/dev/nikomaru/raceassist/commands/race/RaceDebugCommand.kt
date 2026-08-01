@@ -25,6 +25,7 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.displayLap
 import dev.nikomaru.raceassist.utils.Utils.getRaceDegree
 import dev.nikomaru.raceassist.utils.Utils.judgeLap
@@ -54,7 +55,7 @@ class RaceDebugCommand : KoinComponent {
     @CommandMethod("debug <operateRaceId>")
     suspend fun debug(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

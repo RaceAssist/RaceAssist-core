@@ -21,9 +21,9 @@ import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.data.files.RaceUtils
-import dev.nikomaru.raceassist.utils.lang.Lang
-import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.RaceId
 import dev.nikomaru.raceassist.utils.Utils.audience
+import dev.nikomaru.raceassist.utils.lang.Lang
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -33,7 +33,7 @@ class AudienceJoinCommand {
     @CommandMethod("join <raceId>")
     suspend fun join(
         sender: CommandSender,
-        @Argument(value = "raceId", suggestions = SuggestionId.RACE_ID) raceId: String
+        @Argument(value = "raceId") raceId: RaceId
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")

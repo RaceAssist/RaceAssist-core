@@ -30,6 +30,8 @@ import dev.nikomaru.raceassist.games.race.PlainRaceJudgement
 import dev.nikomaru.raceassist.games.race.PlaneVectorRaceJudgement
 import dev.nikomaru.raceassist.games.race.RaceJudgement
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import kotlinx.coroutines.delay
 import org.bukkit.command.CommandSender
 
@@ -37,14 +39,14 @@ import org.bukkit.command.CommandSender
 class RaceStartCommand {
 
     companion object {
-        val stopPayment = hashSetOf<String>()
+        val stopPayment = hashSetOf<IdentifiableRaceId>()
     }
 
     @CommandMethod("stopPayment <operateRaceId>")
     @CommandDescription("払い戻しを停止するコマンド")
     suspend fun stopPayment(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return
@@ -59,7 +61,7 @@ class RaceStartCommand {
     @CommandDescription("レースを開始するコマンド")
     suspend fun start(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return

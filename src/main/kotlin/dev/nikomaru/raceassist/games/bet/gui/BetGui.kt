@@ -22,8 +22,9 @@ import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
 import com.github.stefvanschie.inventoryframework.pane.StaticPane
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.VaultAPI
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.games.bet.BetUtils
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.lang.Lang
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -48,11 +49,11 @@ class BetGui : KoinComponent {
     private lateinit var gui: ChestGui
     private lateinit var pane: StaticPane
     private lateinit var player: Player
-    private lateinit var raceId: String
+    private lateinit var raceId: IdentifiableRaceId
 
     private val betManager by lazy { RaceAssist.api.getBetManager(raceId)!! }
 
-    suspend fun openGui(player: Player, raceId: String) {
+    suspend fun openGui(player: Player, raceId: IdentifiableRaceId) {
         this.gui = ChestGui(5, "Shop")
         this.pane = StaticPane(0, 0, 9, 5)
         this.player = player
@@ -416,6 +417,6 @@ class BetGui : KoinComponent {
     }
 
     companion object {
-        val AllPlayers: java.util.HashMap<String, java.util.ArrayList<OfflinePlayer>> = java.util.HashMap()
+        val AllPlayers: java.util.HashMap<IdentifiableRaceId, java.util.ArrayList<OfflinePlayer>> = java.util.HashMap()
     }
 }

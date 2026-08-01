@@ -22,7 +22,9 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.data.files.RaceUtils.save
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.utils.lang.Lang
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -34,7 +36,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.*
 
-class RaceManager(val raceId: String) : KoinComponent {
+class RaceManager(val raceId: IdentifiableRaceId) : KoinComponent {
     val plugin: RaceAssist by inject()
 
 
@@ -49,7 +51,7 @@ class RaceManager(val raceId: String) : KoinComponent {
      * @param newRaceId 新しいレースID
      * @param owner 新しいレースのオーナー
      */
-    fun copyRace(newRaceId: String, owner: OfflinePlayer) {
+    fun copyRace(newRaceId: IdentifiableRaceId, owner: OfflinePlayer) {
         plugin.launch {
             withContext(Dispatchers.IO) {
                 val afterBetData = raceConfig[raceId]!!.betConfig.copy(available = false)
@@ -87,7 +89,7 @@ class RaceManager(val raceId: String) : KoinComponent {
      * @return 競技場Id
      */
 
-    fun getPlaceId(): String {
+    fun getPlaceId(): IdentifiablePlaceId {
         return raceConfig[raceId]!!.placeId
     }
 
@@ -260,7 +262,7 @@ class RaceManager(val raceId: String) : KoinComponent {
      * レースの競技場を設定します。
      * @param placeId 競技場
      */
-    fun setPlaceId(placeId: String) {
+    fun setPlaceId(placeId: IdentifiablePlaceId) {
         raceConfig[raceId] = raceConfig[raceId]!!.copy(placeId = placeId)
         save()
     }
@@ -311,7 +313,7 @@ class RaceManager(val raceId: String) : KoinComponent {
     }
 
     companion object {
-        val raceConfig = hashMapOf<String, RaceConfig>()
+        val raceConfig = hashMapOf<IdentifiableRaceId, RaceConfig>()
     }
 
 

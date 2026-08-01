@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -34,7 +35,7 @@ class SettingReplacemcntCommand {
     @CommandMethod("replacement set <operateRaceId> <playerName> <replacement>")
     suspend fun add(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String,
         @Argument(value = "replacement") replacement: String
     ) {
@@ -59,7 +60,7 @@ class SettingReplacemcntCommand {
     @CommandMethod("replacement remove <operateRaceId> <playerName>")
     suspend fun remove(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
@@ -75,7 +76,7 @@ class SettingReplacemcntCommand {
     @CommandMethod("replacement delete <operateRaceId>")
     suspend fun delete(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return
@@ -89,7 +90,7 @@ class SettingReplacemcntCommand {
     @CommandMethod("replacement list <operateRaceId>")
     suspend fun list(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return

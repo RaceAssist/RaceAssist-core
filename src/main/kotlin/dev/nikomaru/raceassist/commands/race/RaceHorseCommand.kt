@@ -21,6 +21,7 @@ import cloud.commandframework.annotations.*
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
 import dev.nikomaru.raceassist.utils.Utils.toOfflinePlayer
@@ -36,7 +37,7 @@ class RaceHorseCommand {
     @CommandMethod("add <operateRaceId>")
     suspend fun addHorse(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+        @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return
@@ -61,7 +62,7 @@ class RaceHorseCommand {
     @CommandMethod("remove <operateRaceId> <playerName>")
     suspend fun removeHorse(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         val locale = sender.locale()
@@ -76,7 +77,7 @@ class RaceHorseCommand {
     @CommandMethod("list <operateRaceId>")
     suspend fun listHorse(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return
@@ -99,7 +100,7 @@ class RaceHorseCommand {
     @CommandMethod("delete <operateRaceId>")
     suspend fun deleteHorse(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val locale = sender.locale()
         val raceManager = RaceAssist.api.getRaceManager(raceId)

@@ -22,7 +22,9 @@ import dev.nikomaru.raceassist.api.core.PlaceType
 import dev.nikomaru.raceassist.data.plugin.PlaceConfig
 import dev.nikomaru.raceassist.data.plugin.RaceConfig
 import dev.nikomaru.raceassist.data.utils.json
-import dev.nikomaru.raceassist.files.Config
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.utils.files.Config
 import dev.nikomaru.raceassist.utils.Utils
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -38,20 +40,20 @@ object RaceUtils : KoinComponent {
     private val plugin: RaceAssist by inject()
 
 
-    fun existsRace(raceId: String): Boolean {
-        val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
+    fun existsRace(raceId: IdentifiableRaceId): Boolean {
+        val file = plugin.dataFolder.resolve("RaceData").resolve("${raceId.raceId}.json")
         return file.exists()
     }
 
-    fun existsPlace(placeId: String): Boolean {
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+    fun existsPlace(placeId: IdentifiablePlaceId): Boolean {
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId.placeId}.json")
         return file.exists()
     }
 
     suspend fun RaceConfig.save() {
         val data = this
         val raceId = data.raceId
-        val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
+        val file = plugin.dataFolder.resolve("RaceData").resolve("${raceId.raceId}.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
         withContext(Dispatchers.IO) {
@@ -79,7 +81,7 @@ object RaceUtils : KoinComponent {
     suspend fun PlaceConfig.PlainPlaceConfig.save() {
         val data = this
         val placeId = data.placeId
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId.placeId}.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
         withContext(Dispatchers.IO) {
@@ -91,7 +93,7 @@ object RaceUtils : KoinComponent {
             if (editUrl.last() != '/') {
                 editUrl += "/"
             }
-            editUrl += "place/$placeId"
+            editUrl += "place/${placeId.placeId}"
 
             Utils.client.post(editUrl) {
                 contentType(ContentType.Application.Json)
@@ -107,7 +109,7 @@ object RaceUtils : KoinComponent {
     suspend fun PlaceConfig.PlaneVectorPlaceConfig.save() {
         val data = this
         val placeId = data.placeId
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId}.json")
         val json = json.encodeToJsonElement(this)
         val string = json.toString()
         withContext(Dispatchers.IO) {
@@ -119,7 +121,7 @@ object RaceUtils : KoinComponent {
             if (editUrl.last() != '/') {
                 editUrl += "/"
             }
-            editUrl += "place/$placeId"
+            editUrl += "place/$placeId.placeId"
 
             Utils.client.post(editUrl) {
                 contentType(ContentType.Application.Json)
@@ -132,23 +134,23 @@ object RaceUtils : KoinComponent {
         }
     }
 
-    suspend fun getRaceConfig(raceId: String) = withContext(Dispatchers.IO) {
-        val file = plugin.dataFolder.resolve("RaceData").resolve("$raceId.json")
+    suspend fun getRaceConfig(raceId: IdentifiableRaceId) = withContext(Dispatchers.IO) {
+        val file = plugin.dataFolder.resolve("RaceData").resolve("${raceId.raceId}.json")
         return@withContext json.decodeFromString<RaceConfig>(file.readText())
     }
 
-    suspend fun getPlainPlaceConfig(placeId: String) = withContext(Dispatchers.IO) {
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+    suspend fun getPlainPlaceConfig(placeId: IdentifiablePlaceId) = withContext(Dispatchers.IO) {
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId.placeId}.json")
         return@withContext json.decodeFromString<PlaceConfig.PlainPlaceConfig>(file.readText())
     }
 
-    suspend fun getPlaneVectorPlaceConfig(placeId: String) = withContext(Dispatchers.IO) {
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+    suspend fun getPlaneVectorPlaceConfig(placeId: IdentifiablePlaceId) = withContext(Dispatchers.IO) {
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId.placeId}.json")
         return@withContext json.decodeFromString<PlaceConfig.PlaneVectorPlaceConfig>(file.readText())
     }
 
-    fun getPlaceType(placeId: String) = runBlocking(Dispatchers.IO) {
-        val file = plugin.dataFolder.resolve("PlaceData").resolve("$placeId.json")
+    fun getPlaceType(placeId: IdentifiablePlaceId) = runBlocking(Dispatchers.IO) {
+        val file = plugin.dataFolder.resolve("PlaceData").resolve("${placeId.placeId}.json")
         val json = json.decodeFromString<PlaceConfig>(file.readText())
         when (json.placeType) {
             PlaceType.PLAIN -> PlaceType.PLAIN

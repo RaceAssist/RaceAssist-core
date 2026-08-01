@@ -23,6 +23,8 @@ import com.github.michaelbull.result.Result
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.api.core.manager.PlaceManager
 import dev.nikomaru.raceassist.api.core.manager.RaceManager
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.games.race.error.InitSettingError
 import dev.nikomaru.raceassist.games.race.error.PlaceSettingError
 import dev.nikomaru.raceassist.games.race.error.RaceSettingError
@@ -34,9 +36,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.util.*
 
-abstract class RaceJudgement(open val raceId: String, open val executor: CommandSender) {
+abstract class RaceJudgement(open val raceId: IdentifiableRaceId, open val executor: CommandSender) {
 
-    lateinit var placeId: String
+    lateinit var placeId: IdentifiablePlaceId
 
     lateinit var raceManager: RaceManager
     lateinit var plainPlaceManager: PlaceManager.PlainPlaceManager

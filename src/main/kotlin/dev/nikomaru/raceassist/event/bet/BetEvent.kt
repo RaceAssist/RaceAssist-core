@@ -17,6 +17,7 @@
 
 package dev.nikomaru.raceassist.event.bet
 
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.event.LogDataType
 import org.bukkit.OfflinePlayer
 import org.bukkit.event.Event
@@ -24,7 +25,7 @@ import org.bukkit.event.HandlerList
 
 class BetEvent(
     val type: LogDataType,
-    val raceId: String,
+    val raceId: IdentifiableRaceId,
     val executor: OfflinePlayer,
     val jockey: OfflinePlayer,
     val betAmount: Int

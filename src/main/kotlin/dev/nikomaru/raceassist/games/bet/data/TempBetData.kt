@@ -17,10 +17,11 @@
 
 package dev.nikomaru.raceassist.games.bet.data
 
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import org.bukkit.OfflinePlayer
 
 data class TempBetData(
-    val raceId: String,
+    val raceId: IdentifiableRaceId,
     val player: OfflinePlayer,
     val jockey: OfflinePlayer,
     var betPerUnit: Int

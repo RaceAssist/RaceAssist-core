@@ -27,10 +27,11 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.games.bet.BetUtils
 import dev.nikomaru.raceassist.data.utils.json
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.utils.files.Config
 import dev.nikomaru.raceassist.games.race.error.PlaceSettingError
 import dev.nikomaru.raceassist.games.race.error.RaceSettingError
-import dev.nikomaru.raceassist.utils.Lang
+import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.utils.Utils
 import dev.nikomaru.raceassist.utils.Utils.locale
 import dev.nikomaru.raceassist.utils.Utils.toLivingHorse
@@ -74,7 +75,7 @@ import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
-class PlainRaceJudgement(override val raceId: String, override val executor: CommandSender) :
+class PlainRaceJudgement(override val raceId: IdentifiableRaceId, override val executor: CommandSender) :
     RaceJudgement(raceId, executor), KoinComponent {
     val plugin: RaceAssist by inject()
 
@@ -281,7 +282,7 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
         finishJockey: ArrayList<UUID>,
         time: HashMap<UUID, Long>,
         starter: OfflinePlayer,
-        raceId: String,
+        raceId: IdentifiableRaceId,
         suspend: Boolean
     ) {
         val json = JSONObject()
@@ -372,7 +373,7 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
 
                 for (i in nowRankings.indices) {
 
-                    val playerName = replacement[nowRankings[i]] ?: Bukkit.getPlayer(nowRankings[i])?.name
+                    val playerName = Bukkit.getPlayer(nowRankings[i])?.name
 
                     val mm = MiniMessage.miniMessage()
                     if (currentDegree[Bukkit.getPlayer(nowRankings[i])!!.uniqueId] == null) {
@@ -396,13 +397,13 @@ class PlainRaceJudgement(override val raceId: String, override val executor: Com
                             Lang.getComponent("scoreboard-now-ranking-and-name", player.locale(), i + 1, playerName)
                                 .append(mm.deserialize(" "))
                                 .append(mm.deserialize(distanceMessage))
-//                        val component2 = mm.deserialize(detailMessage)
+                        val component2 = mm.deserialize(detailMessage)
 
                         val displayDegree =
                             objective.getScore(LegacyComponentSerializer.legacySection().serialize(component1))
                         displayDegree.score = nowRankings.size - i
-//                        val displayDetail =
-//                            objective.getScore(LegacyComponentSerializer.legacySection().serialize(component2))
+                        val displayDetail =
+                            objective.getScore(LegacyComponentSerializer.legacySection().serialize(component2))
                     }
                 }
                 player.scoreboard = scoreboard

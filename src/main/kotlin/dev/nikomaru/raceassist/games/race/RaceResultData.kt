@@ -19,6 +19,7 @@ package dev.nikomaru.raceassist.games.race
 
 import dev.nikomaru.raceassist.data.utils.PolygonSerializer
 import dev.nikomaru.raceassist.data.utils.UUIDSerializer
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import dev.nikomaru.raceassist.games.horse.data.KZonedDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.awt.Polygon
@@ -28,7 +29,7 @@ import java.util.*
 @Serializable
 data class RaceResultData(
     val ver: String = "1.0",
-    val raceId: String,
+    val raceId: IdentifiableRaceId,
     val administrator: String,
     val horse: HashMap<@Serializable(with = UUIDSerializer::class) UUID, @Serializable(with = UUIDSerializer::class) UUID>,
     val start: @Serializable(with = KZonedDateTimeSerializer::class) ZonedDateTime,

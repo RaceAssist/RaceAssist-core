@@ -1,12 +1,22 @@
 package dev.nikomaru.raceassist.data.value
 
 
-interface IdentifiableRaceId {
-    val raceId: String
+interface IdentifiablePlaceId{
+    val placeId: String
+}
+
+
+@JvmInline
+value class PlaceId(override val placeId: String): IdentifiablePlaceId{
+    override fun toString(): String {
+        return placeId
+    }
 }
 
 @JvmInline
-value class RaceId(override val raceId: String) : IdentifiableRaceId
+value class OperatePlaceId(override val placeId: String): IdentifiablePlaceId{
+    override fun toString(): String {
+        return placeId
+    }
+}
 
-@JvmInline
-value class OperatorId(override val raceId: String) : IdentifiableRaceId

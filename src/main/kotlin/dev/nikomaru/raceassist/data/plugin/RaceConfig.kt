@@ -19,16 +19,18 @@ package dev.nikomaru.raceassist.data.plugin
 
 import dev.nikomaru.raceassist.data.utils.OfflinePlayerSerializer
 import dev.nikomaru.raceassist.data.utils.UUIDSerializer
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
 import kotlinx.serialization.Serializable
 import org.bukkit.OfflinePlayer
 import java.util.*
 
 @Serializable
 data class RaceConfig(
-    val raceId: String,
+    val raceId: IdentifiableRaceId,
     val raceName: String,
     val raceImageUrl: String?,
-    val placeId: String,
+    val placeId: IdentifiablePlaceId,
     val betConfig: BetConfig,
     val owner: @Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer,
     val staff: ArrayList<@Serializable(with = OfflinePlayerSerializer::class) OfflinePlayer>,

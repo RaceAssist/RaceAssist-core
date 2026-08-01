@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -34,7 +35,7 @@ class SettingStaffCommand {
     @CommandMethod("staff add <operateRaceId> <playerName>")
     suspend fun addStaff(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
 
@@ -56,7 +57,7 @@ class SettingStaffCommand {
     @CommandMethod("staff remove <operateRaceId> <playerName>")
     suspend fun removeStaff(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String,
+       @Argument(value = "operateRaceId") raceId: OperateRaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
@@ -80,7 +81,7 @@ class SettingStaffCommand {
     @CommandMethod("staff list <operateRaceId>")
     suspend fun listStaff(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val raceManager = RaceAssist.api.getRaceManager(raceId)
         if (raceManager?.senderHasControlPermission(sender) != true) return

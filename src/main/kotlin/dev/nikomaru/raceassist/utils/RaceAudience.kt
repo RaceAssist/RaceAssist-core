@@ -19,6 +19,7 @@ package dev.nikomaru.raceassist.utils
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.utils.lang.Lang
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import net.kyori.adventure.text.Component.text

@@ -22,6 +22,8 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiableRaceId
+import dev.nikomaru.raceassist.data.value.RaceId
 import dev.nikomaru.raceassist.utils.Utils.audience
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -30,7 +32,7 @@ import org.bukkit.entity.Player
 class AudienceLeaveCommand {
     @CommandPermission("raceassist.commands.audience.leave")
     @CommandMethod("leave <raceId>")
-    fun leave(sender: CommandSender, @Argument(value = "raceId", suggestions = SuggestionId.RACE_ID) raceId: String) {
+    fun leave(sender: CommandSender, @Argument(value = "raceId") raceId: RaceId) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
             return

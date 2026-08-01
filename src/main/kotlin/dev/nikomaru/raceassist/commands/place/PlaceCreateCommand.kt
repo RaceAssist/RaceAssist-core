@@ -22,6 +22,8 @@ import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import cloud.commandframework.annotations.Regex
 import dev.nikomaru.raceassist.RaceAssist
+import dev.nikomaru.raceassist.data.value.CommonId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import dev.nikomaru.raceassist.utils.lang.Lang.sendI18nRichMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -33,7 +35,7 @@ class PlaceCreateCommand {
     @CommandMethod("create <placeId>")
     suspend fun reverse(
         sender: CommandSender,
-        @Argument(value = "placeId") @Regex(value = "[^_]+_\\d+$") placeId: String
+        @Argument(value = "placeId") @Regex(value = CommonId.ID_REGEX) placeId: IdentifiablePlaceId
     ) {
         if (sender !is Player) {
             sender.sendI18nRichMessage("only-player-can-do-this")

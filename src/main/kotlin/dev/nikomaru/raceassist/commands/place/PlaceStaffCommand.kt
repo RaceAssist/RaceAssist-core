@@ -23,6 +23,7 @@ import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.IdentifiablePlaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -34,7 +35,7 @@ class PlaceStaffCommand {
     @CommandMethod("staff add <operatePlaceId> <playerName>")
     fun addStaff(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String,
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: IdentifiablePlaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
 
@@ -55,7 +56,7 @@ class PlaceStaffCommand {
     @CommandMethod("staff remove <operatePlaceId> <playerName>")
     fun removeStaff(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String,
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: IdentifiablePlaceId,
         @Argument(value = "playerName", suggestions = SuggestionId.PLAYER_NAME) playerName: String
     ) {
         if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
@@ -78,7 +79,7 @@ class PlaceStaffCommand {
     @CommandMethod("staff list <operatePlaceId>")
     fun listStaff(
         sender: CommandSender,
-        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: String
+        @Argument(value = "operatePlaceId", suggestions = SuggestionId.OPERATE_PLACE_ID) placeId: IdentifiablePlaceId
     ) {
         if (RaceAssist.api.getPlaceManager(placeId)?.senderHasControlPermission(sender) != true) return
         RaceAssist.api.getPlaceManager(placeId)?.getStaffs()?.forEach {

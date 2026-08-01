@@ -126,7 +126,7 @@ sourceSets.main {
             libraries = libs.bundles.coroutines.asString()
             softDepend = listOf("Vault", "ProtocolLib")
             permissions {
-                register("RaceAssist.admin") {
+                register("raceassist.admin") {
                     default = Permission.Default.OP
                     children(
                         "raceassist.commands.audience.leave",
@@ -169,7 +169,7 @@ sourceSets.main {
                         "raceassist.command.help"
                     )
                 }
-                register("RaceAssist.user") {
+                register("raceassist.user") {
                     default = Permission.Default.TRUE
                     children(
                         "raceassist.commands.audience.join",

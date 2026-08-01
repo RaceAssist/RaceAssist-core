@@ -15,16 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.nikomaru.raceassist.bet.commands
+package dev.nikomaru.raceassist.games.bet.commands
 
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandDescription
 import cloud.commandframework.annotations.CommandMethod
 import cloud.commandframework.annotations.CommandPermission
 import dev.nikomaru.raceassist.RaceAssist
-import dev.nikomaru.raceassist.bet.BetUtils
-import dev.nikomaru.raceassist.utils.Lang
-import dev.nikomaru.raceassist.utils.SuggestionId
+import dev.nikomaru.raceassist.games.bet.BetUtils
+import dev.nikomaru.raceassist.utils.lang.Lang
+import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.OperateRaceId
 import dev.nikomaru.raceassist.utils.Utils.locale
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -36,7 +37,7 @@ class BetListCommand {
     @CommandDescription("現在賭けられている一覧を表示します")
     suspend fun list(
         sender: CommandSender,
-        @Argument(value = "operateRaceId", suggestions = SuggestionId.OPERATE_RACE_ID) raceId: String
+       @Argument(value = "operateRaceId") raceId: OperateRaceId
     ) {
         val locale = sender.locale()
         if (RaceAssist.api.getRaceManager(raceId)?.senderHasControlPermission(sender) != true) return

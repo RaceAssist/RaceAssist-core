@@ -25,6 +25,8 @@ import dev.nikomaru.raceassist.RaceAssist
 import dev.nikomaru.raceassist.data.files.RaceUtils
 import dev.nikomaru.raceassist.utils.lang.Lang
 import dev.nikomaru.raceassist.commands.utils.SuggestionId
+import dev.nikomaru.raceassist.data.value.CommonId
+import dev.nikomaru.raceassist.data.value.RaceId
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -35,11 +37,11 @@ class SettingCopyCommand {
     @CommandMethod("copy <raceId1> <raceId2>")
     suspend fun copy(
         sender: CommandSender,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(
+        @Regex(value = CommonId.ID_REGEX) @Argument(
             value = "raceId1",
             suggestions = SuggestionId.RACE_ID
-        ) raceId1: String,
-        @Regex(value = "[a-zA-Z]+-\\d+$") @Argument(value = "raceId2") raceId2: String
+        ) raceId1: RaceId,
+        @Regex(value = CommonId.ID_REGEX) @Argument(value = "raceId2") raceId2: String
     ) {
         if (sender !is Player) {
             sender.sendMessage("Only the player can do this.")
@@ -47,10 +49,10 @@ class SettingCopyCommand {
         }
         val locale = sender.locale()
 
-        if (RaceUtils.existsRace(raceId2)) {
+        if (RaceUtils.existsRace(RaceId(raceId2))) {
             sender.sendMessage(Lang.getComponent("already-used-the-name-race", locale))
             return
         }
-        RaceAssist.api.getRaceManager(raceId1)?.copyRace(raceId2, sender)
+        RaceAssist.api.getRaceManager(raceId1)?.copyRace(RaceId(raceId2), sender)
     }
 }
